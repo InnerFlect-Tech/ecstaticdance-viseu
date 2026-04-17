@@ -1,0 +1,223 @@
+<!DOCTYPE html>
+<html lang="pt">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="description" content="Galeria de fotografias das edições de Ecstatic Dance Viseu." />
+  <meta property="og:title"       content="Galeria — Ecstatic Dance Viseu" />
+  <meta property="og:type"        content="website" />
+  <meta property="og:url"         content="https://ecstaticdanceviseu.pt/galeria.html" />
+  <link rel="canonical"           href="https://ecstaticdanceviseu.pt/galeria.html" />
+  <title>Galeria — Ecstatic Dance Viseu</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;1,300;1,400;1,500&family=DM+Sans:opsz,wght@9..40,300;9..40,400;9..40,500&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="css/styles.css" />
+  <link rel="stylesheet" href="css/pages.css" />
+</head>
+<body>
+
+  <!-- NAV -->
+  <nav class="nav" id="nav">
+    <a class="nav-logo" href="index.html">
+      <svg viewBox="0 0 200 200" fill="none" aria-hidden="true">
+        <circle cx="100" cy="100" r="80" stroke="#B8924A" stroke-width="1.5"/>
+        <polygon points="100,20 175,148 25,148" fill="none" stroke="#B8924A" stroke-width="1.2"/>
+        <circle cx="100" cy="100" r="80" stroke="#B8924A" stroke-width="0.5" stroke-dasharray="3 6"/>
+        <path d="M83 122C83 122 80 108 84 97C86 91 92 87 92 80C92 74 89 69 89 69" stroke="#C4593F" stroke-width="2.8" fill="none" stroke-linecap="round"/>
+        <circle cx="89" cy="65" r="7" fill="#C4593F"/>
+        <path d="M117 122C117 122 120 108 116 97C114 91 108 87 108 80C108 74 111 69 111 69" stroke="#C4593F" stroke-width="2.8" fill="none" stroke-linecap="round"/>
+        <circle cx="111" cy="65" r="7" fill="#C4593F"/>
+        <path d="M89 92L78 83M92 91L104 81M111 92L122 83M108 91L96 81" stroke="#C4593F" stroke-width="2" fill="none" stroke-linecap="round"/>
+        <path d="M68 89C68 84 71 79 76 79C71 84 71 93 76 98C71 98 68 93 68 89Z" fill="#B8924A" opacity=".85"/>
+        <circle cx="132" cy="112" r="7" fill="none" stroke="#B8924A" stroke-width="1.3" opacity=".75"/>
+      </svg>
+      <div class="nav-logo-text">Ecstatic Dance <small>Viseu · Portugal</small></div>
+    </a>
+    <ul class="nav-links">
+      <li><a href="sobre.html">Sobre</a></li>
+      <li><a href="eventos.html">Eventos</a></li>
+      <li><a href="galeria.html" style="color:var(--gold)">Galeria</a></li>
+      <li><a href="faq.html">FAQ</a></li>
+      <li><a href="contacto.html">Contacto</a></li>
+    </ul>
+    <a href="eventos.html" class="nav-btn">Reservar — 30€</a>
+    <button class="nav-hamburger" id="menuToggle" aria-label="Abrir menu" aria-expanded="false">
+      <span></span><span></span><span></span>
+    </button>
+  </nav>
+  <div class="mobile-menu" id="mobileMenu">
+    <nav><ul>
+      <li><a href="sobre.html">Sobre</a></li><li><a href="eventos.html">Eventos</a></li>
+      <li><a href="galeria.html">Galeria</a></li><li><a href="faq.html">FAQ</a></li>
+      <li><a href="contacto.html">Contacto</a></li>
+      <li><a href="eventos.html" class="btn-primary" style="margin-top:1.5rem;display:block;text-align:center">Reservar — 30€</a></li>
+    </ul></nav>
+  </div>
+
+  <!-- PAGE HERO -->
+  <header class="page-hero" style="height:45vh">
+    <div class="page-hero-bg">
+      <img src="https://images.unsplash.com/photo-1493676304819-0d7a8d026dcf?w=1800&q=80&fit=crop" alt="" fetchpriority="high"/>
+    </div>
+    <div class="page-hero-overlay"></div>
+    <div class="breadcrumb"><a href="index.html">Início</a><span class="sep">/</span><span>Galeria</span></div>
+    <div class="page-hero-content">
+      <p class="section-eyebrow">Imagens</p>
+      <h1>O espaço<br>em imagens</h1>
+      <p>Fotografia documental. Corpos reais, momentos reais.</p>
+    </div>
+  </header>
+
+  <!-- GALERIA -->
+  <section class="content-section bone">
+    <div class="content-max-wide">
+
+      <div class="gallery-filters reveal">
+        <button class="gallery-filter-btn active" data-filter="all">Tudo</button>
+        <button class="gallery-filter-btn" data-filter="danca">Dança</button>
+        <button class="gallery-filter-btn" data-filter="espaco">Espaço</button>
+        <button class="gallery-filter-btn" data-filter="comunidade">Comunidade</button>
+        <button class="gallery-filter-btn" data-filter="detalhes">Detalhes</button>
+      </div>
+
+      <div class="gallery-masonry reveal reveal-delay-1">
+
+        <div class="gitem" data-cat="danca">
+          <img src="https://images.unsplash.com/photo-1516450360452-9312f5e86fc7?w=600&q=80&fit=crop" alt="Dança livre" loading="lazy"/>
+          <div class="gitem-caption">Presença total</div>
+        </div>
+
+        <div class="gitem" data-cat="comunidade">
+          <img src="https://images.unsplash.com/photo-1529156069898-49953e39b3ac?w=600&q=80&fit=crop" alt="Comunidade" loading="lazy"/>
+          <div class="gitem-caption">O espaço colectivo</div>
+        </div>
+
+        <div class="gitem" data-cat="danca">
+          <img src="https://images.unsplash.com/photo-1571019613454-1cb2f99b2d8b?w=600&q=80&fit=crop" alt="Movimento" loading="lazy"/>
+          <div class="gitem-caption">Corpo em movimento</div>
+        </div>
+
+        <div class="gitem" data-cat="espaco">
+          <img src="https://images.unsplash.com/photo-1516321318423-f06f85e504b3?w=600&q=80&fit=crop" alt="Espaço" loading="lazy"/>
+          <div class="gitem-caption">A pista</div>
+        </div>
+
+        <div class="gitem" data-cat="danca">
+          <img src="https://images.unsplash.com/photo-1508700115892-45ecd05ae2ad?w=600&q=80&fit=crop" alt="Dança intensa" loading="lazy"/>
+          <div class="gitem-caption">O pico</div>
+        </div>
+
+        <div class="gitem" data-cat="comunidade">
+          <img src="https://images.unsplash.com/photo-1501386761578-eac5c94b800a?w=600&q=80&fit=crop" alt="Pessoas" loading="lazy"/>
+          <div class="gitem-caption">Antes de começar</div>
+        </div>
+
+        <div class="gitem" data-cat="danca">
+          <img src="https://images.unsplash.com/photo-1547153760-18fc86324498?w=600&q=80&fit=crop" alt="Movimento colectivo" loading="lazy"/>
+          <div class="gitem-caption">Movimento partilhado</div>
+        </div>
+
+        <div class="gitem" data-cat="detalhes">
+          <img src="https://images.unsplash.com/photo-1535090042247-30387644aec5?w=600&q=80&fit=crop" alt="Detalhe" loading="lazy"/>
+          <div class="gitem-caption">Ritmo e corpo</div>
+        </div>
+
+        <div class="gitem" data-cat="espaco">
+          <img src="https://images.unsplash.com/photo-1470225620780-dba8ba36b745?w=600&q=80&fit=crop" alt="Luz e espaço" loading="lazy"/>
+          <div class="gitem-caption">Luz da noite</div>
+        </div>
+
+        <div class="gitem" data-cat="comunidade">
+          <img src="https://images.unsplash.com/photo-1523301343968-6a6ebf63c672?w=600&q=80&fit=crop" alt="Grupo" loading="lazy"/>
+          <div class="gitem-caption">O círculo</div>
+        </div>
+
+        <div class="gitem" data-cat="danca">
+          <img src="https://images.unsplash.com/photo-1516450137517-162bfbeb8dba?w=600&q=80&fit=crop" alt="Dança" loading="lazy"/>
+          <div class="gitem-caption">Abandono</div>
+        </div>
+
+        <div class="gitem" data-cat="detalhes">
+          <img src="https://images.unsplash.com/photo-1504609813442-a8924e83f76e?w=600&q=80&fit=crop" alt="Detalhe" loading="lazy"/>
+          <div class="gitem-caption">Quietude</div>
+        </div>
+
+      </div>
+
+      <!-- Nota fotografia -->
+      <div class="reveal" style="margin-top:3rem;padding-top:2rem;border-top:1px solid var(--bone-dd)">
+        <p style="font-size:.82rem;color:rgba(26,18,16,.45);font-weight:300;line-height:1.7;max-width:500px">
+          As fotografias usadas actualmente são imagens de referência (Unsplash). As fotografias reais das edições de Ecstatic Dance Viseu serão adicionadas após a primeira sessão, com consentimento dos participantes.
+        </p>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- PARALLAX + CTA -->
+  <div class="parallax-banner" style="height:40vh">
+    <img src="https://images.unsplash.com/photo-1516450360452-9312f5e86fc7?w=1800&q=80&fit=crop" alt="" loading="lazy"/>
+    <div class="parallax-text reveal">
+      <h2 style="font-size:clamp(1.4rem,3vw,2.8rem)">"Cada corpo conta<br>uma história diferente."</h2>
+      <p style="margin-top:1.5rem">
+        <a href="eventos.html" class="btn-primary">Vem dançar</a>
+      </p>
+    </div>
+  </div>
+
+  <!-- NEWSLETTER + FOOTER -->
+  <section class="newsletter-band">
+    <h2>Fica ligado ao ritmo</h2>
+    <p>Datas, histórias e playlists. Sem spam.</p>
+    <form class="newsletter-form">
+      <input type="hidden" name="access_key" value="YOUR_ACCESS_KEY" />
+      <input type="hidden" name="subject" value="Newsletter — Ecstatic Dance Viseu" />
+      <input type="checkbox" name="botcheck" style="display:none" />
+      
+      <input type="email" placeholder="O teu email" required />
+      <button type="submit">Subscrever</button>
+    </form>
+  </section>
+  <footer>
+    <div class="footer-inner">
+      <div class="footer-brand">
+        <svg width="44" height="44" viewBox="0 0 200 200" fill="none" aria-hidden="true">
+          <circle cx="100" cy="100" r="80" stroke="#B8924A" stroke-width="1.5"/>
+          <polygon points="100,20 175,148 25,148" fill="none" stroke="#B8924A" stroke-width="1.2"/>
+          <path d="M83 122C83 122 80 108 84 97C86 91 92 87 92 80C92 74 89 69 89 69" stroke="#C4593F" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+          <circle cx="89" cy="65" r="7" fill="#C4593F"/>
+          <path d="M117 122C117 122 120 108 116 97C114 91 108 87 108 80C108 74 111 69 111 69" stroke="#C4593F" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+          <circle cx="111" cy="65" r="7" fill="#C4593F"/>
+        </svg>
+        <p>Dança livre, guiada pela música. Sem passos, sem substâncias, sem performance.</p>
+      </div>
+      <div class="footer-col"><h5>Páginas</h5><ul>
+        <li><a href="index.html">Início</a></li><li><a href="sobre.html">Sobre</a></li>
+        <li><a href="eventos.html">Eventos</a></li><li><a href="galeria.html">Galeria</a></li>
+        <li><a href="faq.html">FAQ</a></li><li><a href="contacto.html">Contacto</a></li>
+      </ul></div>
+      <div class="footer-col"><h5>O evento</h5><ul>
+        <li><a href="sobre.html#o-que-e">O que é</a></li>
+        <li><a href="faq.html">FAQ</a></li>
+        <li><a href="eventos.html">Reservar</a></li>
+      </ul></div>
+      <div class="footer-col"><h5>Contacto</h5><ul>
+        <li><a href="https://instagram.com/ecstaticdanceviseu" target="_blank" rel="noopener">Instagram</a></li>
+        <li><a href="mailto:info@ecstaticdanceviseu.pt">Email</a></li>
+        <li><a href="contacto.html">Formulário</a></li>
+      </ul></div>
+    </div>
+    <div class="footer-bottom">
+      <p>© 2025 Ecstatic Dance Viseu</p>
+      <div class="footer-soc">
+        <a href="https://instagram.com/ecstaticdanceviseu" target="_blank" rel="noopener">Instagram</a>
+        <a href="mailto:info@ecstaticdanceviseu.pt">Email</a>
+      </div>
+    </div>
+  </footer>
+
+  <script type="module" src="/js/main.js"></script>
+  <script type="module" src="/js/pages.js"></script>
+</body>
+</html>

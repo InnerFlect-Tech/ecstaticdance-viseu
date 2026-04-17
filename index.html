@@ -1,0 +1,555 @@
+<!DOCTYPE html>
+<html lang="pt">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="description" content="Ecstatic Dance Viseu — Dança livre, guiada pela música. Sem passos, sem substâncias, sem performance. Um espaço contemporâneo de movimento consciente em Viseu, Portugal." />
+  <meta property="og:title"       content="Ecstatic Dance Viseu" />
+  <meta property="og:description" content="Dança sem performance. Movimento com presença. 17 Maio 2025, Viseu." />
+  <meta property="og:type"        content="website" />
+  <meta property="og:url"         content="https://ecstaticdanceviseu.pt/" />
+  <link rel="canonical"           href="https://ecstaticdanceviseu.pt/" />
+  <title>Ecstatic Dance Viseu</title>
+
+  <!-- Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;1,300;1,400;1,500&family=DM+Sans:opsz,wght@9..40,300;9..40,400;9..40,500&display=swap" rel="stylesheet" />
+
+  <!-- Main CSS -->
+  <link rel="stylesheet" href="css/styles.css" />
+</head>
+<body>
+
+  <!-- ═══════════════════════════════════════════
+       NAVIGATION
+  ════════════════════════════════════════════ -->
+  <nav class="nav" id="nav" aria-label="Navegação principal">
+    <a class="nav-logo" href="#top" aria-label="Ecstatic Dance Viseu — início">
+      <!-- Logo SVG inline so it loads instantly, no extra request -->
+      <svg viewBox="0 0 200 200" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+        <circle cx="100" cy="100" r="80" stroke="#B8924A" stroke-width="1.5"/>
+        <polygon points="100,20 175,148 25,148" fill="none" stroke="#B8924A" stroke-width="1.2"/>
+        <circle cx="100" cy="100" r="80" stroke="#B8924A" stroke-width="0.5" stroke-dasharray="3 6"/>
+        <path d="M83 122C83 122 80 108 84 97C86 91 92 87 92 80C92 74 89 69 89 69" stroke="#C4593F" stroke-width="2.8" fill="none" stroke-linecap="round"/>
+        <circle cx="89" cy="65" r="7" fill="#C4593F"/>
+        <path d="M117 122C117 122 120 108 116 97C114 91 108 87 108 80C108 74 111 69 111 69" stroke="#C4593F" stroke-width="2.8" fill="none" stroke-linecap="round"/>
+        <circle cx="111" cy="65" r="7" fill="#C4593F"/>
+        <path d="M89 92L78 83M92 91L104 81M111 92L122 83M108 91L96 81" stroke="#C4593F" stroke-width="2" fill="none" stroke-linecap="round"/>
+        <path d="M68 89C68 84 71 79 76 79C71 84 71 93 76 98C71 98 68 93 68 89Z" fill="#B8924A" opacity=".85"/>
+        <circle cx="132" cy="112" r="7" fill="none" stroke="#B8924A" stroke-width="1.3" opacity=".75"/>
+        <line x1="132" y1="101" x2="132" y2="97" stroke="#B8924A" stroke-width="1" opacity=".7"/>
+        <line x1="141" y1="104" x2="144" y2="101" stroke="#B8924A" stroke-width="1" opacity=".7"/>
+        <line x1="144" y1="112" x2="148" y2="112" stroke="#B8924A" stroke-width="1" opacity=".7"/>
+      </svg>
+      <div class="nav-logo-text">
+        Ecstatic Dance
+        <small>Viseu · Portugal</small>
+      </div>
+    </a>
+
+    <ul class="nav-links">
+      <li><a href="sobre.html">Sobre</a></li>
+      <li><a href="eventos.html">Eventos</a></li>
+      <li><a href="galeria.html">Galeria</a></li>
+      <li><a href="faq.html">FAQ</a></li>
+      <li><a href="contacto.html">Contacto</a></li>
+    </ul>
+
+    <a href="eventos.html" class="nav-btn">Reservar — 30€</a>
+    <button class="nav-hamburger" id="menuToggle" aria-label="Abrir menu" aria-expanded="false">
+      <span></span><span></span><span></span>
+    </button>
+  </nav>
+
+  <div class="mobile-menu" id="mobileMenu" aria-hidden="true">
+    <nav aria-label="Menu mobile">
+      <ul>
+        <li><a href="sobre.html">Sobre</a></li>
+        <li><a href="eventos.html">Eventos</a></li>
+        <li><a href="galeria.html">Galeria</a></li>
+        <li><a href="faq.html">FAQ</a></li>
+        <li><a href="contacto.html">Contacto</a></li>
+        <li><a href="eventos.html" class="btn-primary" style="margin-top:1.5rem;display:block;text-align:center">Reservar — 30€</a></li>
+      </ul>
+    </nav>
+  </div>
+
+
+  <!-- ═══════════════════════════════════════════
+       HERO
+  ════════════════════════════════════════════ -->
+  <section class="hero" id="top" aria-label="Hero">
+    <div class="hero-bg" aria-hidden="true">
+      <img
+        src="https://images.unsplash.com/photo-1516450360452-9312f5e86fc7?w=1800&q=85&fit=crop"
+        alt="Pessoas a dançar livremente"
+        id="heroBg"
+        fetchpriority="high"
+      />
+    </div>
+    <div class="hero-overlay" aria-hidden="true"></div>
+    <div class="hero-overlay2" aria-hidden="true"></div>
+
+    <div class="hero-content">
+      <p class="hero-tag">Viseu · Portugal · 2025</p>
+      <h1>Dança<br><em>sem passos.</em><br>Movimento<br>com presença.</h1>
+      <p class="hero-sub">Uma experiência de dança livre, guiada pela música. Sem coreografia, sem substâncias, sem performance. Aberta a todos.</p>
+      <div class="hero-actions">
+        <a href="eventos.html" class="btn-primary">Ver próximo evento</a>
+        <div class="hero-meta">
+          <strong>17 Maio 2025</strong>
+          Viseu · Entrada a partir de 30€
+        </div>
+      </div>
+    </div>
+
+    <div class="scroll-indicator" aria-hidden="true">
+      <div class="scroll-line"></div>
+      <span>scroll</span>
+    </div>
+  </section>
+
+
+  <!-- ═══════════════════════════════════════════
+       MANIFESTO
+  ════════════════════════════════════════════ -->
+  <section class="manifesto" id="manifesto">
+    <div class="manifesto-inner">
+      <p class="section-eyebrow reveal">Manifesto</p>
+      <h2 class="reveal reveal-delay-1">
+        Há algo no corpo que sabe<br>
+        <em>o que a mente ainda não percebeu.</em>
+      </h2>
+      <div class="manifesto-cols">
+        <div class="reveal reveal-delay-1">
+          <p>Ecstatic Dance Viseu é um espaço de dança contemporânea, enraizado no corpo e guiado pela música. Não é um retiro. Não é uma cerimónia espiritual. É um evento de dança — sóbrio, consciente e aberto.</p>
+          <p>A pista é um lugar de liberdade e de respeito. O DJ constrói uma jornada musical de 2 a 3 horas: da quietude ao movimento pleno, da individualidade à partilha coletiva.</p>
+        </div>
+        <div class="reveal reveal-delay-2">
+          <p>Não há passos certos, não há maneira errada de dançar. Há apenas o corpo, a música e o espaço. Ninguém está a avaliar. Ninguém está a assistir.</p>
+          <p>Chegamos descalços. Saímos diferentes — um pouco mais presentes, um pouco mais leves, um pouco mais nós próprios.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+
+  <!-- ═══════════════════════════════════════════
+       PARALLAX BANNER 1
+  ════════════════════════════════════════════ -->
+  <div class="parallax-banner" id="pb1" aria-hidden="true">
+    <img
+      src="https://images.unsplash.com/photo-1529156069898-49953e39b3ac?w=1800&q=80&fit=crop"
+      alt=""
+      id="parallaxImg1"
+    />
+    <div class="parallax-text reveal">
+      <h2>"Menos espetáculo.<br>Mais presença."</h2>
+      <p>Princípio base · Ecstatic Dance Viseu</p>
+    </div>
+  </div>
+
+
+  <!-- ═══════════════════════════════════════════
+       SPLIT: O QUE É — section 1
+  ════════════════════════════════════════════ -->
+  <section id="what" aria-label="O que é">
+
+    <div class="split">
+      <div class="split-img reveal-left">
+        <img
+          src="https://images.unsplash.com/photo-1571019613454-1cb2f99b2d8b?w=900&q=80&fit=crop"
+          alt="Pessoa em movimento livre"
+          loading="lazy"
+        />
+        <div class="split-img-overlay" aria-hidden="true"></div>
+      </div>
+      <div class="split-content">
+        <p class="section-eyebrow reveal">O que é</p>
+        <h3 class="reveal reveal-delay-1">Música como jornada.<br>Corpo como linguagem.</h3>
+        <p class="reveal reveal-delay-2">O DJ não toca músicas aleatórias. Constrói um arco narrativo — uma viagem emocional da quietude ao pico, do movimento solo ao coletivo. A música é o guia, não as instruções.</p>
+        <p class="reveal reveal-delay-3">Sem passos. Sem técnica obrigatória. O corpo move-se como quer, como precisa, como sente. É uma prática de escuta interior — não de performance exterior.</p>
+      </div>
+    </div>
+
+    <div class="split reverse">
+      <div class="split-img reveal-right">
+        <img
+          src="https://images.unsplash.com/photo-1547153760-18fc86324498?w=900&q=80&fit=crop"
+          alt="Comunidade em movimento"
+          loading="lazy"
+        />
+        <div class="split-img-overlay" aria-hidden="true"></div>
+      </div>
+      <div class="split-content light">
+        <p class="section-eyebrow reveal">Espaço sustentado</p>
+        <h3 class="reveal reveal-delay-1">Um contentor para que<br>a liberdade seja real.</h3>
+        <p class="reveal reveal-delay-2">A pista tem acordos claros: silêncio em movimento, sem substâncias, respeito pelos limites de todos. Não infantilizado — simplesmente cuidado.</p>
+        <p class="reveal reveal-delay-3">Há algo que acontece quando um grupo de pessoas se move no mesmo espaço com intenção — uma percepção de presença partilhada que é difícil de descrever e fácil de sentir.</p>
+      </div>
+    </div>
+
+  </section>
+
+
+  <!-- ═══════════════════════════════════════════
+       AGREEMENTS
+  ════════════════════════════════════════════ -->
+  <section class="agreements" id="agreements">
+    <div class="agreements-head reveal">
+      <p class="section-eyebrow">Os acordos</p>
+      <h2>O que nos mantém livres</h2>
+      <p>Os acordos não existem para limitar. Existem para criar o espaço onde a liberdade é possível.</p>
+    </div>
+
+    <div class="agreements-grid">
+      <div class="ag-item reveal">
+        <div class="ag-line"></div>
+        <h4>Descalço</h4>
+        <p>Entramos sem sapatos. O chão é partilhado por todos — física e simbolicamente.</p>
+      </div>
+      <div class="ag-item reveal reveal-delay-1">
+        <div class="ag-line"></div>
+        <h4>Sem substâncias</h4>
+        <p>Sem álcool, sem drogas. O estado alterado é natural — é a música e o movimento.</p>
+      </div>
+      <div class="ag-item reveal reveal-delay-2">
+        <div class="ag-line"></div>
+        <h4>Silêncio na pista</h4>
+        <p>Não há conversa durante a dança. A voz descansa. O corpo fala.</p>
+      </div>
+      <div class="ag-item reveal">
+        <div class="ag-line"></div>
+        <h4>Consentimento</h4>
+        <p>Toda a interação física começa com convite. Um recuo é suficiente.</p>
+      </div>
+      <div class="ag-item reveal reveal-delay-1">
+        <div class="ag-line"></div>
+        <h4>Sem telemóvel</h4>
+        <p>Sem fotografias na pista. O momento pertence a quem está presente.</p>
+      </div>
+      <div class="ag-item reveal reveal-delay-2">
+        <div class="ag-line"></div>
+        <h4>Aberto a todos</h4>
+        <p>Não é preciso saber dançar. Não há maneira certa. Basta chegar.</p>
+      </div>
+    </div>
+  </section>
+
+
+  <!-- ═══════════════════════════════════════════
+       PHOTO GRID
+  ════════════════════════════════════════════ -->
+  <div class="photo-grid" id="photos" aria-label="Galeria de momentos">
+    <div class="cell tall">
+      <img
+        src="https://images.unsplash.com/photo-1508700115892-45ecd05ae2ad?w=600&q=80&fit=crop&crop=top"
+        alt="Presença total"
+        loading="lazy"
+      />
+      <div class="photo-grid-caption">Presença total</div>
+    </div>
+    <div class="cell wide">
+      <img
+        src="https://images.unsplash.com/photo-1493676304819-0d7a8d026dcf?w=900&q=80&fit=crop"
+        alt="Pista em movimento"
+        loading="lazy"
+      />
+      <div class="photo-grid-caption">Pista em movimento</div>
+    </div>
+    <div class="cell">
+      <img
+        src="https://images.unsplash.com/photo-1535090042247-30387644aec5?w=500&q=80&fit=crop"
+        alt="Corpo e ritmo"
+        loading="lazy"
+      />
+      <div class="photo-grid-caption">Corpo e ritmo</div>
+    </div>
+    <div class="cell">
+      <img
+        src="https://images.unsplash.com/photo-1504609813442-a8924e83f76e?w=500&q=80&fit=crop"
+        alt="Quietude antes do pico"
+        loading="lazy"
+      />
+      <div class="photo-grid-caption">Quietude antes do pico</div>
+    </div>
+  </div>
+
+
+  <!-- ═══════════════════════════════════════════
+       JOURNEY
+  ════════════════════════════════════════════ -->
+  <section class="journey" id="journey">
+    <p class="section-eyebrow reveal">A jornada musical</p>
+    <div class="journey-inner">
+
+      <div>
+        <h2 class="reveal">Uma viagem de<br>2 horas e meia</h2>
+        <p class="journey-desc reveal reveal-delay-1">O DJ constrói um arco sonoro com intenção. Cada sessão tem uma narrativa — não em palavras, mas em energia, ritmo, textura e silêncio.</p>
+
+        <div class="phase reveal">
+          <div class="ph-num">I</div>
+          <div>
+            <h4>Chegada e quietude</h4>
+            <p>Música suave. O corpo estabelece-se no espaço. A mente começa a pousar.</p>
+          </div>
+        </div>
+        <div class="phase reveal reveal-delay-1">
+          <div class="ph-num">II</div>
+          <div>
+            <h4>Despertar do movimento</h4>
+            <p>O ritmo vai surgindo. O corpo encontra o seu próprio tempo.</p>
+          </div>
+        </div>
+        <div class="phase reveal reveal-delay-2">
+          <div class="ph-num">III</div>
+          <div>
+            <h4>O pico</h4>
+            <p>Intensidade plena. Ritmo, energia, presença coletiva. O corpo move-se com abandono.</p>
+          </div>
+        </div>
+        <div class="phase reveal">
+          <div class="ph-num">IV</div>
+          <div>
+            <h4>Descida e integração</h4>
+            <p>A música desacelera. O movimento torna-se suave. Aterramento.</p>
+          </div>
+        </div>
+        <div class="phase reveal reveal-delay-1">
+          <div class="ph-num">V</div>
+          <div>
+            <h4>Círculo de encerramento</h4>
+            <p>Sentamo-nos juntos em silêncio. A jornada fecha-se com intenção.</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="journey-photos reveal-right">
+        <div class="photo">
+          <img
+            src="https://images.unsplash.com/photo-1501386761578-eac5c94b800a?w=800&q=80&fit=crop"
+            alt="Pessoas reunidas"
+            loading="lazy"
+          />
+        </div>
+        <div class="photo">
+          <img
+            src="https://images.unsplash.com/photo-1523301343968-6a6ebf63c672?w=500&q=80&fit=crop"
+            alt="Movimento em grupo"
+            loading="lazy"
+          />
+        </div>
+        <div class="photo">
+          <img
+            src="https://images.unsplash.com/photo-1516450137517-162bfbeb8dba?w=500&q=80&fit=crop"
+            alt="Pista de dança"
+            loading="lazy"
+          />
+        </div>
+      </div>
+
+    </div>
+  </section>
+
+
+  <!-- ═══════════════════════════════════════════
+       KINETIC QUOTE
+  ════════════════════════════════════════════ -->
+  <section class="kinetic" aria-label="Citação">
+    <h2 class="reveal">
+      "A música não pede para dançares.<br>
+      O teu corpo simplesmente <em>responde</em>."
+    </h2>
+  </section>
+
+
+  <!-- ═══════════════════════════════════════════
+       PARALLAX BANNER 2
+  ════════════════════════════════════════════ -->
+  <div class="parallax-banner" id="pb2" aria-hidden="true">
+    <img
+      src="https://images.unsplash.com/photo-1516321318423-f06f85e504b3?w=1800&q=80&fit=crop"
+      alt=""
+      id="parallaxImg2"
+      loading="lazy"
+    />
+    <div class="parallax-text reveal">
+      <h2 style="font-size:clamp(1.4rem,3vw,2.5rem)">
+        17 Maio · Viseu<br>
+        <span style="font-style:normal;font-size:.7em;color:rgba(245,239,230,.55)">
+          Abertura às 18h30 · Dança das 19h00 às 22h30
+        </span>
+      </h2>
+      <p>Lugares limitados · Reserva obrigatória</p>
+    </div>
+  </div>
+
+
+  <!-- ═══════════════════════════════════════════
+       NEXT EVENT
+  ════════════════════════════════════════════ -->
+  <section class="event-hero" id="event" aria-label="Próximo evento">
+    <div class="event-hero-bg" aria-hidden="true">
+      <img
+        src="https://images.unsplash.com/photo-1470225620780-dba8ba36b745?w=1800&q=80&fit=crop"
+        alt=""
+        loading="lazy"
+      />
+    </div>
+
+    <div class="event-left">
+      <p class="section-eyebrow reveal">Próximo evento</p>
+      <div class="event-date-big reveal reveal-delay-1">
+        17<br>Maio
+        <span>2025 — Viseu, Portugal</span>
+      </div>
+      <div class="event-grid reveal reveal-delay-2">
+        <div class="ev-detail">
+          <label>Horário</label>
+          <strong>19h00 – 22h30</strong>
+        </div>
+        <div class="ev-detail">
+          <label>Abertura</label>
+          <strong>18h30</strong>
+        </div>
+        <div class="ev-detail">
+          <label>Formato</label>
+          <strong>Pista livre</strong>
+        </div>
+        <div class="ev-detail">
+          <label>Lugares</label>
+          <strong>Limitados</strong>
+        </div>
+      </div>
+      <div class="reveal reveal-delay-3">
+        <div class="price-row">
+          <span class="cur">€</span>
+          <span class="amt">30</span>
+          <span class="lbl">entrada geral</span>
+        </div>
+        <p class="price-note">Sliding scale disponível — se o preço for obstáculo, contacta-nos.</p>
+        <a href="mailto:info@ecstaticdanceviseu.pt" class="btn-book">Reservar o teu lugar</a>
+      </div>
+    </div>
+
+    <div class="event-right">
+      <h3 class="reveal">O que está incluído</h3>
+      <ul class="includes">
+        <li class="reveal">Jornada musical de 2h30 com DJ convidado</li>
+        <li class="reveal reveal-delay-1">Espaço aquecido com som profissional</li>
+        <li class="reveal reveal-delay-2">Chá e água disponíveis</li>
+        <li class="reveal">Círculo de abertura e encerramento</li>
+        <li class="reveal reveal-delay-1">Facilitação presente e discreta</li>
+        <li class="reveal reveal-delay-2">Espaço de descanso lateral</li>
+      </ul>
+      <div class="testimonial reveal">
+        <blockquote>"Nunca tinha dançado assim. Nem sequer sei bem o que aconteceu — só sei que saí diferente."</blockquote>
+        <cite>— Participante, edição anterior</cite>
+      </div>
+    </div>
+
+  </section>
+
+
+  <!-- ═══════════════════════════════════════════
+       ORIGINS
+  ════════════════════════════════════════════ -->
+  <section class="origins" id="origins">
+    <p class="section-eyebrow reveal">Raízes e contexto</p>
+    <div class="origins-inner">
+
+      <div>
+        <h2 class="reveal">Uma prática contemporânea<br>com raízes humanas profundas</h2>
+        <p class="reveal reveal-delay-1">O formato moderno de Ecstatic Dance surge nos anos 90 no Havai, a partir de práticas como o 5Rhythms de Gabrielle Roth. Hoje existe em mais de 100 cidades em todo o mundo — de Oakland a Berlim, de São Paulo a Lisboa.</p>
+        <p class="reveal reveal-delay-2">Mas a dança rítmica coletiva como prática humana é muito mais antiga. O que o formato moderno faz é criar um contentor contemporâneo — organizado, seguro, sóbrio — para algo que o corpo humano sempre soube fazer.</p>
+        <p class="reveal reveal-delay-3">Em Viseu, queremos trazer este formato com seriedade cultural e sem clichés. Um evento de dança. Real, humano, presente.</p>
+      </div>
+
+      <div class="reveal-right">
+        <div class="stats-grid">
+          <div class="stat-box">
+            <div class="num">100+</div>
+            <p>cidades com Ecstatic Dance ativo no mundo</p>
+          </div>
+          <div class="stat-box dark">
+            <div class="num">30+</div>
+            <p>anos de história do formato moderno</p>
+          </div>
+          <div class="stat-box dark">
+            <div class="num">2h30</div>
+            <p>de jornada musical por sessão</p>
+          </div>
+          <div class="stat-box">
+            <div class="num">0</div>
+            <p>passos obrigatórios. O corpo sabe o que fazer.</p>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </section>
+
+
+  <!-- ═══════════════════════════════════════════
+       FOOTER
+  ════════════════════════════════════════════ -->
+  <footer>
+    <div class="footer-inner">
+      <div class="footer-brand">
+        <svg width="44" height="44" viewBox="0 0 200 200" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+          <circle cx="100" cy="100" r="80" stroke="#B8924A" stroke-width="1.5"/>
+          <polygon points="100,20 175,148 25,148" fill="none" stroke="#B8924A" stroke-width="1.2"/>
+          <path d="M83 122C83 122 80 108 84 97C86 91 92 87 92 80C92 74 89 69 89 69" stroke="#C4593F" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+          <circle cx="89" cy="65" r="7" fill="#C4593F"/>
+          <path d="M117 122C117 122 120 108 116 97C114 91 108 87 108 80C108 74 111 69 111 69" stroke="#C4593F" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+          <circle cx="111" cy="65" r="7" fill="#C4593F"/>
+          <path d="M68 89C68 84 71 79 76 79C71 84 71 93 76 98C71 98 68 93 68 89Z" fill="#B8924A" opacity=".85"/>
+        </svg>
+        <p>Dança livre, guiada pela música. Sem passos, sem substâncias, sem performance. Aberta a todos em Viseu.</p>
+      </div>
+
+      <div class="footer-col">
+        <h5>Evento</h5>
+        <ul>
+          <li><a href="eventos.html">Próxima data</a></li>
+          <li><a href="mailto:info@ecstaticdanceviseu.pt">Reservar lugar</a></li>
+          <li><a href="mailto:info@ecstaticdanceviseu.pt">Sliding scale</a></li>
+        </ul>
+      </div>
+
+      <div class="footer-col">
+        <h5>Contexto</h5>
+        <ul>
+          <li><a href="sobre.html">Sobre o projecto</a></li>
+          <li><a href="galeria.html">Galeria</a></li>
+          <li><a href="faq.html">FAQ</a></li>
+        </ul>
+      </div>
+
+      <div class="footer-col">
+        <h5>Contacto</h5>
+        <ul>
+          <li><a href="https://instagram.com/ecstaticdanceviseu" target="_blank" rel="noopener">Instagram</a></li>
+          <li><a href="mailto:info@ecstaticdanceviseu.pt">Email</a></li>
+          <li><a href="contacto.html">Formulário</a></li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="footer-bottom">
+      <p>© 2025 Ecstatic Dance Viseu — Todos os direitos reservados</p>
+      <div class="footer-soc">
+        <a href="https://instagram.com/ecstaticdanceviseu" target="_blank" rel="noopener">Instagram</a>
+        <a href="https://facebook.com" target="_blank" rel="noopener">Facebook</a>
+        <a href="mailto:info@ecstaticdanceviseu.pt">Email</a>
+      </div>
+    </div>
+  </footer>
+
+
+  <!-- Main JS (deferred, non-blocking) -->
+  <script type="module" src="/js/main.js"></script>
+
+</body>
+</html>
