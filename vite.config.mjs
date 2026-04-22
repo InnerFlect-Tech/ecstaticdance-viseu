@@ -27,4 +27,12 @@ export default defineConfig({
     port: 5173,
     open: true,
   },
+
+  preview: {
+    allowedHosts: [
+      'ecstaticdance-viseu.innerflect.tech',
+      '.hetzner.innerflect.tech',
+      '.innerflect.tech',
+    ],
+  },
 })
