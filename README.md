@@ -9,9 +9,12 @@ npm install
 npm run dev       # dev server em http://localhost:5173
 npm run build     # produção em dist/
 npm run preview   # preview do build em http://localhost:4173
+npm run start     # (para Coolify/Nixpacks) preview em 0.0.0.0:$PORT (default 4173)
 ```
 
 ## Deploy no Coolify (Hetzner)
+
+### Opção A (recomendada): Dockerfile (Nginx)
 
 ### 1. Configurar o repositório
 
@@ -21,6 +24,13 @@ No Coolify, cria um novo recurso do tipo **Docker** e liga ao repositório Git.
 - **Dockerfile path**: `./Dockerfile`
 - **Porta exposta**: `80`
 - **Health check path**: `/`
+
+### Opção B: Nixpacks (Node)
+
+Se estiveres a usar **Nixpacks**, garante que existe um comando de runtime (senão o Coolify pode lançar um `bash -c` vazio e falhar). Este repo inclui:
+
+- `nixpacks.toml` com `start.cmd = "npm run start"`
+- `npm run start` a fazer `vite preview --host 0.0.0.0 --port $PORT`
 
 ### 2. Variáveis de ambiente
 
