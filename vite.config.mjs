@@ -34,6 +34,7 @@ export default defineConfig({
   preview: {
     allowedHosts: [
       'ecstaticdance-viseu.innerflect.tech',
+      'ecstaticdanceviseu.pt',
       '.hetzner.innerflect.tech',
       '.innerflect.tech',
     ],
