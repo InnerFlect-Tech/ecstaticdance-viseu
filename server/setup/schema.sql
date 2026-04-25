@@ -12,9 +12,9 @@ CREATE TABLE IF NOT EXISTS `events` (
   `title`       VARCHAR(255)     NOT NULL,
   `description` TEXT             DEFAULT NULL,
   `date`        DATE             NOT NULL,
-  `time_start`  TIME             DEFAULT '19:00:00',
-  `time_end`    TIME             DEFAULT '22:30:00',
-  `doors_open`  TIME             DEFAULT '18:30:00',
+  `time_start`  TIME             DEFAULT '16:00:00',
+  `time_end`    TIME             DEFAULT '19:00:00',
+  `doors_open`  TIME             DEFAULT '15:30:00',
   `location`    VARCHAR(255)     DEFAULT 'Viseu',
   `type`        ENUM('free','paid') NOT NULL DEFAULT 'paid',
   `capacity`    SMALLINT UNSIGNED NOT NULL DEFAULT 60,
@@ -51,11 +51,11 @@ CREATE TABLE IF NOT EXISTS `tickets` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 
--- ── Sample event (edit before going live) ──
+-- ── First event — uncomment to seed after install ──
 -- INSERT INTO `events`
 --   (title, description, date, time_start, time_end, doors_open, location, type, capacity, min_price, is_active)
 -- VALUES
 --   ('Ecstatic Dance Viseu #01',
---    'A primeira edição em Viseu. DJ convidado com jornada musical de 2h30.',
---    '2025-05-17', '19:00:00', '22:30:00', '18:30:00',
---    'Viseu (local a confirmar)', 'paid', 60, 25.00, 1);
+--    'A primeira edição em Viseu. DJ convidado com jornada musical de 3h. Dança livre, sem passos, sem performance.',
+--    '2026-05-23', '16:00:00', '19:00:00', '15:30:00',
+--    'Nua e Crua, Viseu', 'paid', 60, 25.00, 1);
