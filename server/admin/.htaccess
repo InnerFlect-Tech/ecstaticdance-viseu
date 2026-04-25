@@ -1,0 +1,19 @@
+# Prevent directory listing
+Options -Indexes
+
+# Force HTTPS
+RewriteEngine On
+RewriteCond %{HTTPS} off
+RewriteRule ^ https://%{HTTP_HOST}%{REQUEST_URI} [L,R=301]
+
+# Deny access to hidden files and auth.php directly
+<FilesMatch "^(\..*|auth\.php)$">
+    Order allow,deny
+    Deny from all
+</FilesMatch>
+
+# Optional: restrict to your IP for extra security
+# Uncomment and replace with your IP:
+# <RequireAll>
+#   Require ip 1.2.3.4
+# </RequireAll>

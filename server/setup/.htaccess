@@ -1,0 +1,4 @@
+# Block all access to setup files in production
+# Delete this entire /setup/ folder after running install.php
+Order allow,deny
+Deny from all

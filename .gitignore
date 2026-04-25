@@ -5,3 +5,6 @@ dist/
 .env.*.local
 *.DS_Store
 .vite/
+
+# Server credentials — NEVER commit this file
+server/api/config.php
