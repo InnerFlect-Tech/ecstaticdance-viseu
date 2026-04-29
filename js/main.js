@@ -5,9 +5,11 @@
 /* ─── NAV: bg on scroll ─── */
 const nav = document.getElementById('nav');
 function handleNavScroll() {
-  nav.classList.toggle('bg', window.scrollY > 80);
+  if (nav) nav.classList.toggle('bg', window.scrollY > 80);
 }
-window.addEventListener('scroll', handleNavScroll, { passive: true });
+if (nav) {
+  window.addEventListener('scroll', handleNavScroll, { passive: true });
+}
 
 /* ─── PARALLAX ─── */
 const heroBg       = document.getElementById('heroBg');

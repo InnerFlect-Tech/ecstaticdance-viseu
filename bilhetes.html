@@ -3,13 +3,14 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <meta name="description" content="Reserva o teu lugar no próximo Ecstatic Dance Viseu. Bilhetes com sliding scale a partir de 25€. Pagamento seguro por MB Way, Multibanco ou cartão." />
+  <meta name="description" content="Reserva o teu lugar no próximo Ecstatic Dance Viseu. Early bird 20€ até 3 mai; sliding scale até 200€. MB Way, Multibanco e cartão." />
   <meta property="og:title"       content="Reservar — Ecstatic Dance Viseu" />
   <meta property="og:description" content="Lugares limitados. Confirmação imediata por email com QR code." />
   <meta property="og:type"        content="website" />
-  <meta property="og:url"         content="https://ecstaticdanceviseu.pt/bilhetes.html" />
-  <link rel="canonical"           href="https://ecstaticdanceviseu.pt/bilhetes.html" />
+  <meta property="og:url"         content="https://ecstaticdanceviseu.pt/bilhetes" />
+  <link rel="canonical"           href="https://ecstaticdanceviseu.pt/bilhetes" />
   <title>Reservar — Ecstatic Dance Viseu</title>
+  <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
 
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
@@ -23,7 +24,7 @@
 
   <!-- NAV -->
   <nav class="nav" id="nav" aria-label="Navegação principal">
-    <a class="nav-logo" href="index.html" aria-label="Ecstatic Dance Viseu — início">
+    <a class="nav-logo" href="/" aria-label="Ecstatic Dance Viseu — início">
       <svg viewBox="0 0 200 200" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
         <circle cx="100" cy="100" r="80" stroke="#B8924A" stroke-width="1.5"/>
         <polygon points="100,20 175,148 25,148" fill="none" stroke="#B8924A" stroke-width="1.2"/>
@@ -43,14 +44,14 @@
     </a>
 
     <ul class="nav-links">
-      <li><a href="sobre.html">Sobre</a></li>
-      <li><a href="eventos.html">Eventos</a></li>
-      <li><a href="galeria.html">Galeria</a></li>
-      <li><a href="faq.html">FAQ</a></li>
-      <li><a href="contacto.html">Contacto</a></li>
+      <li><a href="/sobre">Sobre</a></li>
+      <li><a href="/eventos">Eventos</a></li>
+      <li><a href="/galeria">Galeria</a></li>
+      <li><a href="/faq">FAQ</a></li>
+      <li><a href="/contacto">Contacto</a></li>
     </ul>
 
-    <a href="eventos.html" class="nav-btn">Ver eventos</a>
+    <a href="/eventos" class="nav-btn">Ver eventos</a>
     <button class="nav-hamburger" id="menuToggle" aria-label="Abrir menu" aria-expanded="false">
       <span></span><span></span><span></span>
     </button>
@@ -59,12 +60,12 @@
   <div class="mobile-menu" id="mobileMenu" aria-hidden="true">
     <nav aria-label="Menu mobile">
       <ul>
-        <li><a href="sobre.html">Sobre</a></li>
-        <li><a href="eventos.html">Eventos</a></li>
-        <li><a href="galeria.html">Galeria</a></li>
-        <li><a href="faq.html">FAQ</a></li>
-        <li><a href="contacto.html">Contacto</a></li>
-        <li><a href="eventos.html" class="btn-primary" style="margin-top:1.5rem;display:block;text-align:center">Ver eventos</a></li>
+        <li><a href="/sobre">Sobre</a></li>
+        <li><a href="/eventos">Eventos</a></li>
+        <li><a href="/galeria">Galeria</a></li>
+        <li><a href="/faq">FAQ</a></li>
+        <li><a href="/contacto">Contacto</a></li>
+        <li><a href="/eventos" class="btn-primary" style="margin-top:1.5rem;display:block;text-align:center">Ver eventos</a></li>
       </ul>
     </nav>
   </div>
@@ -81,8 +82,8 @@
     </div>
     <div class="page-hero-overlay"></div>
     <div class="breadcrumb">
-      <a href="index.html">Início</a><span class="sep">/</span>
-      <a href="eventos.html">Eventos</a><span class="sep">/</span>
+      <a href="/">Início</a><span class="sep">/</span>
+      <a href="/eventos">Eventos</a><span class="sep">/</span>
       <span>Reservar</span>
     </div>
     <div class="page-hero-content">
@@ -153,7 +154,10 @@
 
             <!-- Amount picker — shown only for paid events -->
             <div class="form-group" id="amountGroup" style="display:none">
-              <label>Valor que escolhes — Sliding scale</label>
+              <label>Valor que escolhes — Sliding scale (até 200€)</label>
+              <p class="form-hint-block" id="bilhetes-early-bird" style="margin-bottom:0.75rem;border-left:3px solid var(--gold);padding-left:0.85rem" hidden>
+                <strong>Early bird:</strong> mínimo <strong>20€</strong> até 3 de maio de 2026 (inclusive, hora de Portugal). Depois, o piso passa a 25€.
+              </p>
               <div class="amount-picker">
                 <div class="amount-number">
                   <span class="amount-currency">€</span>
@@ -162,20 +166,20 @@
                 <input
                   type="range"
                   id="amountRange"
-                  min="25"
-                  max="80"
+                  min="20"
+                  max="200"
                   value="30"
                   step="5"
-                  aria-label="Escolhe o valor entre 25€ e 80€"
+                  aria-label="Escolhe o valor do bilhete"
                 />
                 <div class="amount-labels">
-                  <span>€25 — mínimo</span>
-                  <span>€80</span>
+                  <span id="bilhetes_range_min_lbl">25€ — mínimo</span>
+                  <span>200€</span>
                 </div>
               </div>
               <p class="form-hint-block">
-                Paga o que podes. O valor mínimo de 25€ sustenta o espaço e os músicos.
-                Se mesmo assim for um obstáculo, <a href="contacto.html" style="color:var(--gold)">fala connosco</a>.
+                Paga o que podes, até 200€. Com early bird, o mínimo é 20€ até 3 de maio; depois, 25€. Cada euro acima do mínimo ajuda o círculo.
+                Se mesmo assim for um obstáculo, <a href="/contacto" style="color:var(--gold)">fala connosco</a>.
               </p>
             </div>
 
@@ -187,7 +191,7 @@
             <div class="form-check">
               <input type="checkbox" id="agree" name="agree" required />
               <label for="agree">
-                Aceito os <a href="sobre.html#acordos" target="_blank">acordos da pista</a>
+                Aceito os <a href="/sobre#acordos" target="_blank">acordos da pista</a>
                 e confirmo que o bilhete é pessoal e intransmissível.
               </label>
             </div>
@@ -211,6 +215,11 @@
     </div>
   </section>
 
+  <section class="content-section dark" aria-label="Reserva manual" style="padding-top:0;padding-bottom:2.5rem">
+    <div class="content-max-wide" style="text-align:center;font-size:0.92rem;color:rgba(245,239,230,.55);line-height:1.65;max-width:36rem;margin:0 auto">
+      <p style="margin:0">Preferes <strong>reserva manual</strong> (transferência / MB Way / Revolut) ou vieste do Instagram? Usa a página dedicada <a href="/buy" style="color:var(--gold)">comprar bilhete</a>.</p>
+    </div>
+  </section>
 
   <!-- WHAT'S INCLUDED -->
   <section class="content-section bone">
@@ -233,13 +242,12 @@
             <p class="section-eyebrow" style="color:rgba(245,239,230,.45)">Sliding scale</p>
             <h3 style="font-family:'Cormorant Garamond',serif;font-size:1.6rem;font-weight:300;color:var(--bone);margin-bottom:1rem">Acesso para todos</h3>
             <p style="font-size:.92rem;color:rgba(245,239,230,.65);line-height:1.8;font-weight:300">
-              O preço mínimo é 25€. Podes escolher pagar mais — cada euro acima do mínimo
-              ajuda a garantir a próxima edição e a suportar quem não pode pagar o valor cheio.
+              <strong>Early bird</strong>: mínimo 20€ até 3 de maio de 2026; depois, 25€. Sliding scale até 200€ (de 5 em 5€). Cada euro acima do mínimo ajuda a próxima edição e quem precisa de apoio.
             </p>
             <p style="font-size:.92rem;color:rgba(245,239,230,.65);line-height:1.8;font-weight:300;margin-top:1rem">
               Se mesmo o mínimo for um obstáculo real, escreve-nos. Temos lugares de sliding scale discreto.
             </p>
-            <a href="contacto.html" class="btn-primary" style="margin-top:2rem;display:inline-block">Contactar</a>
+            <a href="/contacto" class="btn-primary" style="margin-top:2rem;display:inline-block">Contactar</a>
           </div>
         </div>
       </div>
@@ -289,18 +297,18 @@
       <div class="footer-col">
         <h5>Bilhetes</h5>
         <ul>
-          <li><a href="bilhetes.html">Reservar lugar</a></li>
-          <li><a href="eventos.html">Próximos eventos</a></li>
-          <li><a href="contacto.html">Sliding scale</a></li>
+          <li><a href="/bilhetes">Reservar lugar</a></li>
+          <li><a href="/eventos">Próximos eventos</a></li>
+          <li><a href="/contacto">Sliding scale</a></li>
         </ul>
       </div>
 
       <div class="footer-col">
         <h5>Contexto</h5>
         <ul>
-          <li><a href="sobre.html">Sobre o projecto</a></li>
-          <li><a href="faq.html">FAQ</a></li>
-          <li><a href="galeria.html">Galeria</a></li>
+          <li><a href="/sobre">Sobre o projecto</a></li>
+          <li><a href="/faq">FAQ</a></li>
+          <li><a href="/galeria">Galeria</a></li>
         </ul>
       </div>
 
@@ -309,7 +317,7 @@
         <ul>
           <li><a href="https://instagram.com/ecstaticdanceviseu" target="_blank" rel="noopener">Instagram</a></li>
           <li><a href="mailto:info@ecstaticdanceviseu.pt">Email</a></li>
-          <li><a href="contacto.html">Formulário</a></li>
+          <li><a href="/contacto">Formulário</a></li>
         </ul>
       </div>
     </div>

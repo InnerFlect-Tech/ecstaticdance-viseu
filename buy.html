@@ -1,0 +1,401 @@
+<!DOCTYPE html>
+<html lang="pt">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <meta name="description" content="Comprar bilhete Ecstatic Dance Viseu: checkout online ou reserva manual (MB Way, transferência, Revolut). Early bird e sliding scale." />
+  <meta name="robots" content="noindex" />
+  <meta name="theme-color" content="#1e2e27" />
+  <meta name="color-scheme" content="dark" />
+  <title>Comprar bilhete — Ecstatic Dance Viseu</title>
+  <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;1,300;1,400;1,500&family=DM+Sans:opsz,wght@9..40,300;9..40,400;9..40,500&display=swap" rel="stylesheet" />
+
+  <link rel="stylesheet" href="css/styles.css" />
+  <link rel="stylesheet" href="css/pages.css" />
+  <link rel="stylesheet" href="css/bilhetes.css" />
+  <link rel="stylesheet" href="css/links.css" />
+</head>
+<body id="buy-page">
+
+  <header class="links-landing-header">
+    <div class="links-landing-header-inner">
+      <a class="links-landing-mark" href="/buy#reservar" aria-label="Ecstatic Dance Viseu — ir para reserva">
+        <img
+          class="edv-mark edv-mark--links"
+          src="/images/branding/logo_white.png"
+          alt=""
+          width="200"
+          height="200"
+          decoding="async"
+          aria-hidden="true"
+        />
+      </a>
+      <span class="links-landing-site">ecstaticdanceviseu.pt</span>
+    </div>
+  </header>
+
+  <main class="links-landing-main ticket-booking-main">
+
+    <div class="ticket-booking-intro content-max-wide reveal">
+      <p class="links-hero-eyebrow">Bilhetes</p>
+      <h1 class="links-hero-title" style="margin-bottom:0.75rem">
+        <span class="links-hero-line1">Comprar bilhete</span>
+        <span class="links-hero-line2" style="display:block;font-size:clamp(1rem,2.4vw,1.25rem);margin-top:0.35rem;font-weight:400;color:rgba(245,239,230,.88)">Pagamento imediato online ou reserva manual com a equipa</span>
+      </h1>
+      <p class="links-hero-lead" style="margin:0">Data e horário do evento aparecem no painel ao lado quando carrega.</p>
+    </div>
+
+  <!-- BOOKING SECTION -->
+  <section class="content-section dark" id="reservar">
+    <div class="content-max-wide">
+      <div class="booking-layout">
+
+        <!-- Event info (left) -->
+        <div class="booking-event-info" id="eventInfo">
+          <div class="event-loading">A carregar evento…</div>
+        </div>
+
+        <!-- Booking form (right) -->
+        <div class="booking-form-panel">
+          <p class="section-eyebrow reveal" style="color:rgba(245,239,230,.4)">Reserva</p>
+          <h2 class="reveal reveal-delay-1">Preenche os<br>teus dados</h2>
+
+          <form id="bookingForm" novalidate>
+
+            <div id="formError" class="booking-error" style="display:none" role="alert"></div>
+
+            <div class="form-group">
+              <label for="name">Nome completo</label>
+              <input
+                type="text"
+                id="name"
+                name="name"
+                required
+                autocomplete="name"
+                placeholder="Como aparece no bilhete"
+              />
+            </div>
+
+            <div class="form-group">
+              <label for="email">Email</label>
+              <input
+                type="email"
+                id="email"
+                name="email"
+                required
+                autocomplete="email"
+                placeholder="Para receberes o bilhete"
+              />
+            </div>
+
+            <div class="form-group">
+              <label for="phone">
+                Telemóvel
+                <span class="form-hint">(necessário para MB Way)</span>
+              </label>
+              <input
+                type="tel"
+                id="phone"
+                name="phone"
+                required
+                autocomplete="tel"
+                placeholder="+351 9xx xxx xxx"
+              />
+            </div>
+
+            <!-- Amount picker — shown only for paid events -->
+            <div class="form-group" id="amountGroup" style="display:none">
+              <label>Valor que escolhes — Sliding scale (até 200€)</label>
+              <p class="form-hint-block" id="bilhetes-early-bird" style="margin-bottom:0.75rem;border-left:3px solid var(--gold);padding-left:0.85rem" hidden>
+                <strong>Early bird:</strong> mínimo <strong>20€</strong> até 3 de maio de 2026 (inclusive, hora de Portugal). Depois, o piso passa a 25€.
+              </p>
+              <div class="amount-picker">
+                <div class="amount-number">
+                  <span class="amount-currency">€</span>
+                  <span class="amount-value" id="amountDisplay">30</span>
+                </div>
+                <input
+                  type="range"
+                  id="amountRange"
+                  min="20"
+                  max="200"
+                  value="30"
+                  step="5"
+                  aria-label="Escolhe o valor do bilhete"
+                />
+                <div class="amount-labels">
+                  <span id="bilhetes_range_min_lbl">25€ — mínimo</span>
+                  <span>200€</span>
+                </div>
+              </div>
+              <p class="form-hint-block">
+                Paga o que podes, até 200€. Com early bird, o mínimo é 20€ até 3 de maio; depois, 25€. Cada euro acima do mínimo ajuda o círculo.
+                Se mesmo assim for um obstáculo, <a href="/contacto" style="color:var(--gold)">fala connosco</a>.
+              </p>
+            </div>
+
+            <!-- Free event badge — shown only for free events -->
+            <div class="booking-free-badge" id="freeBadge" style="display:none">
+              <span>Evento gratuito — reserva obrigatória</span>
+            </div>
+
+            <div class="form-check">
+              <input type="checkbox" id="agree" name="agree" required />
+              <label for="agree">
+                Aceito os <a href="/sobre#acordos" target="_blank">acordos da pista</a>
+                e confirmo que o bilhete é pessoal e intransmissível.
+              </label>
+            </div>
+
+            <button type="submit" class="btn-book" id="submitBtn" disabled>
+              Reservar lugar
+            </button>
+
+            <p class="booking-note" id="paidNote" style="display:none">
+              Serás redirigido para pagamento seguro.<br>
+              MB Way, Multibanco e cartão aceites.
+            </p>
+            <p class="booking-note" id="freeNote" style="display:none">
+              Receberás confirmação e código QR por email imediatamente.
+            </p>
+
+          </form>
+        </div>
+
+      </div>
+    </div>
+  </section>
+
+<section class="content-section dark links-reserva-manual lang-pt" id="reserva-manual" aria-labelledby="links-reserva-heading">
+    <div class="content-max-wide" style="padding-top:0">
+      <h2 id="links-reserva-heading" class="links-reserva-section-title reveal">
+        <span class="lang-pt">Reserva manual</span>
+        <span class="lang-en">Manual booking</span>
+      </h2>
+      <p class="links-reserva-lead reveal" role="note">
+        <span class="lang-pt">Esta secção é para quem <strong>não</strong> usa o checkout online. Preenche em dois passos; a equipa confirma em horário útil. Preferes <a href="#reservar" style="color:var(--gold)">bilhete com pagamento imediato</a>?</span>
+        <span class="lang-en">This section is for people <strong>not</strong> using the online checkout. Two steps below; we confirm during office hours. Prefer <a href="#reservar" style="color:var(--gold)">instant payment and confirmation</a>?</span>
+      </p>
+
+      <div class="lb-manual-lang links-lang" role="group" aria-label="Idioma da reserva manual / Manual language">
+        <button type="button" id="lb_lang_pt">PT</button>
+        <button type="button" id="lb_lang_en">EN</button>
+      </div>
+
+      <!-- Passo 1 -->
+      <div id="lb_step_1" class="links-form-card reveal" aria-labelledby="lb_step_1_title">
+        <p class="links-step-badge"><span class="lang-pt">1 — Pedido</span><span class="lang-en">1 — Request</span></p>
+        <h2 id="lb_step_1_title" class="links-step-heading reveal" style="font-family:'Cormorant Garamond',serif;font-weight:300;font-size:1.75rem;color:var(--bone);margin:0 0 1.25rem">
+          <span class="lang-pt">Dados e montante</span>
+          <span class="lang-en">Details and amount</span>
+        </h2>
+        <form id="lb_booking_form" novalidate>
+          <input type="hidden" name="event_slug" id="lb_event_slug" value="edv-2026-05-23" />
+          <div class="field">
+            <label for="lb_name"><span class="lang-pt">Nome</span><span class="lang-en">Name</span> *</label>
+            <input type="text" id="lb_name" name="lb_name" required autocomplete="name" />
+          </div>
+          <div class="field">
+            <label for="lb_email">Email *</label>
+            <input type="email" id="lb_email" name="lb_email" required autocomplete="email" />
+          </div>
+          <div class="field">
+            <label for="lb_phone"><span class="lang-pt">Telemóvel</span><span class="lang-en">Mobile</span> *</label>
+            <input type="tel" id="lb_phone" name="lb_phone" required autocomplete="tel" inputmode="tel" />
+          </div>
+          <div class="field">
+            <label for="lb_ticket_range">
+              <span class="lang-pt">Valor do bilhete — sliding scale (mínimo vigente a 200€, de 5 em 5)</span>
+              <span class="lang-en">Ticket — sliding scale (current minimum to €200, steps of €5)</span>
+            </label>
+            <div class="amount-picker links-amount-picker" id="links-amount-picker">
+              <div class="amount-number">
+                <span class="amount-currency" aria-hidden="true">€</span>
+                <output class="amount-value" id="lb_ticket_amount_out" for="lb_ticket_range">30</output>
+              </div>
+              <p class="links-tier-phrase" id="lb_ticket_tier_phrase" aria-live="polite">
+                <span class="lang-pt">Entrada acessível — o essencial para o evento acontecer.</span>
+                <span class="lang-en">Accessible entry — the baseline that keeps the event running.</span>
+              </p>
+              <input
+                type="range"
+                id="lb_ticket_range"
+                min="20"
+                max="200"
+                step="5"
+                value="30"
+                aria-label="Sliding scale: ticket amount in euros, step 5"
+              />
+              <div class="amount-labels">
+                <span id="lb_ticket_range_min_lbl">
+                  <span class="lang-pt">20€ — early bird</span>
+                  <span class="lang-en">€20 — early bird</span>
+                </span>
+                <span><span class="lang-pt">200€</span><span class="lang-en">€200</span></span>
+              </div>
+            </div>
+            <p class="form-hint-block links-ticket-hint" style="color: rgba(245, 239, 230, 0.38)">
+              <span class="lang-pt">Paga o que podes (até 200€). Com <strong>early bird</strong>, o piso é 20€ até 3 de maio; depois, 25€. Valores mais altos apoiam o círculo.</span>
+              <span class="lang-en">Pay what you can (up to €200). <strong>Early bird</strong> floor is €20 through 3 May; after that, €25. Higher choices support the circle.</span>
+            </p>
+            <input type="hidden" id="lb_ticket_euros" value="30" />
+          </div>
+
+          <fieldset class="field links-dinner-box">
+            <legend>
+              <span class="lang-pt">Jantar</span>
+              <span class="lang-en">Dinner</span>
+            </legend>
+            <p class="links-dinner-lead">
+              <span class="lang-pt">Refeição no local após a dança, valor fixo.</span>
+              <span class="lang-en">A meal on site after the dance — fixed price.</span>
+            </p>
+            <div class="links-dinner-row">
+              <input type="checkbox" id="lb_dinner_incl" name="dinner_incl" value="1" />
+              <label for="lb_dinner_incl" class="links-dinner-label">
+                <span class="lang-pt">Incluir jantar</span>
+                <span class="lang-en">Include dinner</span>
+              </label>
+              <span class="links-dinner-price" aria-hidden="true">
+                <span class="lang-pt">+10&nbsp;€</span>
+                <span class="lang-en">+€10</span>
+              </span>
+            </div>
+            <input type="hidden" id="lb_dinner_euros" name="dinner_euros" value="0" />
+            <p class="links-dinner-footnote" role="note">
+              <span class="lang-pt">O total em baixo passa a incluir estes 10€ quando assinalas a opção.</span>
+              <span class="lang-en">The total below includes this €10 when the option is checked.</span>
+            </p>
+          </fieldset>
+
+          <p class="links-totals" aria-live="polite">
+            <span class="lang-pt">Total a pagar</span>
+            <span class="lang-en">Total to pay</span>
+            <strong id="lb_total_euros_out">30,00 €</strong>
+            <span id="lb_total_detail_line" class="links-totals-detail" hidden>
+              <span class="lang-pt">Bilhete + jantar 10€</span>
+              <span class="lang-en">Ticket + €10 dinner</span>
+            </span>
+            <small class="lang-pt">Sliding scale no bilhete; jantar = 10€ se optares.</small>
+            <small class="lang-en">Sliding scale for the ticket; dinner is €10 if you opt in.</small>
+          </p>
+
+          <div class="field links-dinner-note-wrap" id="lb_dinner_note_wrap" hidden>
+            <label for="lb_dinner_note">
+              <span class="lang-pt">Nota do jantar (opcional)</span>
+              <span class="lang-en">Dinner note (optional)</span>
+            </label>
+            <p class="links-dinner-note-hint">
+              <span class="lang-pt">Restrições alimentares, alergias, etc.</span>
+              <span class="lang-en">Dietary needs, allergies, etc.</span>
+            </p>
+            <textarea id="lb_dinner_note" name="dinner_note" maxlength="64" rows="2"></textarea>
+          </div>
+          <div class="field">
+            <span id="heard-label" class="lang-pt" style="display:block;margin-bottom:0.4rem">Como tiveste conhecimento deste evento? *</span>
+            <span class="lang-en" style="display:block;margin-bottom:0.4rem">How did you hear about this event? *</span>
+            <label for="lb_heard_from" class="visually-hidden">Como tiveste conhecimento / How you heard</label>
+            <select id="lb_heard_from" name="heard_from" required>
+              <option value="instagram">Instagram</option>
+              <option value="facebook">Facebook</option>
+              <option value="friends">Amigos / Friends</option>
+              <option value="mailing">Mailing list</option>
+              <option value="whatsapp">WhatsApp</option>
+              <option value="telegram">Telegram</option>
+              <option value="other">Outro / Other (especifica abaixo / specify below)</option>
+            </select>
+          </div>
+          <div class="field" id="lb_heard_other_wrap" hidden>
+            <label for="lb_heard_other"><span class="lang-pt">Especifica</span><span class="lang-en">Specify</span> *</label>
+            <input type="text" id="lb_heard_other" name="heard_other" maxlength="255" />
+          </div>
+          <fieldset class="field" style="border:0;padding:0;margin:0">
+            <legend style="display:block;padding:0 0 0.5rem;letter-spacing:0.14em;text-transform:uppercase;font-size:0.72rem;color:rgba(245,239,230,.45)">
+              <span class="lang-pt">Preferência de pagamento *</span>
+              <span class="lang-en">Payment preference *</span>
+            </legend>
+            <div class="links-payment-grid">
+              <div class="links-payment-row">
+                <input type="radio" name="lb_payment_method" id="lb_pm_mbway" value="mbway" checked />
+                <label for="lb_pm_mbway">MB Way</label>
+              </div>
+              <div class="links-payment-row">
+                <input type="radio" name="lb_payment_method" id="lb_pm_transfer" value="transfer" />
+                <label for="lb_pm_transfer" class="lang-pt">Transferência bancária</label>
+                <label for="lb_pm_transfer" class="lang-en">Bank transfer (SEPA)</label>
+              </div>
+              <div class="links-payment-row">
+                <input type="radio" name="lb_payment_method" id="lb_pm_revolut" value="revolut" />
+                <label for="lb_pm_revolut">Revolut</label>
+              </div>
+            </div>
+          </fieldset>
+          <p id="lb_form_error" class="reveal" role="alert" aria-live="assertive"></p>
+          <button type="submit" class="btn-primary" id="lb_step1_submit" style="width:100%;margin-top:1.25rem">
+            <span class="lang-pt">Continuar para comprovativo</span>
+            <span class="lang-en">Continue to proof of payment</span>
+          </button>
+        </form>
+      </div>
+
+      <!-- Passo 2 -->
+      <div id="lb_step_2" class="links-form-card reveal" hidden aria-labelledby="lb_step_2_title">
+        <p class="links-step-badge"><span class="lang-pt">2 — Comprovativo</span><span class="lang-en">2 — Proof of payment</span></p>
+        <h2 id="lb_step_2_title" class="links-step-heading" style="font-family:'Cormorant Garamond',serif;font-weight:300;font-size:1.75rem;color:var(--bone);margin:0 0 1rem">
+          <span class="lang-pt">Pagamento e comprovativo</span>
+          <span class="lang-en">Pay, then send proof</span>
+        </h2>
+        <div id="lb_step_2_in">
+          <p style="color:rgba(245,239,230,.6);line-height:1.7;font-size:0.92rem">
+            <span class="lang-pt">Referência do teu pedido: </span>
+            <span class="lang-en">Reference: </span>
+            <strong class="js-summary-ref" style="color: var(--bone)">—</strong>
+          </p>
+          <p style="color:rgba(245,239,230,.5);font-size:0.85rem;margin:0.25rem 0 1rem">
+            <span class="lang-pt">Montante: </span>
+            <span class="lang-en">Amount: </span>
+            <span class="js-summary-total">—</span>
+          </p>
+          <div id="lb_payment_instructions" class="reveal" style="margin-bottom:0.5rem"></div>
+          <p class="links-muted lang-pt" style="margin-top:1rem">Envia o comprovativo (PDF, JPG, PNG ou WebP, máx. 5 MB) ou indica abaixo que preferes email para <a href="mailto:info@ecstaticdanceviseu.pt" style="color:var(--gold)">info@ecstaticdanceviseu.pt</a>.</p>
+          <p class="links-muted lang-en" style="margin-top:1rem">Upload a proof (PDF, JPG, PNG, or WebP, max. 5 MB) or use the button to say you will email it to <a href="mailto:info@ecstaticdanceviseu.pt" style="color:var(--gold)">info@ecstaticdanceviseu.pt</a>.</p>
+          <div class="field" style="margin-top:1rem">
+            <label for="lb_proof"><span class="lang-pt">Comprovativo</span><span class="lang-en">Proof of payment</span></label>
+            <input type="file" id="lb_proof" name="proof" accept=".pdf,image/jpeg,image/png,image/webp" />
+          </div>
+          <div class="links-step2-actions">
+            <button type="button" class="btn-primary" id="lb_btn_upload" style="flex:1;min-width:160px">
+              <span class="lang-pt">Enviar ficheiro</span>
+              <span class="lang-en">Upload file</span>
+            </button>
+            <button type="button" class="btn-links-secondary" id="lb_btn_later" style="flex:1;min-width:200px">
+              <span class="lang-pt">Envio do comprovativo depois (email)</span>
+              <span class="lang-en">I will email the proof later</span>
+            </button>
+          </div>
+          <p id="lb_step2_error" role="alert" aria-live="assertive"></p>
+          <p id="lb_step2_success" role="status" aria-live="polite"></p>
+        </div>
+        <button type="button" class="links-start-over" id="lb_start_over">
+          <span class="lang-pt">← Novo pedido</span>
+          <span class="lang-en">← New request</span>
+        </button>
+      </div>
+    </div>
+  </section>
+
+  </main>
+
+  <footer class="links-landing-foot links-landing-foot--minimal">
+    <p class="links-landing-foot-copy">© 2026 Ecstatic Dance Viseu — Viseu, Portugal.</p>
+  </footer>
+
+  <script type="module" src="/js/pages.js"></script>
+  <script type="module" src="/js/bilhetes.js"></script>
+  <script type="module" src="/js/manual-booking.js"></script>
+</body>
+</html>

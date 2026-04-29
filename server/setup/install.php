@@ -126,7 +126,7 @@ if (defined('STRIPE_SECRET_KEY') && str_starts_with(STRIPE_SECRET_KEY, 'sk_')) {
   <ul style="margin-top:1rem;padding-left:1.5rem">
     <li>Cria o primeiro evento via phpMyAdmin (ver <code>schema.sql</code> para INSERT de exemplo).</li>
     <li>Configura o webhook Stripe: <code><?= htmlspecialchars(APP_URL) ?>/api/webhook.php</code></li>
-    <li>Testa a reserva em modo sandbox: <a href="<?= htmlspecialchars(APP_URL) ?>/bilhetes.html"><?= htmlspecialchars(APP_URL) ?>/bilhetes.html</a></li>
+    <li>Testa a reserva em modo sandbox: <a href="<?= htmlspecialchars(APP_URL) ?>/bilhetes"><?= htmlspecialchars(APP_URL) ?>/bilhetes</a></li>
     <li>Acede ao admin: <a href="<?= htmlspecialchars(APP_URL) ?>/admin/"><?= htmlspecialchars(APP_URL) ?>/admin/</a></li>
   </ul>
 <?php else: ?>

@@ -1,32 +1,30 @@
 <?php
 /* ============================================================
-   config.example.php — Template for server/api/config.php
-   Copy this file to config.php and fill in real values.
-   NEVER commit config.php to git.
+   config.php — copy to config.php and fill in (not committed)
    ============================================================ */
 
-// ── Database (cPanel MySQL) ──
 define('DB_HOST', 'localhost');
-define('DB_NAME', 'cpanelusername_edviseu');   // cPanel format: user_dbname
-define('DB_USER', 'cpanelusername_eduser');    // cPanel format: user_dbuser
-define('DB_PASS', 'your_database_password');
+define('DB_NAME', 'your_db');
+define('DB_USER', 'your_user');
+define('DB_PASS', 'your_pass');
 
-// ── Stripe keys ──
-// Find these in: Stripe Dashboard → Developers → API Keys
-// Use test keys during development, switch to live keys for production
+/* ── Reservas links.html: save/complete link-booking ──
+ * Local: `true` + SQLite (sem MySQL). Produção: `false` e credenciais MySQL de cima. */
+define('LINK_USE_SQLITE', true);
+/* Caminho do ficheiro .sqlite (o directório server/data/ deve ser gravável pelo PHP) */
+define('LINK_SQLITE_PATH', __DIR__ . '/../data/link-bookings.sqlite');
+
 define('STRIPE_PUBLIC_KEY',    'YOUR_STRIPE_PUBLISHABLE_KEY_HERE');
 define('STRIPE_SECRET_KEY',    'YOUR_STRIPE_SECRET_KEY_HERE');
 define('STRIPE_WEBHOOK_SECRET', 'YOUR_STRIPE_WEBHOOK_SIGNING_SECRET_HERE');
 
-// ── Application ──
-define('APP_URL',    'https://ecstaticdanceviseu.pt');   // no trailing slash
-define('FROM_EMAIL', 'bilhetes@ecstaticdanceviseu.pt');
-define('FROM_NAME',  'Ecstatic Dance Viseu');
+define('APP_URL',     'https://ecstaticdanceviseu.pt');
+define('FROM_EMAIL',  'bilhetes@ecstaticdanceviseu.pt');
+define('FROM_NAME',   'Ecstatic Dance Viseu');
 
-// ── Security tokens (generate with: openssl rand -hex 32) ──
-define('RECONCILE_TOKEN', 'change_me_to_random_hex_string');
-define('INSTALL_TOKEN',   'change_me_to_another_random_hex_string');
+define('RECONCILE_TOKEN', 'change_me');
+define('INSTALL_TOKEN',   'change_me');
+define('ADMIN_PASSWORD_HASH', '$2y$12$...');
 
-// ── Admin password ──
-// Generate with: php -r "echo password_hash('yourpassword', PASSWORD_DEFAULT);"
-define('ADMIN_PASSWORD_HASH', '$2y$12$xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx');
+define('ORG_NOTIFY_EMAIL', 'hello@ecstaticdanceviseu.pt');
+define('ORG_INFO_EMAIL',   'info@ecstaticdanceviseu.pt');

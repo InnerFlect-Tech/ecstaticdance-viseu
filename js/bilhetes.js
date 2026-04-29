@@ -3,6 +3,8 @@
    Handles: booking form (bilhetes.html) + ticket display (confirmacao.html)
    ============================================================ */
 
+import { applyBilhetesAmountRange, isEarlyBird, ticketMinEur } from './pricing.js'
+
 const API_BASE = '/api';
 
 /* ─────────────────────────────────────────────
@@ -47,6 +49,7 @@ async function initBookingPage() {
     if (currentEvent.type === 'paid') {
       amountGroup.style.display = '';
       paidNote.style.display = '';
+      applyBilhetesAmountRange();
     } else {
       freeBadge.style.display = '';
       freeNote.style.display = '';
@@ -144,7 +147,7 @@ async function handleFreeBooking(name, email, phone, eventId, errorEl) {
     return;
   }
 
-  window.location.href = `confirmacao.html?code=${encodeURIComponent(data.ticket_id)}`;
+  window.location.href = `/confirmacao?code=${encodeURIComponent(data.ticket_id)}`;
 }
 
 function renderEventInfo(container, ev) {
@@ -159,9 +162,13 @@ function renderEventInfo(container, ev) {
   const remaining = Math.max(0, capacity - sold);
   const fillPct   = capacity > 0 ? Math.min(100, Math.round((sold / capacity) * 100)) : 0;
 
-  const priceLabel = ev.type === 'paid'
-    ? `A partir de €${parseInt(ev.min_price, 10) || 25}`
-    : 'Gratuito';
+  const fromMin = ticketMinEur()
+  const priceLabel =
+    ev.type === 'paid'
+      ? isEarlyBird()
+        ? `Desde €${fromMin} (early bird até 3 mai) · até 200€`
+        : `A partir de €${fromMin} · até 200€`
+      : 'Gratuito'
 
   container.innerHTML = `
     <div class="event-info-card reveal">

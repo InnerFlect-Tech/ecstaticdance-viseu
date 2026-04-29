@@ -6,6 +6,7 @@
   <meta name="description" content="Reserva confirmada — Ecstatic Dance Viseu. Guarda o teu código QR e apresenta-o na entrada." />
   <meta name="robots" content="noindex" />
   <title>Reserva confirmada — Ecstatic Dance Viseu</title>
+  <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
 
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
@@ -19,34 +20,27 @@
 
   <!-- NAV -->
   <nav class="nav" id="nav" aria-label="Navegação principal">
-    <a class="nav-logo" href="index.html" aria-label="Ecstatic Dance Viseu — início">
-      <svg viewBox="0 0 200 200" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
-        <circle cx="100" cy="100" r="80" stroke="#B8924A" stroke-width="1.5"/>
-        <polygon points="100,20 175,148 25,148" fill="none" stroke="#B8924A" stroke-width="1.2"/>
-        <circle cx="100" cy="100" r="80" stroke="#B8924A" stroke-width="0.5" stroke-dasharray="3 6"/>
-        <path d="M83 122C83 122 80 108 84 97C86 91 92 87 92 80C92 74 89 69 89 69" stroke="#C4593F" stroke-width="2.8" fill="none" stroke-linecap="round"/>
-        <circle cx="89" cy="65" r="7" fill="#C4593F"/>
-        <path d="M117 122C117 122 120 108 116 97C114 91 108 87 108 80C108 74 111 69 111 69" stroke="#C4593F" stroke-width="2.8" fill="none" stroke-linecap="round"/>
-        <circle cx="111" cy="65" r="7" fill="#C4593F"/>
-        <path d="M89 92L78 83M92 91L104 81M111 92L122 83M108 91L96 81" stroke="#C4593F" stroke-width="2" fill="none" stroke-linecap="round"/>
-        <path d="M68 89C68 84 71 79 76 79C71 84 71 93 76 98C71 98 68 93 68 89Z" fill="#B8924A" opacity=".85"/>
-        <circle cx="132" cy="112" r="7" fill="none" stroke="#B8924A" stroke-width="1.3" opacity=".75"/>
-      </svg>
-      <div class="nav-logo-text">
-        Ecstatic Dance
-        <small>Viseu · Portugal</small>
-      </div>
+    <a class="nav-logo" href="/" aria-label="Ecstatic Dance Viseu — início">
+            <img
+        class="edv-mark edv-mark--nav"
+        src="/images/branding/logo_white.png"
+        alt=""
+        width="120"
+        height="120"
+        decoding="async"
+        aria-hidden="true"
+      />
     </a>
 
     <ul class="nav-links">
-      <li><a href="sobre.html">Sobre</a></li>
-      <li><a href="eventos.html">Eventos</a></li>
-      <li><a href="galeria.html">Galeria</a></li>
-      <li><a href="faq.html">FAQ</a></li>
-      <li><a href="contacto.html">Contacto</a></li>
+      <li><a href="/sobre">Sobre</a></li>
+      <li><a href="/eventos">Eventos</a></li>
+      <li><a href="/galeria">Galeria</a></li>
+      <li><a href="/faq">FAQ</a></li>
+      <li><a href="/contacto">Contacto</a></li>
     </ul>
 
-    <a href="bilhetes.html" class="nav-btn">Reservar</a>
+    <a href="/bilhetes" class="nav-btn">Reservar</a>
     <button class="nav-hamburger" id="menuToggle" aria-label="Abrir menu" aria-expanded="false">
       <span></span><span></span><span></span>
     </button>
@@ -55,11 +49,11 @@
   <div class="mobile-menu" id="mobileMenu" aria-hidden="true">
     <nav aria-label="Menu mobile">
       <ul>
-        <li><a href="sobre.html">Sobre</a></li>
-        <li><a href="eventos.html">Eventos</a></li>
-        <li><a href="galeria.html">Galeria</a></li>
-        <li><a href="faq.html">FAQ</a></li>
-        <li><a href="contacto.html">Contacto</a></li>
+        <li><a href="/sobre">Sobre</a></li>
+        <li><a href="/eventos">Eventos</a></li>
+        <li><a href="/galeria">Galeria</a></li>
+        <li><a href="/faq">FAQ</a></li>
+        <li><a href="/contacto">Contacto</a></li>
       </ul>
     </nav>
   </div>
@@ -76,8 +70,8 @@
     </div>
     <div class="page-hero-overlay"></div>
     <div class="breadcrumb">
-      <a href="index.html">Início</a><span class="sep">/</span>
-      <a href="bilhetes.html">Bilhetes</a><span class="sep">/</span>
+      <a href="/">Início</a><span class="sep">/</span>
+      <a href="/bilhetes">Bilhetes</a><span class="sep">/</span>
       <span>Confirmação</span>
     </div>
     <div class="page-hero-content">
@@ -194,23 +188,23 @@
   <footer>
     <div class="footer-inner">
       <div class="footer-brand">
-        <svg width="44" height="44" viewBox="0 0 200 200" fill="none" aria-hidden="true">
-          <circle cx="100" cy="100" r="80" stroke="#B8924A" stroke-width="1.5"/>
-          <polygon points="100,20 175,148 25,148" fill="none" stroke="#B8924A" stroke-width="1.2"/>
-          <path d="M83 122C83 122 80 108 84 97C86 91 92 87 92 80C92 74 89 69 89 69" stroke="#C4593F" stroke-width="2.5" fill="none" stroke-linecap="round"/>
-          <circle cx="89" cy="65" r="7" fill="#C4593F"/>
-          <path d="M117 122C117 122 120 108 116 97C114 91 108 87 108 80C108 74 111 69 111 69" stroke="#C4593F" stroke-width="2.5" fill="none" stroke-linecap="round"/>
-          <circle cx="111" cy="65" r="7" fill="#C4593F"/>
-          <path d="M68 89C68 84 71 79 76 79C71 84 71 93 76 98C71 98 68 93 68 89Z" fill="#B8924A" opacity=".85"/>
-        </svg>
+                <img
+          class="edv-mark edv-mark--footer"
+          src="/images/branding/logo_white.png"
+          alt=""
+          width="120"
+          height="120"
+          decoding="async"
+          aria-hidden="true"
+        />
         <p>Dança livre, guiada pela música. Sem passos, sem substâncias, sem performance.</p>
       </div>
       <div class="footer-col">
         <h5>Páginas</h5>
         <ul>
-          <li><a href="index.html">Início</a></li>
-          <li><a href="eventos.html">Eventos</a></li>
-          <li><a href="bilhetes.html">Bilhetes</a></li>
+          <li><a href="/">Início</a></li>
+          <li><a href="/eventos">Eventos</a></li>
+          <li><a href="/bilhetes">Bilhetes</a></li>
         </ul>
       </div>
       <div class="footer-col">

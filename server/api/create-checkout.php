@@ -61,8 +61,13 @@ if (!$event_id || !$name || !$email || !$phone) {
 if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
     json_err('Email inválido.');
 }
-if ($amount < 25 || $amount > 500) {
-    json_err('Valor fora do intervalo permitido (€25–€500).');
+$tz_early = new DateTimeZone('Europe/Lisbon');
+$now_lx   = new DateTime('now', $tz_early);
+$early_end = new DateTime('2026-05-04 00:00:00', $tz_early);
+$min_allowed = ($now_lx < $early_end) ? 20 : 25;
+
+if ($amount < $min_allowed || $amount > 200) {
+    json_err('Valor fora do intervalo permitido (€' . $min_allowed . '–€200).');
 }
 
 // Verify event exists, is active and is paid type
@@ -112,8 +117,8 @@ $resp = stripe_request('POST', 'checkout/sessions', [
     'metadata[event_id]'                                        => $event_id,
     'metadata[name]'                                            => $name,
     'metadata[phone]'                                           => $phone,
-    'success_url'   => $app_url . '/confirmacao.html?session_id={CHECKOUT_SESSION_ID}',
-    'cancel_url'    => $app_url . '/cancelamento.html',
+    'success_url'   => $app_url . '/confirmacao?session_id={CHECKOUT_SESSION_ID}',
+    'cancel_url'    => $app_url . '/cancelamento',
     'locale'        => 'pt',
     'phone_number_collection[enabled]' => 'false',
 ]);
