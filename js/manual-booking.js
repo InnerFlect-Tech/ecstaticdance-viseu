@@ -1,17 +1,20 @@
 import { renderPaymentInstructions } from './payment-instructions.js'
+import { phraseForAmount } from './ticket-phrases.js'
 import {
   DEFAULT_TICKET_EUR,
   TICKET_MAX_EUR,
+  TICKET_SLIDER_CAP_EUR,
   TICKET_STEP,
   isEarlyBird,
-  snapTicketEur,
+  normalizeTicketAmountEur,
+  snapTicketSliderEur,
   ticketMinEur,
 } from './pricing.js'
 
 const DEFAULT_EVENT_SLUG = 'edv-2026-05-23'
 const INFO_EMAIL = 'info@ecstaticdanceviseu.pt'
 /** Extra fixo: jantar no local (reserva manual em bilhetes.html) */
-const DINNER_EUR = 10
+const DINNER_EUR = 15
 
 function apiBase() {
   const raw = import.meta.env.VITE_API_BASE
@@ -116,22 +119,6 @@ function initManualLang() {
     // ignore
   }
   setManualSectionLang(stored)
-  const ptBtn = document.getElementById('lb_lang_pt')
-  const enBtn = document.getElementById('lb_lang_en')
-  if (ptBtn) {
-    ptBtn.addEventListener('click', () => {
-      setManualSectionLang('pt')
-      applyTicketPricingToDom()
-      if (state.paymentMethod) paintInstructions()
-    })
-  }
-  if (enBtn) {
-    enBtn.addEventListener('click', () => {
-      setManualSectionLang('en')
-      applyTicketPricingToDom()
-      if (state.paymentMethod) paintInstructions()
-    })
-  }
 }
 
 const state = {
@@ -154,7 +141,8 @@ function paintInstructions() {
       totalLabel: formatEur(state.totalEur),
       infoEmail: INFO_EMAIL,
     },
-    box
+    box,
+    isManualPt()
   )
 }
 
@@ -182,53 +170,33 @@ function setHeardOtherVisible() {
   other.hidden = v !== 'other'
 }
 
-const TIER_PHRASES = [
-  {
-    max: 35,
-    pt: 'Entrada acessível — o essencial para o evento acontecer.',
-    en: 'Accessible entry — the baseline that keeps the event running.',
-  },
-  {
-    max: 50,
-    pt: 'Contribuição equilibrada — fazes parte com naturalidade.',
-    en: 'A balanced choice — you meet the event at an honest, sustainable level.',
-  },
-  {
-    max: 75,
-    pt: 'Um valor que sustém o projeto, o espaço e o convidado que vem a seguir.',
-    en: 'This level helps sustain the space, the guest artists, and the next person in the circle.',
-  },
-  {
-    max: 110,
-    pt: 'Generosidade que abre o círculo a mais pessoas — muito obrigada.',
-    en: 'Generous support that keeps the door open for more dancers — deep thanks.',
-  },
-  {
-    max: 160,
-    pt: 'Apoio forte — ajudas de forma muito concreta a manter a escala acessível.',
-    en: 'Strong support — you concretely help keep the low end of the scale possible.',
-  },
-  {
-    max: 999,
-    pt: 'Contribuição de apoio — tornas o sliding scale possível para toda a gente.',
-    en: 'Patron-style support — you help make the whole sliding scale system work.',
-  },
-]
-
-function phraseForAmount(euros) {
-  for (const row of TIER_PHRASES) {
-    if (euros <= row.max) return row
-  }
-  return TIER_PHRASES[TIER_PHRASES.length - 1]
-}
-
 let lastTicketTierForAnim = /** @type {number | null} */ (null)
+
+/** Mostra o bloco «101–200» só quando o slider está no máximo (100€). */
+function updateTicketScalePlusVisibility() {
+  const wrap = document.getElementById('lb_ticket_scale_plus_wrap')
+  const range = document.getElementById('lb_ticket_range')
+  if (!wrap || !range) return
+  const rv = parseFloat(String(range.value))
+  const atCap = Number.isFinite(rv) && rv >= TICKET_SLIDER_CAP_EUR
+  if (atCap) {
+    wrap.removeAttribute('hidden')
+    wrap.setAttribute('aria-hidden', 'false')
+  } else {
+    wrap.setAttribute('hidden', '')
+    wrap.setAttribute('aria-hidden', 'true')
+  }
+}
 
 function setRangeTrackPct(ticket) {
   const range = document.getElementById('lb_ticket_range')
   if (range) {
     const min = parseFloat(String(range.min)) || ticketMinEur()
-    const max = parseFloat(String(range.max)) || TICKET_MAX_EUR
+    const max = parseFloat(String(range.max)) || TICKET_SLIDER_CAP_EUR
+    if (ticket > max) {
+      range.style.setProperty('--range-pct', '100%')
+      return
+    }
     const span = max - min
     const pct = span > 0 ? ((ticket - min) / span) * 100 : 0
     const clamped = Math.min(100, Math.max(0, pct))
@@ -258,16 +226,35 @@ function playTierChangeAnimation(ticket) {
 
 function recalcTotals() {
   const range = document.getElementById('lb_ticket_range')
+  const custom = document.getElementById('lb_ticket_custom')
   const ticketHidden = getEl('lb_ticket_euros')
   const out = document.getElementById('lb_ticket_amount_out')
   const dinner = getEl('lb_dinner_euros')
   const totalOut = getEl('lb_total_euros_out')
   let t = DEFAULT_TICKET_EUR
   if (range) {
-    t = parseFloat(String(range.value))
-    if (!Number.isFinite(t)) t = DEFAULT_TICKET_EUR
-    t = snapTicketEur(t)
-    range.value = String(t)
+    const customRaw = custom?.value?.trim() ?? ''
+    let fromCustom = false
+    if (customRaw !== '') {
+      const c = Math.round(Number(customRaw))
+      if (Number.isFinite(c)) {
+        if (c <= TICKET_SLIDER_CAP_EUR) {
+          if (custom) custom.value = ''
+        } else {
+          const adj = Math.min(TICKET_MAX_EUR, Math.max(101, c))
+          if (custom) custom.value = String(adj)
+          t = adj
+          fromCustom = true
+          range.value = String(TICKET_SLIDER_CAP_EUR)
+        }
+      }
+    }
+    if (!fromCustom) {
+      let s = parseFloat(String(range.value))
+      if (!Number.isFinite(s)) s = DEFAULT_TICKET_EUR
+      t = snapTicketSliderEur(s)
+      range.value = String(t)
+    }
     ticketHidden.value = String(t)
     if (out) out.textContent = String(Math.round(t))
   } else {
@@ -306,22 +293,23 @@ function recalcTotals() {
     lastTicketTierForAnim = t
     playTierChangeAnimation(t)
   }
+  updateTicketScalePlusVisibility()
 }
 
 function applyTicketPricingToDom() {
   const range = document.getElementById('lb_ticket_range')
   if (!range) return
   const min = ticketMinEur()
-  const max = TICKET_MAX_EUR
+  const max = TICKET_SLIDER_CAP_EUR
   range.min = String(min)
   range.max = String(max)
   range.step = String(TICKET_STEP)
   range.setAttribute(
     'aria-label',
-    `Sliding scale: ${min}–${max} €, step ${TICKET_STEP}`
+    `Sliding scale: ${min}–${max} €, step ${TICKET_STEP}; above ${max} € use the number field`
   )
   const raw = parseFloat(String(range.value))
-  const v = snapTicketEur(Number.isFinite(raw) ? raw : DEFAULT_TICKET_EUR)
+  const v = snapTicketSliderEur(Number.isFinite(raw) ? raw : DEFAULT_TICKET_EUR)
   range.value = String(v)
   getEl('lb_ticket_euros').value = String(v)
   const out = document.getElementById('lb_ticket_amount_out')
@@ -335,11 +323,12 @@ function applyTicketPricingToDom() {
       if (pt) pt.textContent = '20€ — early bird'
       if (en) en.textContent = '€20 — early bird'
     } else {
-      if (pt) pt.textContent = '25€ — mínimo'
-      if (en) en.textContent = '€25 — minimum'
+      if (pt) pt.textContent = '30€ — mínimo'
+      if (en) en.textContent = '€30 — minimum'
     }
   }
 
+  updateTicketScalePlusVisibility()
 }
 
 function wireTotals() {
@@ -347,10 +336,17 @@ function wireTotals() {
   if (form.dataset.totalsWired === '1') return
   form.dataset.totalsWired = '1'
   const range = document.getElementById('lb_ticket_range')
+  const custom = document.getElementById('lb_ticket_custom')
   const dinner = getEl('lb_dinner_euros')
   const incl = document.getElementById('lb_dinner_incl')
-  range?.addEventListener('input', recalcTotals)
-  range?.addEventListener('change', recalcTotals)
+  function onRangeAdjust() {
+    if (custom) custom.value = ''
+    recalcTotals()
+  }
+  range?.addEventListener('input', onRangeAdjust)
+  range?.addEventListener('change', onRangeAdjust)
+  custom?.addEventListener('input', recalcTotals)
+  custom?.addEventListener('change', recalcTotals)
   incl?.addEventListener('change', () => {
     if (!incl.checked) {
       const note = document.getElementById('lb_dinner_note')
@@ -440,7 +436,9 @@ async function onUploadProof() {
   const fileInput = getEl('lb_proof')
   if (!fileInput.files || !fileInput.files[0]) {
     const isPt = isManualPt()
-    err.textContent = isPt ? 'Escolhe um ficheiro (PDF ou imagem).' : 'Choose a file (PDF or image).'
+    err.textContent = isPt
+      ? 'Escolhe um ficheiro: imagem (foto ou captura de ecrã) ou PDF até 5 MB.'
+      : 'Choose a file: image (photo or screenshot) or PDF, up to 5 MB.'
     return
   }
   if (!state.registrationId) return
@@ -498,10 +496,35 @@ async function onEmailLater() {
   }
 }
 
+function applyHubPrefTicket() {
+  try {
+    const raw = sessionStorage.getItem('edv_hub_ticket_eur')
+    if (raw == null || raw === '') return
+    sessionStorage.removeItem('edv_hub_ticket_eur')
+    const n = Number(raw)
+    if (!Number.isFinite(n)) return
+    const v = normalizeTicketAmountEur(n)
+    const range = document.getElementById('lb_ticket_range')
+    const custom = document.getElementById('lb_ticket_custom')
+    if (v > TICKET_SLIDER_CAP_EUR) {
+      if (custom) custom.value = String(v)
+      if (range) range.value = String(TICKET_SLIDER_CAP_EUR)
+    } else {
+      if (custom) custom.value = ''
+      if (range) range.value = String(v)
+    }
+    lastTicketTierForAnim = null
+    recalcTotals()
+  } catch {
+    // ignore
+  }
+}
+
 function init() {
   if (!document.getElementById('lb_booking_form')) return
   initManualLang()
   applyTicketPricingToDom()
+  applyHubPrefTicket()
   getEl('lb_booking_form').addEventListener('submit', onSubmitStep1)
   getEl('lb_heard_from').addEventListener('change', setHeardOtherVisible)
   setHeardOtherVisible()
@@ -527,13 +550,15 @@ function init() {
     if (getEl('lb_dinner_euros')) getEl('lb_dinner_euros').value = '0'
     getEl('lb_proof').value = ''
     const range = document.getElementById('lb_ticket_range')
+    const custom = document.getElementById('lb_ticket_custom')
+    if (custom) custom.value = ''
     if (range) range.value = String(DEFAULT_TICKET_EUR)
     applyTicketPricingToDom()
     lastTicketTierForAnim = null
     recalcTotals()
     showStep1()
   })
-  if (location.hash === '#reserva-manual') {
+  if (location.hash === '#reserva-manual' && document.body.id !== 'links-page') {
     const el = document.getElementById('reserva-manual')
     if (el) {
       el.scrollIntoView({ behavior: 'smooth', block: 'start' })
@@ -545,4 +570,15 @@ if (document.readyState === 'loading') {
   document.addEventListener('DOMContentLoaded', init)
 } else {
   init()
+}
+
+/**
+ * Alinha #reserva-manual com o idioma da página (ex.: botões PT/EN do header em /links).
+ * @param {'pt' | 'en'} lang
+ */
+export function syncManualBookingLang(lang) {
+  if (!document.getElementById('reserva-manual')) return
+  setManualSectionLang(lang === 'en' ? 'en' : 'pt')
+  applyTicketPricingToDom()
+  if (state.paymentRef) paintInstructions()
 }

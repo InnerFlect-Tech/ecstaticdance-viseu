@@ -1,8 +1,76 @@
+import { syncManualBookingLang } from './manual-booking.js'
+
 /**
- * links.html — language toggle (body .lang-pt / .lang-en), pricing cards sync,
- * buy flow in <dialog> + iframe, sticky mobile CTA when the primary CTA scrolls out of view.
+ * links.html — language toggle, sticky mobile CTA, inline booking panel (same page).
  */
-import { isEarlyBird, ticketMinEur } from './pricing.js'
+function prefersReducedMotion() {
+  return typeof matchMedia !== 'undefined' && matchMedia('(prefers-reduced-motion: reduce)').matches
+}
+
+/**
+ * @param {{ scroll?: boolean }} [opts]
+ */
+function openLinksInlineBooking(opts) {
+  const shell = document.getElementById('links-inline-booking-mount')
+  if (!shell) return
+
+  const scroll = opts?.scroll !== false
+  const reduced = prefersReducedMotion()
+
+  shell.classList.remove('links-inline-booking-shell--collapsed')
+  shell.classList.add('links-inline-booking-shell--open')
+  shell.removeAttribute('inert')
+  shell.setAttribute('aria-hidden', 'false')
+
+  shell.querySelectorAll('.links-inline-booking-content .reveal').forEach((el) => {
+    el.classList.add('visible')
+  })
+
+  const heading = document.getElementById('lb_step_1_title')
+  if (heading) {
+    heading.setAttribute('tabindex', '-1')
+    if (!reduced) {
+      requestAnimationFrame(() => heading.focus({ preventScroll: true }))
+    } else {
+      heading.focus({ preventScroll: true })
+    }
+  }
+
+  if (scroll) {
+    const runScroll = () => {
+      const target = document.getElementById('reserva-manual')
+      if (!target) return
+      target.scrollIntoView({ behavior: reduced ? 'auto' : 'smooth', block: 'start' })
+    }
+    if (reduced) runScroll()
+    else requestAnimationFrame(() => requestAnimationFrame(runScroll))
+  }
+
+  try {
+    const u = new URL(window.location.href)
+    u.hash = 'reserva-manual'
+    history.replaceState(null, '', u.pathname + u.search + u.hash)
+  } catch {
+    // ignore
+  }
+}
+
+function initInlineBooking() {
+  const shell = document.getElementById('links-inline-booking-mount')
+  if (!shell) return
+
+  const go = (ev) => {
+    ev.preventDefault()
+    openLinksInlineBooking({ scroll: true })
+  }
+
+  document.getElementById('links-primary-cta')?.addEventListener('click', go)
+  document.getElementById('links-sticky-booking-btn')?.addEventListener('click', go)
+
+  if (location.hash === '#reserva-manual') {
+    openLinksInlineBooking({ scroll: true })
+  }
+}
 
 function setBodyLang(lang) {
   document.body.classList.remove('lang-pt', 'lang-en')
@@ -12,81 +80,7 @@ function setBodyLang(lang) {
   } catch {
     // ignore
   }
-}
-
-function syncPricingCards() {
-  const early = document.getElementById('links-pricing-early')
-  const regular = document.getElementById('links-pricing-regular')
-  if (!early || !regular) return
-  if (isEarlyBird()) {
-    early.removeAttribute('hidden')
-    regular.setAttribute('hidden', '')
-  } else {
-    early.setAttribute('hidden', '')
-    regular.removeAttribute('hidden')
-  }
-}
-
-function syncScaleMinLabels() {
-  const min = String(ticketMinEur())
-  document.getElementById('links-scale-min-val')?.replaceChildren(document.createTextNode(min))
-  document.getElementById('links-scale-min-val-en')?.replaceChildren(document.createTextNode(min))
-  document.getElementById('links-scale-tick-min')?.replaceChildren(document.createTextNode(min))
-}
-
-function initBuyDialog() {
-  const dialog = document.getElementById('links-buy-dialog')
-  const iframe = document.getElementById('links-buy-dialog-iframe')
-  const scrim = document.getElementById('links-buy-dialog-scrim')
-  const panel = dialog?.querySelector('.links-buy-dialog-panel')
-  if (!dialog || !iframe || !panel || !(dialog instanceof HTMLDialogElement)) return
-
-  /** @type {HTMLElement | null} */
-  let triggerEl = null
-
-  function openWithTarget(/** @type {'reservar' | 'reserva-manual'} */ target) {
-    const hash = target === 'reserva-manual' ? 'reserva-manual' : 'reservar'
-    const src = new URL(`/buy?modal=1#${hash}`, window.location.href).href
-
-    const openTab = document.getElementById('links-buy-dialog-open-tab')
-    if (openTab instanceof HTMLAnchorElement) {
-      openTab.href = new URL(`/buy#${hash}`, window.location.href).href
-    }
-
-    iframe.setAttribute('src', src)
-
-    queueMicrotask(() => {
-      requestAnimationFrame(() => {
-        dialog.showModal()
-      })
-    })
-  }
-
-  function onDialogClose() {
-    if (triggerEl && typeof triggerEl.focus === 'function') {
-      triggerEl.focus()
-    }
-    triggerEl = null
-  }
-
-  const closeBtns = dialog.querySelectorAll('.links-buy-dialog-close, .links-buy-dialog-scrim')
-  closeBtns.forEach((btn) => btn.addEventListener('click', () => dialog.close()))
-  dialog.addEventListener('close', onDialogClose)
-  dialog.addEventListener('keydown', (e) => {
-    if (e.key === 'Escape') dialog.close()
-  })
-
-  document.querySelectorAll('a.js-buy-dialog-trigger').forEach((a) => {
-    if (!(a instanceof HTMLAnchorElement)) return
-    a.addEventListener('click', (e) => {
-      const raw = a.dataset.edvBuyTarget
-      const target = raw === 'reserva-manual' ? 'reserva-manual' : 'reservar'
-      if (typeof HTMLDialogElement === 'undefined') return
-      e.preventDefault()
-      triggerEl = a
-      openWithTarget(target)
-    })
-  })
+  syncManualBookingLang(lang === 'en' ? 'en' : 'pt')
 }
 
 function initStickyCta() {
@@ -135,12 +129,10 @@ function init() {
     // ignore
   }
   setBodyLang(stored)
-  syncPricingCards()
-  syncScaleMinLabels()
   document.getElementById('lang-pt')?.addEventListener('click', () => setBodyLang('pt'))
   document.getElementById('lang-en')?.addEventListener('click', () => setBodyLang('en'))
   initStickyCta()
-  initBuyDialog()
+  initInlineBooking()
 }
 
 if (document.readyState === 'loading') {

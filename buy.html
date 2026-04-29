@@ -125,7 +125,7 @@
             <div class="form-group" id="amountGroup" style="display:none">
               <label>Valor que escolhes — Sliding scale (até 200€)</label>
               <p class="form-hint-block" id="bilhetes-early-bird" style="margin-bottom:0.75rem;border-left:3px solid var(--gold);padding-left:0.85rem" hidden>
-                <strong>Early bird:</strong> mínimo <strong>20€</strong> até 3 de maio de 2026 (inclusive, hora de Portugal). Depois, o piso passa a 25€.
+                <strong>Early bird:</strong> mínimo <strong>20€</strong> até 3 de maio de 2026 (inclusive, hora de Portugal). Depois, o piso passa a 30€.
               </p>
               <div class="amount-picker">
                 <div class="amount-number">
@@ -142,12 +142,12 @@
                   aria-label="Escolhe o valor do bilhete"
                 />
                 <div class="amount-labels">
-                  <span id="bilhetes_range_min_lbl">25€ — mínimo</span>
+                  <span id="bilhetes_range_min_lbl">30€ — mínimo</span>
                   <span>200€</span>
                 </div>
               </div>
               <p class="form-hint-block">
-                Paga o que podes, até 200€. Com early bird, o mínimo é 20€ até 3 de maio; depois, 25€. Cada euro acima do mínimo ajuda o círculo.
+                Paga o que podes, até 200€. Com early bird, o mínimo é 20€ até 3 de maio; depois, 30€. Cada euro acima do mínimo ajuda o círculo.
                 Se mesmo assim for um obstáculo, <a href="/contacto" style="color:var(--gold)">fala connosco</a>.
               </p>
             </div>
@@ -184,26 +184,13 @@
     </div>
   </section>
 
-<section class="content-section dark links-reserva-manual lang-pt" id="reserva-manual" aria-labelledby="links-reserva-heading">
+<section class="content-section dark links-reserva-manual lang-pt" id="reserva-manual" aria-labelledby="lb_step_1_title">
     <div class="content-max-wide" style="padding-top:0">
-      <h2 id="links-reserva-heading" class="links-reserva-section-title reveal">
-        <span class="lang-pt">Reserva manual</span>
-        <span class="lang-en">Manual booking</span>
-      </h2>
-      <p class="links-reserva-lead reveal" role="note">
-        <span class="lang-pt">Esta secção é para quem <strong>não</strong> usa o checkout online. Preenche em dois passos; a equipa confirma em horário útil. Preferes <a href="#reservar" style="color:var(--gold)">bilhete com pagamento imediato</a>?</span>
-        <span class="lang-en">This section is for people <strong>not</strong> using the online checkout. Two steps below; we confirm during office hours. Prefer <a href="#reservar" style="color:var(--gold)">instant payment and confirmation</a>?</span>
-      </p>
-
-      <div class="lb-manual-lang links-lang" role="group" aria-label="Idioma da reserva manual / Manual language">
-        <button type="button" id="lb_lang_pt">PT</button>
-        <button type="button" id="lb_lang_en">EN</button>
-      </div>
 
       <!-- Passo 1 -->
       <div id="lb_step_1" class="links-form-card reveal" aria-labelledby="lb_step_1_title">
         <p class="links-step-badge"><span class="lang-pt">1 — Pedido</span><span class="lang-en">1 — Request</span></p>
-        <h2 id="lb_step_1_title" class="links-step-heading reveal" style="font-family:'Cormorant Garamond',serif;font-weight:300;font-size:1.75rem;color:var(--bone);margin:0 0 1.25rem">
+        <h2 id="lb_step_1_title" class="links-step-heading reveal" tabindex="-1" style="font-family:'Cormorant Garamond',serif;font-weight:300;font-size:1.75rem;color:var(--bone);margin:0 0 1.25rem">
           <span class="lang-pt">Dados e montante</span>
           <span class="lang-en">Details and amount</span>
         </h2>
@@ -223,8 +210,8 @@
           </div>
           <div class="field">
             <label for="lb_ticket_range">
-              <span class="lang-pt">Valor do bilhete — sliding scale (mínimo vigente a 200€, de 5 em 5)</span>
-              <span class="lang-en">Ticket — sliding scale (current minimum to €200, steps of €5)</span>
+              <span class="lang-pt">Valor do bilhete — sliding scale até 100€ (passos de 5€); acima, campo livre até 200€</span>
+              <span class="lang-en">Ticket — sliding scale to €100 (€5 steps); above that, type any amount up to €200</span>
             </label>
             <div class="amount-picker links-amount-picker" id="links-amount-picker">
               <div class="amount-number">
@@ -239,22 +226,43 @@
                 type="range"
                 id="lb_ticket_range"
                 min="20"
-                max="200"
+                max="100"
                 step="5"
                 value="30"
-                aria-label="Sliding scale: ticket amount in euros, step 5"
+                aria-label="Sliding scale: ticket amount in euros up to 100, step 5"
               />
               <div class="amount-labels">
                 <span id="lb_ticket_range_min_lbl">
                   <span class="lang-pt">20€ — early bird</span>
                   <span class="lang-en">€20 — early bird</span>
                 </span>
-                <span><span class="lang-pt">200€</span><span class="lang-en">€200</span></span>
+                <span><span class="lang-pt">100€</span><span class="lang-en">€100</span></span>
               </div>
             </div>
-            <p class="form-hint-block links-ticket-hint" style="color: rgba(245, 239, 230, 0.38)">
-              <span class="lang-pt">Paga o que podes (até 200€). Com <strong>early bird</strong>, o piso é 20€ até 3 de maio; depois, 25€. Valores mais altos apoiam o círculo.</span>
-              <span class="lang-en">Pay what you can (up to €200). <strong>Early bird</strong> floor is €20 through 3 May; after that, €25. Higher choices support the circle.</span>
+            <div class="lb-ticket-scale-plus" id="lb_ticket_scale_plus_wrap" hidden aria-labelledby="lb-ticket-plus-pt">
+              <p id="lb-ticket-plus-pt" class="lb-ticket-plus-kicker lang-pt">Acima de 100€</p>
+              <p id="lb-ticket-plus-en" class="lb-ticket-plus-kicker lang-en">Above €100</p>
+              <p class="lb-ticket-plus-hint lang-pt">
+                Valor em euros (inteiro) entre 101 e 200. Deixa vazio para usar só o slider.
+              </p>
+              <p class="lb-ticket-plus-hint lang-en">
+                Whole euros from 101 to 200. Leave empty to use the slider only.
+              </p>
+              <input
+                type="number"
+                class="lb-ticket-custom"
+                id="lb_ticket_custom"
+                min="101"
+                max="200"
+                step="1"
+                inputmode="numeric"
+                placeholder="101–200"
+                autocomplete="off"
+              />
+            </div>
+            <p class="form-hint-block links-ticket-hint">
+              <span class="lang-pt">Paga o que podes (até 200€). Com <strong>early bird</strong>, o piso é 20€ até 3 de maio; depois, 30€. Valores mais altos apoiam o círculo.</span>
+              <span class="lang-en">Pay what you can (up to €200). <strong>Early bird</strong> floor is €20 through 3 May; after that, €30. Higher choices support the circle.</span>
             </p>
             <input type="hidden" id="lb_ticket_euros" value="30" />
           </div>
@@ -275,14 +283,14 @@
                 <span class="lang-en">Include dinner</span>
               </label>
               <span class="links-dinner-price" aria-hidden="true">
-                <span class="lang-pt">+10&nbsp;€</span>
-                <span class="lang-en">+€10</span>
+                <span class="lang-pt">+15&nbsp;€</span>
+                <span class="lang-en">+€15</span>
               </span>
             </div>
             <input type="hidden" id="lb_dinner_euros" name="dinner_euros" value="0" />
             <p class="links-dinner-footnote" role="note">
-              <span class="lang-pt">O total em baixo passa a incluir estes 10€ quando assinalas a opção.</span>
-              <span class="lang-en">The total below includes this €10 when the option is checked.</span>
+              <span class="lang-pt">O total em baixo passa a incluir estes 15€ quando assinalas a opção.</span>
+              <span class="lang-en">The total below includes this €15 when the option is checked.</span>
             </p>
           </fieldset>
 
@@ -291,11 +299,11 @@
             <span class="lang-en">Total to pay</span>
             <strong id="lb_total_euros_out">30,00 €</strong>
             <span id="lb_total_detail_line" class="links-totals-detail" hidden>
-              <span class="lang-pt">Bilhete + jantar 10€</span>
-              <span class="lang-en">Ticket + €10 dinner</span>
+              <span class="lang-pt">Bilhete + jantar 15€</span>
+              <span class="lang-en">Ticket + €15 dinner</span>
             </span>
-            <small class="lang-pt">Sliding scale no bilhete; jantar = 10€ se optares.</small>
-            <small class="lang-en">Sliding scale for the ticket; dinner is €10 if you opt in.</small>
+            <small class="lang-pt">Sliding scale no bilhete; jantar = 15€ se optares.</small>
+            <small class="lang-en">Sliding scale for the ticket; dinner is €15 if you opt in.</small>
           </p>
 
           <div class="field links-dinner-note-wrap" id="lb_dinner_note_wrap" hidden>
@@ -375,11 +383,16 @@
             <span class="js-summary-total">—</span>
           </p>
           <div id="lb_payment_instructions" class="reveal" style="margin-bottom:0.5rem"></div>
-          <p class="links-muted lang-pt" style="margin-top:1rem">Envia o comprovativo (PDF, JPG, PNG ou WebP, máx. 5 MB) ou indica abaixo que preferes email para <a href="mailto:info@ecstaticdanceviseu.pt" style="color:var(--gold)">info@ecstaticdanceviseu.pt</a>.</p>
-          <p class="links-muted lang-en" style="margin-top:1rem">Upload a proof (PDF, JPG, PNG, or WebP, max. 5 MB) or use the button to say you will email it to <a href="mailto:info@ecstaticdanceviseu.pt" style="color:var(--gold)">info@ecstaticdanceviseu.pt</a>.</p>
-          <div class="field" style="margin-top:1rem">
-            <label for="lb_proof"><span class="lang-pt">Comprovativo</span><span class="lang-en">Proof of payment</span></label>
-            <input type="file" id="lb_proof" name="proof" accept=".pdf,image/jpeg,image/png,image/webp" />
+          <p class="links-muted lang-pt" style="margin-top:1rem">Se preferires, podes enviar o comprovativo mais tarde por email para <a href="mailto:info@ecstaticdanceviseu.pt" style="color:var(--gold)">info@ecstaticdanceviseu.pt</a> — usa o botão «Envio depois».</p>
+          <p class="links-muted lang-en" style="margin-top:1rem">Or email proof later to <a href="mailto:info@ecstaticdanceviseu.pt" style="color:var(--gold)">info@ecstaticdanceviseu.pt</a> — use «I will email the proof later».</p>
+          <div class="field links-proof-upload-field" style="margin-top:1.25rem">
+            <label for="lb_proof">
+              <span class="lang-pt">Comprovativo (foto, captura de ecrã ou PDF)</span>
+              <span class="lang-en">Proof (photo, screenshot, or PDF)</span>
+            </label>
+            <p class="links-proof-hint lang-pt">Foto tirada com o telemóvel, printscreen da app ou extrato PDF — até 5&nbsp;MB. Tem de dar para ler o montante e a referência.</p>
+            <p class="links-proof-hint lang-en">Phone camera shot, app screenshot, or bank PDF — max 5&nbsp;MB. Amount and reference must be readable.</p>
+            <input type="file" id="lb_proof" name="proof" accept=".pdf,image/jpeg,image/png,image/webp,application/pdf" />
           </div>
           <div class="links-step2-actions">
             <button type="button" class="btn-primary" id="lb_btn_upload" style="flex:1;min-width:160px">

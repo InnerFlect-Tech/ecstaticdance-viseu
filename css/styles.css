@@ -141,6 +141,11 @@ h1, h2, h3, h4 {
 .reveal-delay-1 { transition-delay: .12s; }
 .reveal-delay-2 { transition-delay: .24s; }
 .reveal-delay-3 { transition-delay: .36s; }
+.reveal-delay-4 { transition-delay: .48s; }
+.reveal-delay-5 { transition-delay: .6s; }
+.reveal-delay-6 { transition-delay: .72s; }
+.reveal-delay-7 { transition-delay: .84s; }
+.reveal-delay-8 { transition-delay: .96s; }
 
 /* ─── NAV ─── */
 .nav {

@@ -30,13 +30,13 @@ function link_sql_now(): string {
     return $d->format('Y-m-d H:i:s');
 }
 
-/** Mínimo do bilhete (sliding): early bird 20€ até fim de 3 mai 2026 (Lisboa); depois 25€. Igual a create-checkout.php */
+/** Mínimo do bilhete (sliding): early bird 20€ até fim de 3 mai 2026 (Lisboa); depois 30€. Igual a create-checkout.php */
 function link_ticket_min_eur(): float {
     $tz = new DateTimeZone('Europe/Lisbon');
     $now = new DateTime('now', $tz);
     $early_end = new DateTime('2026-05-04 00:00:00', $tz);
 
-    return ($now < $early_end) ? 20.0 : 25.0;
+    return ($now < $early_end) ? 20.0 : 30.0;
 }
 
 function link_ticket_max_eur(): float {

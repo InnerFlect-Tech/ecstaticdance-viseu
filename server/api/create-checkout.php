@@ -64,7 +64,7 @@ if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
 $tz_early = new DateTimeZone('Europe/Lisbon');
 $now_lx   = new DateTime('now', $tz_early);
 $early_end = new DateTime('2026-05-04 00:00:00', $tz_early);
-$min_allowed = ($now_lx < $early_end) ? 20 : 25;
+$min_allowed = ($now_lx < $early_end) ? 20 : 30;
 
 if ($amount < $min_allowed || $amount > 200) {
     json_err('Valor fora do intervalo permitido (€' . $min_allowed . '–€200).');
