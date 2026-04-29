@@ -18,6 +18,20 @@
   <link rel="stylesheet" href="css/pages.css" />
   <link rel="stylesheet" href="css/bilhetes.css" />
   <link rel="stylesheet" href="css/links.css" />
+  <script>
+    if (new URLSearchParams(location.search).get('modal') === '1') {
+      document.documentElement.classList.add('is-modal')
+    }
+  </script>
+  <style>
+    /* Modo modal (?modal=1 → html.is-modal): esconde header, checkout online e rodapé */
+    html.is-modal .links-landing-header,
+    html.is-modal #reservar,
+    html.is-modal .ticket-booking-intro,
+    html.is-modal .links-landing-foot { display: none !important; }
+    html.is-modal #buy-page { min-height: unset; }
+    html.is-modal .links-landing-main { padding-top: 0 !important; }
+  </style>
 </head>
 <body id="buy-page">
 

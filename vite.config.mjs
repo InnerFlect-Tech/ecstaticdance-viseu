@@ -53,6 +53,7 @@ export default defineConfig({
         faq:          resolve(__dirname, 'faq.html'),
         contacto:     resolve(__dirname, 'contacto.html'),
         bilhetes:     resolve(__dirname, 'bilhetes.html'),
+        buy:          resolve(__dirname, 'buy.html'),
         ticket:       resolve(__dirname, 'ticket.html'),
         links:        resolve(__dirname, 'links.html'),
         confirmacao:  resolve(__dirname, 'confirmacao.html'),

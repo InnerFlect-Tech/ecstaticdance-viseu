@@ -46,11 +46,11 @@ function initBuyDialog() {
 
   function openWithTarget(/** @type {'reservar' | 'reserva-manual'} */ target) {
     const hash = target === 'reserva-manual' ? 'reserva-manual' : 'reservar'
-    const src = new URL(`/buy#${hash}`, window.location.href).href
+    const src = new URL(`/buy?modal=1#${hash}`, window.location.href).href
 
     const openTab = document.getElementById('links-buy-dialog-open-tab')
     if (openTab instanceof HTMLAnchorElement) {
-      openTab.href = src
+      openTab.href = new URL(`/buy#${hash}`, window.location.href).href
     }
 
     iframe.setAttribute('src', src)
@@ -69,11 +69,12 @@ function initBuyDialog() {
     triggerEl = null
   }
 
+  const closeBtns = dialog.querySelectorAll('.links-buy-dialog-close, .links-buy-dialog-scrim')
+  closeBtns.forEach((btn) => btn.addEventListener('click', () => dialog.close()))
   dialog.addEventListener('close', onDialogClose)
-  dialog.addEventListener('click', (e) => {
-    if (e.target === dialog) dialog.close()
+  dialog.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape') dialog.close()
   })
-  scrim?.addEventListener('click', () => dialog.close())
 
   document.querySelectorAll('a.js-buy-dialog-trigger').forEach((a) => {
     if (!(a instanceof HTMLAnchorElement)) return
