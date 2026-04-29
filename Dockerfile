@@ -7,7 +7,9 @@ COPY package*.json ./
 RUN npm ci --prefer-offline
 
 COPY . .
-RUN npm run build
+RUN npm run build \
+  && test -f dist/links.html \
+  && test -f dist/buy.html
 
 # ── Stage 2: Serve ──────────────────────────────────────────
 FROM nginx:1.27-alpine AS production
