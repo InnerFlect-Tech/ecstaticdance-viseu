@@ -1,0 +1,493 @@
+<!DOCTYPE html>
+<html lang="pt">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <meta name="description" content="Ecstatic Dance Viseu #01 — 23 maio 2026 em Viseu. Uma noite de dança livre; bilhete com sliding scale e lugares limitados." />
+  <meta name="robots" content="noindex" />
+  <meta name="theme-color" content="#ede6d8" />
+  <meta name="color-scheme" content="light" />
+  <title>Links — Ecstatic Dance Viseu</title>
+  <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;1,300;1,400;1,500&family=DM+Sans:opsz,wght@9..40,300;9..40,400;9..40,500&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="css/styles.css" />
+  <link rel="stylesheet" href="css/pages.css" />
+  <link rel="stylesheet" href="css/bilhetes.css" />
+  <link rel="stylesheet" href="css/links.css" />
+</head>
+<body class="lang-pt" id="links-page">
+  <header class="links-landing-header">
+    <div class="links-landing-header-inner">
+      <div class="links-lang" role="group" aria-label="Idioma / Language">
+        <span class="visually-hidden" id="lang-label-pt">Idioma</span>
+        <button type="button" id="lang-pt" aria-labelledby="lang-label-pt">PT</button>
+        <button type="button" id="lang-en" aria-labelledby="lang-label-pt">EN</button>
+      </div>
+      <div class="links-landing-mark" role="img" aria-label="Ecstatic Dance Viseu">
+        <img
+          class="edv-mark edv-mark--links"
+          src="/images/branding/logo_white.png"
+          alt=""
+          width="200"
+          height="200"
+          decoding="async"
+          aria-hidden="true"
+        />
+      </div>
+      <span class="links-landing-site">ecstaticdanceviseu.pt</span>
+    </div>
+  </header>
+
+  <main class="links-landing-main">
+    <div class="links-landing-intro reveal">
+      <p class="links-hero-eyebrow">
+        <span class="lang-pt">23 maio 2026 · Nua e Crua, Viseu</span>
+        <span class="lang-en">23 May 2026 · Nua e Crua, Viseu</span>
+      </p>
+      <h1 class="links-hero-title">
+        <span class="lang-pt">
+          <span class="links-hero-line1">Ecstatic Dance Viseu #01</span>
+          <span class="links-hero-line2">Uma jornada livre ao som da música — sem passos, só presença e movimento autêntico.</span>
+        </span>
+        <span class="lang-en">
+          <span class="links-hero-line1">Ecstatic Dance Viseu #01</span>
+          <span class="links-hero-line2">A free-form journey in music — no choreography, just presence and moving as you are.</span>
+        </span>
+      </h1>
+      <p class="links-hero-micro lang-pt">Primeira edição neste formato em Viseu · Lugares limitados</p>
+      <p class="links-hero-micro lang-en">First edition in Viseu in this format · Limited capacity</p>
+    </div>
+
+    <div class="links-bio-hub reveal">
+      <p class="links-bio-hub-label">
+        <span class="lang-pt">Bilhetes</span>
+        <span class="lang-en">Tickets</span>
+      </p>
+      <div class="links-bio-hub-actions">
+        <button type="button" class="btn-primary links-bio-hub-cta" id="links-primary-cta">
+          <span class="lang-pt links-bio-hub-cta-inner">
+            <span class="links-bio-hub-cta-title">Adquirir bilhete</span>
+            <span class="links-bio-hub-sub">MB Way · Transferência · Revolut</span>
+          </span>
+          <span class="lang-en links-bio-hub-cta-inner">
+            <span class="links-bio-hub-cta-title">Get my ticket</span>
+            <span class="links-bio-hub-sub">MB Way · Bank transfer · Revolut</span>
+          </span>
+        </button>
+      </div>
+    </div>
+
+    <div
+      id="links-inline-booking-mount"
+      class="links-inline-booking-shell links-inline-booking-shell--collapsed"
+      aria-hidden="true"
+      inert
+    >
+      <div class="links-inline-booking-inner">
+        <div class="links-inline-booking-content">
+          <section class="content-section dark links-reserva-manual lang-pt" id="reserva-manual" aria-labelledby="lb_step_1_title">
+          <div class="content-max-wide" style="padding-top:0">
+
+          <!-- Passo 1 -->
+          <div id="lb_step_1" class="links-form-card reveal" aria-labelledby="lb_step_1_title">
+          <p class="links-step-badge"><span class="lang-pt">1 — Pedido</span><span class="lang-en">1 — Request</span></p>
+          <h2 id="lb_step_1_title" class="links-step-heading reveal" tabindex="-1" style="font-family:'Cormorant Garamond',serif;font-weight:300;font-size:1.75rem;color:var(--bone);margin:0 0 1.25rem">
+          <span class="lang-pt">Dados e montante</span>
+          <span class="lang-en">Details and amount</span>
+          </h2>
+          <form id="lb_booking_form" novalidate>
+          <input type="hidden" name="event_slug" id="lb_event_slug" value="edv-2026-05-23" />
+          <div class="field">
+          <label for="lb_name"><span class="lang-pt">Nome</span><span class="lang-en">Name</span> *</label>
+          <input type="text" id="lb_name" name="lb_name" required autocomplete="name" />
+          </div>
+          <div class="field">
+          <label for="lb_email">Email *</label>
+          <input type="email" id="lb_email" name="lb_email" required autocomplete="email" />
+          </div>
+          <div class="field">
+          <label for="lb_phone"><span class="lang-pt">Telemóvel</span><span class="lang-en">Mobile</span> *</label>
+          <input type="tel" id="lb_phone" name="lb_phone" required autocomplete="tel" inputmode="tel" />
+          </div>
+          <div class="field">
+          <label for="lb_ticket_range">
+          <span class="lang-pt">Valor do bilhete — sliding scale até 100€ (passos de 5€); acima, campo livre até 200€</span>
+          <span class="lang-en">Ticket — sliding scale to €100 (€5 steps); above that, type any amount up to €200</span>
+          </label>
+          <div class="amount-picker links-amount-picker" id="links-amount-picker">
+          <div class="amount-number">
+          <span class="amount-currency" aria-hidden="true">€</span>
+          <output class="amount-value" id="lb_ticket_amount_out" for="lb_ticket_range">30</output>
+          </div>
+          <p class="links-tier-phrase" id="lb_ticket_tier_phrase" aria-live="polite">
+          <span class="lang-pt">Entrada acessível — o essencial para o evento acontecer.</span>
+          <span class="lang-en">Accessible entry — the baseline that keeps the event running.</span>
+          </p>
+          <input
+          type="range"
+          id="lb_ticket_range"
+          min="20"
+          max="100"
+          step="5"
+          value="30"
+          aria-label="Sliding scale: ticket amount in euros up to 100, step 5"
+          />
+          <div class="amount-labels">
+          <span id="lb_ticket_range_min_lbl">
+          <span class="lang-pt">20€ — early bird</span>
+          <span class="lang-en">€20 — early bird</span>
+          </span>
+          <span><span class="lang-pt">100€</span><span class="lang-en">€100</span></span>
+          </div>
+          </div>
+          <div class="lb-ticket-scale-plus" id="lb_ticket_scale_plus_wrap" hidden aria-labelledby="lb-ticket-plus-pt">
+          <p id="lb-ticket-plus-pt" class="lb-ticket-plus-kicker lang-pt">Acima de 100€</p>
+          <p id="lb-ticket-plus-en" class="lb-ticket-plus-kicker lang-en">Above €100</p>
+          <p class="lb-ticket-plus-hint lang-pt">
+          Valor em euros (inteiro) entre 101 e 200. Deixa vazio para usar só o slider.
+          </p>
+          <p class="lb-ticket-plus-hint lang-en">
+          Whole euros from 101 to 200. Leave empty to use the slider only.
+          </p>
+          <input
+          type="number"
+          class="lb-ticket-custom"
+          id="lb_ticket_custom"
+          min="101"
+          max="200"
+          step="1"
+          inputmode="numeric"
+          placeholder="101–200"
+          autocomplete="off"
+          />
+          </div>
+          <p class="form-hint-block links-ticket-hint">
+          <span class="lang-pt">Paga o que podes (até 200€). Com <strong>early bird</strong>, o piso é 20€ até 3 de maio; depois, 30€. Valores mais altos apoiam o círculo.</span>
+          <span class="lang-en">Pay what you can (up to €200). <strong>Early bird</strong> floor is €20 through 3 May; after that, €30. Higher choices support the circle.</span>
+          </p>
+          <input type="hidden" id="lb_ticket_euros" value="30" />
+          </div>
+
+          <fieldset class="field links-dinner-box">
+          <legend>
+          <span class="lang-pt">Jantar</span>
+          <span class="lang-en">Dinner</span>
+          </legend>
+          <p class="links-dinner-lead">
+          <span class="lang-pt">Refeição no local após a dança, valor fixo.</span>
+          <span class="lang-en">A meal on site after the dance — fixed price.</span>
+          </p>
+          <div class="links-dinner-row">
+          <input type="checkbox" id="lb_dinner_incl" name="dinner_incl" value="1" />
+          <label for="lb_dinner_incl" class="links-dinner-label">
+          <span class="lang-pt">Incluir jantar</span>
+          <span class="lang-en">Include dinner</span>
+          </label>
+          <span class="links-dinner-price" aria-hidden="true">
+          <span class="lang-pt">+15&nbsp;€</span>
+          <span class="lang-en">+€15</span>
+          </span>
+          </div>
+          <input type="hidden" id="lb_dinner_euros" name="dinner_euros" value="0" />
+          <p class="links-dinner-footnote" role="note">
+          <span class="lang-pt">O total em baixo passa a incluir estes 15€ quando assinalas a opção.</span>
+          <span class="lang-en">The total below includes this €15 when the option is checked.</span>
+          </p>
+          </fieldset>
+
+          <p class="links-totals" aria-live="polite">
+          <span class="lang-pt">Total a pagar</span>
+          <span class="lang-en">Total to pay</span>
+          <strong id="lb_total_euros_out">30,00 €</strong>
+          <span id="lb_total_detail_line" class="links-totals-detail" hidden>
+          <span class="lang-pt">Bilhete + jantar 15€</span>
+          <span class="lang-en">Ticket + €15 dinner</span>
+          </span>
+          <small class="lang-pt">Sliding scale no bilhete; jantar = 15€ se optares.</small>
+          <small class="lang-en">Sliding scale for the ticket; dinner is €15 if you opt in.</small>
+          </p>
+
+          <div class="field links-dinner-note-wrap" id="lb_dinner_note_wrap" hidden>
+          <label for="lb_dinner_note">
+          <span class="lang-pt">Nota do jantar (opcional)</span>
+          <span class="lang-en">Dinner note (optional)</span>
+          </label>
+          <p class="links-dinner-note-hint">
+          <span class="lang-pt">Restrições alimentares, alergias, etc.</span>
+          <span class="lang-en">Dietary needs, allergies, etc.</span>
+          </p>
+          <textarea id="lb_dinner_note" name="dinner_note" maxlength="64" rows="2"></textarea>
+          </div>
+          <div class="field">
+          <span id="heard-label" class="lang-pt" style="display:block;margin-bottom:0.4rem">Como tiveste conhecimento deste evento? *</span>
+          <span class="lang-en" style="display:block;margin-bottom:0.4rem">How did you hear about this event? *</span>
+          <label for="lb_heard_from" class="visually-hidden">Como tiveste conhecimento / How you heard</label>
+          <select id="lb_heard_from" name="heard_from" required>
+          <option value="instagram">Instagram</option>
+          <option value="facebook">Facebook</option>
+          <option value="friends">Amigos / Friends</option>
+          <option value="mailing">Mailing list</option>
+          <option value="whatsapp">WhatsApp</option>
+          <option value="telegram">Telegram</option>
+          <option value="other">Outro / Other (especifica abaixo / specify below)</option>
+          </select>
+          </div>
+          <div class="field" id="lb_heard_other_wrap" hidden>
+          <label for="lb_heard_other"><span class="lang-pt">Especifica</span><span class="lang-en">Specify</span> *</label>
+          <input type="text" id="lb_heard_other" name="heard_other" maxlength="255" />
+          </div>
+          <fieldset class="field" style="border:0;padding:0;margin:0">
+          <legend style="display:block;padding:0 0 0.5rem;letter-spacing:0.14em;text-transform:uppercase;font-size:0.72rem;color:rgba(245,239,230,.45)">
+          <span class="lang-pt">Preferência de pagamento *</span>
+          <span class="lang-en">Payment preference *</span>
+          </legend>
+          <div class="links-payment-grid">
+          <div class="links-payment-row">
+          <input type="radio" name="lb_payment_method" id="lb_pm_mbway" value="mbway" checked />
+          <label for="lb_pm_mbway">MB Way</label>
+          </div>
+          <div class="links-payment-row">
+          <input type="radio" name="lb_payment_method" id="lb_pm_transfer" value="transfer" />
+          <label for="lb_pm_transfer" class="lang-pt">Transferência bancária</label>
+          <label for="lb_pm_transfer" class="lang-en">Bank transfer (SEPA)</label>
+          </div>
+          <div class="links-payment-row">
+          <input type="radio" name="lb_payment_method" id="lb_pm_revolut" value="revolut" />
+          <label for="lb_pm_revolut">Revolut</label>
+          </div>
+          </div>
+          </fieldset>
+          <p id="lb_form_error" class="reveal" role="alert" aria-live="assertive"></p>
+          <button type="submit" class="btn-primary" id="lb_step1_submit" style="width:100%;margin-top:1.25rem">
+          <span class="lang-pt">Continuar para comprovativo</span>
+          <span class="lang-en">Continue to proof of payment</span>
+          </button>
+          </form>
+          </div>
+
+          <!-- Passo 2 -->
+          <div id="lb_step_2" class="links-form-card reveal" hidden aria-labelledby="lb_step_2_title">
+          <p class="links-step-badge"><span class="lang-pt">2 — Comprovativo</span><span class="lang-en">2 — Proof of payment</span></p>
+          <h2 id="lb_step_2_title" class="links-step-heading" style="font-family:'Cormorant Garamond',serif;font-weight:300;font-size:1.75rem;color:var(--bone);margin:0 0 1rem">
+          <span class="lang-pt">Pagamento e comprovativo</span>
+          <span class="lang-en">Pay, then send proof</span>
+          </h2>
+          <div id="lb_step_2_in">
+          <p style="color:rgba(245,239,230,.6);line-height:1.7;font-size:0.92rem">
+          <span class="lang-pt">Referência do teu pedido: </span>
+          <span class="lang-en">Reference: </span>
+          <strong class="js-summary-ref" style="color: var(--bone)">—</strong>
+          </p>
+          <p style="color:rgba(245,239,230,.5);font-size:0.85rem;margin:0.25rem 0 1rem">
+          <span class="lang-pt">Montante: </span>
+          <span class="lang-en">Amount: </span>
+          <span class="js-summary-total">—</span>
+          </p>
+          <div id="lb_payment_instructions" class="reveal" style="margin-bottom:0.5rem"></div>
+          <p class="links-muted lang-pt" style="margin-top:1rem">Se preferires, podes enviar o comprovativo mais tarde por email para <a href="mailto:info@ecstaticdanceviseu.pt" style="color:var(--gold)">info@ecstaticdanceviseu.pt</a> — usa o botão «Envio depois».</p>
+          <p class="links-muted lang-en" style="margin-top:1rem">Or email proof later to <a href="mailto:info@ecstaticdanceviseu.pt" style="color:var(--gold)">info@ecstaticdanceviseu.pt</a> — use «I will email the proof later».</p>
+          <div class="field links-proof-upload-field" style="margin-top:1.25rem">
+          <label for="lb_proof">
+          <span class="lang-pt">Comprovativo (foto, captura de ecrã ou PDF)</span>
+          <span class="lang-en">Proof (photo, screenshot, or PDF)</span>
+          </label>
+          <p class="links-proof-hint lang-pt">Foto tirada com o telemóvel, printscreen da app ou extrato PDF — até 5&nbsp;MB. Tem de dar para ler o montante e a referência.</p>
+          <p class="links-proof-hint lang-en">Phone camera shot, app screenshot, or bank PDF — max 5&nbsp;MB. Amount and reference must be readable.</p>
+          <input type="file" id="lb_proof" name="proof" accept=".pdf,image/jpeg,image/png,image/webp,application/pdf" />
+          </div>
+          <div class="links-step2-actions">
+          <button type="button" class="btn-primary" id="lb_btn_upload" style="flex:1;min-width:160px">
+          <span class="lang-pt">Enviar ficheiro</span>
+          <span class="lang-en">Upload file</span>
+          </button>
+          <button type="button" class="btn-links-secondary" id="lb_btn_later" style="flex:1;min-width:200px">
+          <span class="lang-pt">Envio do comprovativo depois (email)</span>
+          <span class="lang-en">I will email the proof later</span>
+          </button>
+          </div>
+          <p id="lb_step2_error" role="alert" aria-live="assertive"></p>
+          <p id="lb_step2_success" role="status" aria-live="polite"></p>
+          </div>
+          <button type="button" class="links-start-over" id="lb_start_over">
+          <span class="lang-pt">← Novo pedido</span>
+          <span class="lang-en">← New request</span>
+          </button>
+          </div>
+          </div>
+          </section>
+        </div>
+      </div>
+    </div>
+
+    <section class="links-experience" aria-labelledby="links-experience-heading">
+      <div class="links-experience-panel reveal">
+        <div class="links-experience-panel-glow" aria-hidden="true"></div>
+        <div class="links-experience-panel-accent" aria-hidden="true"></div>
+        <p class="links-experience-kicker">
+          <span class="lang-pt">23 maio 2026</span>
+          <span class="lang-en">23 May 2026</span>
+        </p>
+        <h2 id="links-experience-heading" class="links-experience-title">
+          <span class="lang-pt">Ecstatic Dance Viseu — como corre a noite</span>
+          <span class="lang-en">Ecstatic Dance Viseu — how the night unfolds</span>
+        </h2>
+        <p class="links-experience-lead">
+          <span class="lang-pt">A primeira edição deste formato em Viseu: jornada guiada pela música, sem aula nem coreografia, pista livre e silêncio enquanto danças — presença plena, em comunidade, na Nua e Crua.</span>
+          <span class="lang-en">Our first edition of this format in Viseu: a music-led journey without teaching or choreography, open floor and silence while you dance — full presence, together, at Nua e Crua.</span>
+        </p>
+
+        <div class="links-experience-chips-scroll" role="group" aria-label="Destaques do programa / Program highlights">
+          <ul class="links-experience-chips">
+            <li class="links-experience-chip"><span class="links-experience-chip-time">15h00</span><span class="lang-pt">Portas</span><span class="lang-en">Doors</span></li>
+            <li class="links-experience-chip links-experience-chip--accent"><span class="links-experience-chip-time">16h30</span><span class="lang-pt">Dança</span><span class="lang-en">Dance</span></li>
+            <li class="links-experience-chip"><span class="links-experience-chip-time">19h30</span><span class="lang-pt">Jantar</span><span class="lang-en">Dinner</span></li>
+            <li class="links-experience-chip links-experience-chip--muted"><span class="lang-pt">Lugares limitados</span><span class="lang-en">Limited capacity</span></li>
+          </ul>
+        </div>
+
+        <ul class="links-experience-steps">
+          <li class="links-experience-step reveal reveal-delay-1">
+            <span class="links-experience-dot" aria-hidden="true">
+              <svg width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"><circle cx="7" cy="7" r="5.5"/><path d="M7 4v3.2l1.8 1.1"/></svg>
+            </span>
+            <div class="links-experience-step-surface">
+              <span class="links-experience-when">15h00 — Abertura do espaço</span>
+              <p class="lang-pt">Nua e Crua abre as portas. Chegada livre, instalação e acolhimento.</p>
+              <p class="lang-en">Nua e Crua opens. Free arrival and welcome.</p>
+            </div>
+          </li>
+          <li class="links-experience-step reveal reveal-delay-2">
+            <span class="links-experience-dot" aria-hidden="true">
+              <svg width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"><path d="M3 10 C3 7 5 5 7 7 C9 9 11 7 11 4"/><circle cx="7" cy="4" r="1.2"/></svg>
+            </span>
+            <div class="links-experience-step-surface">
+              <span class="links-experience-when">16h00 — Warm-up corporal</span>
+              <p class="lang-pt">Carolina Gomes — ativação para o corpo chegar ao espaço. <a class="links-step-ig" href="https://www.instagram.com/carolinagomes.terapiafeminina/" target="_blank" rel="noopener noreferrer">@carolinagomes.terapiafeminina</a></p>
+              <p class="lang-en">Carolina Gomes — body activation to arrive in the space. <a class="links-step-ig" href="https://www.instagram.com/carolinagomes.terapiafeminina/" target="_blank" rel="noopener noreferrer">@carolinagomes.terapiafeminina</a></p>
+            </div>
+          </li>
+          <li class="links-experience-step links-experience-step--spotlight reveal reveal-delay-3">
+            <span class="links-experience-dot" aria-hidden="true">
+              <svg width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"><path d="M1 8 Q3.5 3 7 8 Q10.5 13 13 8"/><path d="M4 5.5 Q5.5 2.5 7 5.5"/></svg>
+            </span>
+            <div class="links-experience-step-surface">
+              <span class="links-experience-when"><span class="links-experience-pill lang-pt">Momento central</span><span class="links-experience-pill lang-en">Main set</span> 16h30 – 18h30 — Ecstatic Dance</span>
+              <p class="lang-pt">Indias Fernandes — DJ set de dança ecstática. Pista livre, sem conversa na dança. <a class="links-step-ig" href="https://www.instagram.com/numoksa/" target="_blank" rel="noopener noreferrer">@numoksa</a></p>
+              <p class="lang-en">Indias Fernandes — ecstatic dance DJ set. Open floor, silence on the dance floor. <a class="links-step-ig" href="https://www.instagram.com/numoksa/" target="_blank" rel="noopener noreferrer">@numoksa</a></p>
+            </div>
+          </li>
+          <li class="links-experience-step reveal reveal-delay-4">
+            <span class="links-experience-dot" aria-hidden="true">
+              <svg width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"><circle cx="7" cy="5" r="3"/><path d="M3 13c0-2.2 1.8-4 4-4s4 1.8 4 4"/></svg>
+            </span>
+            <div class="links-experience-step-surface">
+              <span class="links-experience-when">18h30 — Integração</span>
+              <p class="lang-pt">Liliana Pereira + Ana Ferreira — meditação guiada e som ao vivo com taças de cristal de quartzo. <a class="links-step-ig" href="https://www.instagram.com/li_rmpereira/" target="_blank" rel="noopener noreferrer">@li_rmpereira</a> + <a class="links-step-ig" href="https://www.instagram.com/anaferreira_comalma/" target="_blank" rel="noopener noreferrer">@anaferreira_comalma</a></p>
+              <p class="lang-en">Liliana Pereira + Ana Ferreira — guided meditation and live crystal singing bowls. <a class="links-step-ig" href="https://www.instagram.com/li_rmpereira/" target="_blank" rel="noopener noreferrer">@li_rmpereira</a> + <a class="links-step-ig" href="https://www.instagram.com/anaferreira_comalma/" target="_blank" rel="noopener noreferrer">@anaferreira_comalma</a></p>
+            </div>
+          </li>
+          <li class="links-experience-step reveal reveal-delay-5">
+            <span class="links-experience-dot" aria-hidden="true">
+              <svg width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"><path d="M2 7 Q7 3 12 7"/><path d="M4 7v4M10 7v4M2 11h10"/></svg>
+            </span>
+            <div class="links-experience-step-surface">
+              <span class="links-experience-when">19h00 — Chá e convívio</span>
+              <p class="lang-pt">Espaço de partilha, descanso e presença.</p>
+              <p class="lang-en">Sharing, rest and presence.</p>
+            </div>
+          </li>
+          <li class="links-experience-step reveal reveal-delay-6">
+            <span class="links-experience-dot" aria-hidden="true">
+              <svg width="14" height="14" viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"><path d="M3 1v4c0 .8.6 1.4 1.4 1.4H5V11M5 1v3.5c0 .3-.2.5-.5.5H3.5"/><path d="M9 1a2 2 0 0 1 1 4V11"/></svg>
+            </span>
+            <div class="links-experience-step-surface">
+              <span class="links-experience-when">19h30 — Jantar coletivo</span>
+              <p class="lang-pt">Refeição partilhada no espaço (+15€ · sopa, prato e bebida) — assinalas na compra do bilhete.</p>
+              <p class="lang-en">Shared meal on site (+€15 · soup, main and drink) — add when buying your ticket.</p>
+            </div>
+          </li>
+        </ul>
+
+        <div class="links-experience-venue reveal reveal-delay-7" role="group" aria-labelledby="links-venue-label">
+          <p id="links-venue-label" class="links-experience-venue-label">
+            <svg width="11" height="11" viewBox="0 0 11 11" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" aria-hidden="true"><path d="M5.5 10S1 6.5 1 4a4.5 4.5 0 0 1 9 0C10 6.5 5.5 10 5.5 10z"/><circle cx="5.5" cy="4" r="1.5"/></svg>
+            <span class="lang-pt">Local</span>
+            <span class="lang-en">Venue</span>
+          </p>
+          <p class="links-experience-venue-name">
+            <a class="links-step-ig" href="https://www.instagram.com/_nua_e_crua_/" target="_blank" rel="noopener noreferrer">Nua e Crua</a>, Viseu
+          </p>
+        </div>
+      </div>
+    </section>
+
+    <section class="links-faq-compact content-max-wide reveal" aria-labelledby="links-faq-heading">
+      <h2 id="links-faq-heading" class="links-faq-compact-title">
+        <svg width="18" height="18" viewBox="0 0 18 18" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" aria-hidden="true"><circle cx="9" cy="9" r="7.5"/><path d="M7 7.2C7 6 7.8 5.2 9 5.2c1.1 0 2 .8 2 1.9 0 1.6-2 2.2-2 3.4"/><circle cx="9" cy="13.2" r=".7" fill="currentColor" stroke="none"/></svg>
+        <span class="lang-pt">Antes de vir</span>
+        <span class="lang-en">Before you come</span>
+      </h2>
+      <div class="links-faq-list">
+        <details class="links-faq-item">
+          <summary><svg class="links-faq-chevron" width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 5l4 4 4-4"/></svg><span class="lang-pt">O que é Ecstatic Dance?</span><span class="lang-en">What is Ecstatic Dance?</span></summary>
+          <p class="lang-pt">Um formato de dança livre sem instrução: música de DJ ao longo de uma jornada, espaço seguro para explorar o movimento sem julgamento. Não é aula nem espectáculo — és parte do que acontece na sala.</p>
+          <p class="lang-en">A free-form dance practice without instruction: DJ music across a journey, a safer space to explore movement without judgment. Not a class or a show — you’re part of what happens in the room.</p>
+        </details>
+        <details class="links-faq-item">
+          <summary><svg class="links-faq-chevron" width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 5l4 4 4-4"/></svg><span class="lang-pt">Preciso de experiência em dança?</span><span class="lang-en">Do I need dance experience?</span></summary>
+          <p class="lang-pt">Não. O espaço é guiado pela música; não há passos nem coreografia.</p>
+          <p class="lang-en">No. The journey is music-led; there are no steps or choreography.</p>
+        </details>
+        <details class="links-faq-item">
+          <summary><svg class="links-faq-chevron" width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 5l4 4 4-4"/></svg><span class="lang-pt">Posso falar na pista?</span><span class="lang-en">Can I talk on the dance floor?</span></summary>
+          <p class="lang-pt">Durante a dança mantém-se silêncio — o corpo dança. Conversas ficam fora da pista.</p>
+          <p class="lang-en">During the dance we keep silence — the body moves. Chat stays off the floor.</p>
+        </details>
+        <details class="links-faq-item">
+          <summary><svg class="links-faq-chevron" width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 5l4 4 4-4"/></svg><span class="lang-pt">Como compro o bilhete?</span><span class="lang-en">How do I buy a ticket?</span></summary>
+          <p class="lang-pt">Clica em <strong>Adquirir bilhete</strong> para abrires o formulário nesta mesma página (com animação suave). Pagamento imediato online está na página <a href="/buy#reservar">Comprar bilhete</a>; aqui tratas de MB Way, transferência ou Revolut com a equipa.</p>
+          <p class="lang-en">Tap <strong>Get my ticket</strong> to open the form on this same page (smooth animation). Instant online payment is on the <a href="/buy#reservar">buy ticket</a> page; here you arrange MB Way, bank transfer, or Revolut with the team.</p>
+        </details>
+      </div>
+    </section>
+
+  </main>
+
+  <div
+    id="links-sticky-cta"
+    class="links-sticky-cta"
+    aria-hidden="true"
+    role="region"
+    aria-label="Adquirir bilhete"
+  >
+    <div class="links-sticky-cta-inner">
+      <button type="button" class="btn-primary" id="links-sticky-booking-btn">
+        <span class="lang-pt"><span class="links-sticky-cta-title">Adquirir bilhete</span><span class="links-sticky-cta-sub">MB Way · Transferência · Revolut</span></span>
+        <span class="lang-en"><span class="links-sticky-cta-title">Get my ticket</span><span class="links-sticky-cta-sub">MB Way · Transfer · Revolut</span></span>
+      </button>
+    </div>
+  </div>
+
+  <footer class="links-landing-foot">
+    <p class="links-foot-tagline lang-pt">Movimento livre, presença plena, comunidade que cuida.</p>
+    <p class="links-foot-tagline lang-en">Free movement, full presence, a community that cares.</p>
+    <p class="links-landing-foot-copy">
+      <span class="lang-pt">
+        © 2026 Ecstatic Dance Viseu · Viseu, Portugal ·
+        <a href="mailto:info@ecstaticdanceviseu.pt">info@ecstaticdanceviseu.pt</a>
+      </span>
+      <span class="lang-en">
+        © 2026 Ecstatic Dance Viseu · Viseu, Portugal ·
+        <a href="mailto:info@ecstaticdanceviseu.pt">info@ecstaticdanceviseu.pt</a>
+      </span>
+    </p>
+  </footer>
+
+  <script type="module" src="/js/manual-booking.js"></script>
+  <script type="module" src="/js/links-hub.js"></script>
+  <script type="module" src="/js/pages.js"></script>
+</body>
+</html>

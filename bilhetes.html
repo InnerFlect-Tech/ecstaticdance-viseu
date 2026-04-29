@@ -1,0 +1,341 @@
+<!DOCTYPE html>
+<html lang="pt">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="description" content="Reserva o teu lugar no próximo Ecstatic Dance Viseu. Early bird 20€ até 3 mai; sliding scale até 200€. MB Way, Multibanco e cartão." />
+  <meta property="og:title"       content="Reservar — Ecstatic Dance Viseu" />
+  <meta property="og:description" content="Lugares limitados. Confirmação imediata por email com QR code." />
+  <meta property="og:type"        content="website" />
+  <meta property="og:url"         content="https://ecstaticdanceviseu.pt/bilhetes" />
+  <link rel="canonical"           href="https://ecstaticdanceviseu.pt/bilhetes" />
+  <title>Reservar — Ecstatic Dance Viseu</title>
+  <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;1,300;1,400;1,500&family=DM+Sans:opsz,wght@9..40,300;9..40,400;9..40,500&display=swap" rel="stylesheet" />
+
+  <link rel="stylesheet" href="css/styles.css" />
+  <link rel="stylesheet" href="css/pages.css" />
+  <link rel="stylesheet" href="css/bilhetes.css" />
+</head>
+<body>
+
+  <!-- NAV -->
+  <nav class="nav" id="nav" aria-label="Navegação principal">
+    <a class="nav-logo" href="/" aria-label="Ecstatic Dance Viseu — início">
+      <svg viewBox="0 0 200 200" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+        <circle cx="100" cy="100" r="80" stroke="#B8924A" stroke-width="1.5"/>
+        <polygon points="100,20 175,148 25,148" fill="none" stroke="#B8924A" stroke-width="1.2"/>
+        <circle cx="100" cy="100" r="80" stroke="#B8924A" stroke-width="0.5" stroke-dasharray="3 6"/>
+        <path d="M83 122C83 122 80 108 84 97C86 91 92 87 92 80C92 74 89 69 89 69" stroke="#C4593F" stroke-width="2.8" fill="none" stroke-linecap="round"/>
+        <circle cx="89" cy="65" r="7" fill="#C4593F"/>
+        <path d="M117 122C117 122 120 108 116 97C114 91 108 87 108 80C108 74 111 69 111 69" stroke="#C4593F" stroke-width="2.8" fill="none" stroke-linecap="round"/>
+        <circle cx="111" cy="65" r="7" fill="#C4593F"/>
+        <path d="M89 92L78 83M92 91L104 81M111 92L122 83M108 91L96 81" stroke="#C4593F" stroke-width="2" fill="none" stroke-linecap="round"/>
+        <path d="M68 89C68 84 71 79 76 79C71 84 71 93 76 98C71 98 68 93 68 89Z" fill="#B8924A" opacity=".85"/>
+        <circle cx="132" cy="112" r="7" fill="none" stroke="#B8924A" stroke-width="1.3" opacity=".75"/>
+      </svg>
+      <div class="nav-logo-text">
+        Ecstatic Dance
+        <small>Viseu · Portugal</small>
+      </div>
+    </a>
+
+    <ul class="nav-links">
+      <li><a href="/sobre">Sobre</a></li>
+      <li><a href="/eventos">Eventos</a></li>
+      <li><a href="/galeria">Galeria</a></li>
+      <li><a href="/faq">FAQ</a></li>
+      <li><a href="/contacto">Contacto</a></li>
+    </ul>
+
+    <a href="/eventos" class="nav-btn">Ver eventos</a>
+    <button class="nav-hamburger" id="menuToggle" aria-label="Abrir menu" aria-expanded="false">
+      <span></span><span></span><span></span>
+    </button>
+  </nav>
+
+  <div class="mobile-menu" id="mobileMenu" aria-hidden="true">
+    <nav aria-label="Menu mobile">
+      <ul>
+        <li><a href="/sobre">Sobre</a></li>
+        <li><a href="/eventos">Eventos</a></li>
+        <li><a href="/galeria">Galeria</a></li>
+        <li><a href="/faq">FAQ</a></li>
+        <li><a href="/contacto">Contacto</a></li>
+        <li><a href="/eventos" class="btn-primary" style="margin-top:1.5rem;display:block;text-align:center">Ver eventos</a></li>
+      </ul>
+    </nav>
+  </div>
+
+
+  <!-- PAGE HERO -->
+  <header class="page-hero">
+    <div class="page-hero-bg">
+      <img
+        src="https://images.unsplash.com/photo-1547153760-18fc86324498?w=1800&q=80&fit=crop"
+        alt=""
+        fetchpriority="high"
+      />
+    </div>
+    <div class="page-hero-overlay"></div>
+    <div class="breadcrumb">
+      <a href="/">Início</a><span class="sep">/</span>
+      <a href="/eventos">Eventos</a><span class="sep">/</span>
+      <span>Reservar</span>
+    </div>
+    <div class="page-hero-content">
+      <p class="section-eyebrow">Bilhetes</p>
+      <h1>Reserva o teu<br>lugar</h1>
+      <p>Lugares limitados. Confirmação imediata por email com código QR.</p>
+    </div>
+  </header>
+
+
+  <!-- BOOKING SECTION -->
+  <section class="content-section dark" id="reservar">
+    <div class="content-max-wide">
+      <div class="booking-layout">
+
+        <!-- Event info (left) -->
+        <div class="booking-event-info" id="eventInfo">
+          <div class="event-loading">A carregar evento…</div>
+        </div>
+
+        <!-- Booking form (right) -->
+        <div class="booking-form-panel">
+          <p class="section-eyebrow reveal" style="color:rgba(245,239,230,.4)">Reserva</p>
+          <h2 class="reveal reveal-delay-1">Preenche os<br>teus dados</h2>
+
+          <form id="bookingForm" novalidate>
+
+            <div id="formError" class="booking-error" style="display:none" role="alert"></div>
+
+            <div class="form-group">
+              <label for="name">Nome completo</label>
+              <input
+                type="text"
+                id="name"
+                name="name"
+                required
+                autocomplete="name"
+                placeholder="Como aparece no bilhete"
+              />
+            </div>
+
+            <div class="form-group">
+              <label for="email">Email</label>
+              <input
+                type="email"
+                id="email"
+                name="email"
+                required
+                autocomplete="email"
+                placeholder="Para receberes o bilhete"
+              />
+            </div>
+
+            <div class="form-group">
+              <label for="phone">
+                Telemóvel
+                <span class="form-hint">(necessário para MB Way)</span>
+              </label>
+              <input
+                type="tel"
+                id="phone"
+                name="phone"
+                required
+                autocomplete="tel"
+                placeholder="+351 9xx xxx xxx"
+              />
+            </div>
+
+            <!-- Amount picker — shown only for paid events -->
+            <div class="form-group" id="amountGroup" style="display:none">
+              <label>Valor que escolhes — Sliding scale (até 200€)</label>
+              <p class="form-hint-block" id="bilhetes-early-bird" style="margin-bottom:0.75rem;border-left:3px solid var(--gold);padding-left:0.85rem" hidden>
+                <strong>Early bird:</strong> mínimo <strong>20€</strong> até 3 de maio de 2026 (inclusive, hora de Portugal). Depois, o piso passa a 30€.
+              </p>
+              <div class="amount-picker">
+                <div class="amount-number">
+                  <span class="amount-currency">€</span>
+                  <span class="amount-value" id="amountDisplay">30</span>
+                </div>
+                <input
+                  type="range"
+                  id="amountRange"
+                  min="20"
+                  max="200"
+                  value="30"
+                  step="5"
+                  aria-label="Escolhe o valor do bilhete"
+                />
+                <div class="amount-labels">
+                  <span id="bilhetes_range_min_lbl">30€ — mínimo</span>
+                  <span>200€</span>
+                </div>
+              </div>
+              <p class="form-hint-block">
+                Paga o que podes, até 200€. Com early bird, o mínimo é 20€ até 3 de maio; depois, 30€. Cada euro acima do mínimo ajuda o círculo.
+                Se mesmo assim for um obstáculo, <a href="/contacto" style="color:var(--gold)">fala connosco</a>.
+              </p>
+            </div>
+
+            <!-- Free event badge — shown only for free events -->
+            <div class="booking-free-badge" id="freeBadge" style="display:none">
+              <span>Evento gratuito — reserva obrigatória</span>
+            </div>
+
+            <div class="form-check">
+              <input type="checkbox" id="agree" name="agree" required />
+              <label for="agree">
+                Aceito os <a href="/sobre#acordos" target="_blank">acordos da pista</a>
+                e confirmo que o bilhete é pessoal e intransmissível.
+              </label>
+            </div>
+
+            <button type="submit" class="btn-book" id="submitBtn" disabled>
+              Reservar lugar
+            </button>
+
+            <p class="booking-note" id="paidNote" style="display:none">
+              Serás redirigido para pagamento seguro.<br>
+              MB Way, Multibanco e cartão aceites.
+            </p>
+            <p class="booking-note" id="freeNote" style="display:none">
+              Receberás confirmação e código QR por email imediatamente.
+            </p>
+
+          </form>
+        </div>
+
+      </div>
+    </div>
+  </section>
+
+  <section class="content-section dark" aria-label="Reserva manual" style="padding-top:0;padding-bottom:2.5rem">
+    <div class="content-max-wide" style="text-align:center;font-size:0.92rem;color:rgba(245,239,230,.55);line-height:1.65;max-width:36rem;margin:0 auto">
+      <p style="margin:0">Preferes <strong>reserva manual</strong> (transferência / MB Way / Revolut) ou vieste do Instagram? Usa a página dedicada <a href="/buy" style="color:var(--gold)">comprar bilhete</a>.</p>
+    </div>
+  </section>
+
+  <!-- WHAT'S INCLUDED -->
+  <section class="content-section bone">
+    <div class="content-max-wide">
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:5rem;align-items:start">
+        <div>
+          <p class="section-eyebrow reveal" style="color:var(--terra)">O que está incluído</p>
+          <h2 class="reveal reveal-delay-1" style="color:var(--dark-m)">Cada bilhete inclui</h2>
+          <ul class="includes" style="margin-top:2rem">
+            <li class="reveal" style="border-bottom-color:rgba(26,18,16,.1);color:rgba(26,18,16,.7)">Jornada musical de 3h com DJ convidado</li>
+            <li class="reveal reveal-delay-1" style="border-bottom-color:rgba(26,18,16,.1);color:rgba(26,18,16,.7)">Espaço com som profissional</li>
+            <li class="reveal reveal-delay-2" style="border-bottom-color:rgba(26,18,16,.1);color:rgba(26,18,16,.7)">Chá e água disponíveis</li>
+            <li class="reveal" style="border-bottom-color:rgba(26,18,16,.1);color:rgba(26,18,16,.7)">Círculo de abertura e encerramento</li>
+            <li class="reveal reveal-delay-1" style="border-bottom-color:rgba(26,18,16,.1);color:rgba(26,18,16,.7)">Facilitação discreta durante o evento</li>
+            <li class="reveal reveal-delay-2" style="border-bottom-color:rgba(26,18,16,.1);color:rgba(26,18,16,.7)">Espaço de descanso lateral disponível</li>
+          </ul>
+        </div>
+        <div class="reveal-right">
+          <div style="background:var(--terra-d);padding:3rem;color:var(--bone)">
+            <p class="section-eyebrow" style="color:rgba(245,239,230,.45)">Sliding scale</p>
+            <h3 style="font-family:'Cormorant Garamond',serif;font-size:1.6rem;font-weight:300;color:var(--bone);margin-bottom:1rem">Acesso para todos</h3>
+            <p style="font-size:.92rem;color:rgba(245,239,230,.65);line-height:1.8;font-weight:300">
+              <strong>Early bird</strong>: mínimo 20€ até 3 de maio de 2026; depois, 30€. Sliding scale até 200€ (de 5 em 5€). Cada euro acima do mínimo ajuda a próxima edição e quem precisa de apoio.
+            </p>
+            <p style="font-size:.92rem;color:rgba(245,239,230,.65);line-height:1.8;font-weight:300;margin-top:1rem">
+              Se mesmo o mínimo for um obstáculo real, escreve-nos. Temos lugares de sliding scale discreto.
+            </p>
+            <a href="/contacto" class="btn-primary" style="margin-top:2rem;display:inline-block">Contactar</a>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+
+  <!-- AGREEMENTS REMINDER -->
+  <section class="content-section dark">
+    <div class="content-max-wide">
+      <p class="section-eyebrow reveal" style="color:rgba(245,239,230,.4)">Antes de chegares</p>
+      <h2 class="reveal reveal-delay-1" style="color:var(--bone)">Os acordos da pista</h2>
+      <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:2rem;margin-top:3rem">
+        <div class="reveal" style="border-left:1px solid rgba(245,239,230,.12);padding-left:1.5rem">
+          <h4 style="font-family:'Cormorant Garamond',serif;font-weight:400;font-size:1.1rem;color:var(--bone);margin-bottom:.5rem">Descalço e sóbrio</h4>
+          <p style="font-size:.84rem;color:rgba(245,239,230,.45);line-height:1.75;font-weight:300">Sem sapatos na pista. Sem álcool ou substâncias.</p>
+        </div>
+        <div class="reveal reveal-delay-1" style="border-left:1px solid rgba(245,239,230,.12);padding-left:1.5rem">
+          <h4 style="font-family:'Cormorant Garamond',serif;font-weight:400;font-size:1.1rem;color:var(--bone);margin-bottom:.5rem">Silêncio em movimento</h4>
+          <p style="font-size:.84rem;color:rgba(245,239,230,.45);line-height:1.75;font-weight:300">Não há conversa durante a dança. O corpo fala.</p>
+        </div>
+        <div class="reveal reveal-delay-2" style="border-left:1px solid rgba(245,239,230,.12);padding-left:1.5rem">
+          <h4 style="font-family:'Cormorant Garamond',serif;font-weight:400;font-size:1.1rem;color:var(--bone);margin-bottom:.5rem">Sem telemóvel na pista</h4>
+          <p style="font-size:.84rem;color:rgba(245,239,230,.45);line-height:1.75;font-weight:300">Sem fotografias. O momento é de quem está presente.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+
+  <!-- FOOTER -->
+  <footer>
+    <div class="footer-inner">
+      <div class="footer-brand">
+        <svg width="44" height="44" viewBox="0 0 200 200" fill="none" aria-hidden="true">
+          <circle cx="100" cy="100" r="80" stroke="#B8924A" stroke-width="1.5"/>
+          <polygon points="100,20 175,148 25,148" fill="none" stroke="#B8924A" stroke-width="1.2"/>
+          <path d="M83 122C83 122 80 108 84 97C86 91 92 87 92 80C92 74 89 69 89 69" stroke="#C4593F" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+          <circle cx="89" cy="65" r="7" fill="#C4593F"/>
+          <path d="M117 122C117 122 120 108 116 97C114 91 108 87 108 80C108 74 111 69 111 69" stroke="#C4593F" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+          <circle cx="111" cy="65" r="7" fill="#C4593F"/>
+          <path d="M68 89C68 84 71 79 76 79C71 84 71 93 76 98C71 98 68 93 68 89Z" fill="#B8924A" opacity=".85"/>
+        </svg>
+        <p>Dança livre, guiada pela música. Sem passos, sem substâncias, sem performance. Aberta a todos em Viseu.</p>
+      </div>
+
+      <div class="footer-col">
+        <h5>Bilhetes</h5>
+        <ul>
+          <li><a href="/bilhetes">Reservar lugar</a></li>
+          <li><a href="/eventos">Próximos eventos</a></li>
+          <li><a href="/contacto">Sliding scale</a></li>
+        </ul>
+      </div>
+
+      <div class="footer-col">
+        <h5>Contexto</h5>
+        <ul>
+          <li><a href="/sobre">Sobre o projecto</a></li>
+          <li><a href="/faq">FAQ</a></li>
+          <li><a href="/galeria">Galeria</a></li>
+        </ul>
+      </div>
+
+      <div class="footer-col">
+        <h5>Contacto</h5>
+        <ul>
+          <li><a href="https://instagram.com/ecstaticdanceviseu" target="_blank" rel="noopener">Instagram</a></li>
+          <li><a href="mailto:info@ecstaticdanceviseu.pt">Email</a></li>
+          <li><a href="/contacto">Formulário</a></li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="footer-bottom">
+      <p>© 2026 Ecstatic Dance Viseu — Todos os direitos reservados</p>
+      <div class="footer-soc">
+        <a href="https://instagram.com/ecstaticdanceviseu" target="_blank" rel="noopener">Instagram</a>
+        <a href="https://facebook.com" target="_blank" rel="noopener">Facebook</a>
+        <a href="mailto:info@ecstaticdanceviseu.pt">Email</a>
+      </div>
+    </div>
+  </footer>
+
+
+  <script type="module" src="/js/main.js"></script>
+  <script type="module" src="/js/pages.js"></script>
+  <script type="module" src="/js/bilhetes.js"></script>
+
+</body>
+</html>

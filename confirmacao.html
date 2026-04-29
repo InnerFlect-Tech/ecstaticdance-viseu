@@ -1,0 +1,229 @@
+<!DOCTYPE html>
+<html lang="pt">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="description" content="Reserva confirmada — Ecstatic Dance Viseu. Guarda o teu código QR e apresenta-o na entrada." />
+  <meta name="robots" content="noindex" />
+  <title>Reserva confirmada — Ecstatic Dance Viseu</title>
+  <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;1,300;1,400;1,500&family=DM+Sans:opsz,wght@9..40,300;9..40,400;9..40,500&display=swap" rel="stylesheet" />
+
+  <link rel="stylesheet" href="css/styles.css" />
+  <link rel="stylesheet" href="css/pages.css" />
+  <link rel="stylesheet" href="css/bilhetes.css" />
+</head>
+<body>
+
+  <!-- NAV -->
+  <nav class="nav" id="nav" aria-label="Navegação principal">
+    <a class="nav-logo" href="/" aria-label="Ecstatic Dance Viseu — início">
+            <img
+        class="edv-mark edv-mark--nav"
+        src="/images/branding/logo_white.png"
+        alt=""
+        width="120"
+        height="120"
+        decoding="async"
+        aria-hidden="true"
+      />
+    </a>
+
+    <ul class="nav-links">
+      <li><a href="/sobre">Sobre</a></li>
+      <li><a href="/eventos">Eventos</a></li>
+      <li><a href="/galeria">Galeria</a></li>
+      <li><a href="/faq">FAQ</a></li>
+      <li><a href="/contacto">Contacto</a></li>
+    </ul>
+
+    <a href="/bilhetes" class="nav-btn">Reservar</a>
+    <button class="nav-hamburger" id="menuToggle" aria-label="Abrir menu" aria-expanded="false">
+      <span></span><span></span><span></span>
+    </button>
+  </nav>
+
+  <div class="mobile-menu" id="mobileMenu" aria-hidden="true">
+    <nav aria-label="Menu mobile">
+      <ul>
+        <li><a href="/sobre">Sobre</a></li>
+        <li><a href="/eventos">Eventos</a></li>
+        <li><a href="/galeria">Galeria</a></li>
+        <li><a href="/faq">FAQ</a></li>
+        <li><a href="/contacto">Contacto</a></li>
+      </ul>
+    </nav>
+  </div>
+
+
+  <!-- PAGE HERO -->
+  <header class="page-hero">
+    <div class="page-hero-bg">
+      <img
+        src="https://images.unsplash.com/photo-1501386761578-eac5c94b800a?w=1800&q=80&fit=crop"
+        alt=""
+        fetchpriority="high"
+      />
+    </div>
+    <div class="page-hero-overlay"></div>
+    <div class="breadcrumb">
+      <a href="/">Início</a><span class="sep">/</span>
+      <a href="/bilhetes">Bilhetes</a><span class="sep">/</span>
+      <span>Confirmação</span>
+    </div>
+    <div class="page-hero-content">
+      <p class="section-eyebrow">Confirmado</p>
+      <h1>O teu lugar<br>está reservado.</h1>
+      <p>Guarda o teu código QR — vais precisar dele na entrada.</p>
+    </div>
+  </header>
+
+
+  <!-- TICKET SECTION -->
+  <section class="content-section dark" id="bilhete">
+    <div class="content-max-wide">
+
+      <!-- Loading state -->
+      <div id="ticketLoading" class="ticket-loading">
+        A preparar o teu bilhete…
+      </div>
+
+      <!-- Ticket content (shown after loading) -->
+      <div id="ticketContent" style="display:none">
+        <div class="ticket-wrap">
+
+          <!-- QR card (left) -->
+          <div class="ticket-card" id="ticketCard">
+            <p class="ticket-eyebrow">O teu bilhete</p>
+            <div class="ticket-qr">
+              <img id="ticketQR" src="" alt="Código QR do bilhete" width="200" height="200" />
+            </div>
+            <p style="font-size:.8rem;color:rgba(245,239,230,.35);font-weight:300;margin-bottom:2rem">
+              Apresenta este código na entrada
+            </p>
+            <ul class="ticket-detail-list" id="ticketDetails">
+              <!-- populated by JS -->
+            </ul>
+            <a id="ticketDownload" class="ticket-download-btn" href="#" download="bilhete-ecstaticdance.png">
+              Guardar imagem do QR
+            </a>
+          </div>
+
+          <!-- Next steps (right) -->
+          <div class="confirm-next">
+            <p class="section-eyebrow" style="color:rgba(245,239,230,.4)">A seguir</p>
+            <h3>Até lá, lembra-te:</h3>
+            <ol class="confirm-steps">
+              <li>
+                <div>
+                  <strong>Guarda este email</strong>
+                  <p>Enviámos uma cópia do teu bilhete com QR code para o email que indicaste. Verifica a pasta de spam se não o vires.</p>
+                </div>
+              </li>
+              <li>
+                <div>
+                  <strong>Chega descalço</strong>
+                  <p>Traz meias confortáveis ou dança com os pés nus. Não há sapatos na pista.</p>
+                </div>
+              </li>
+              <li>
+                <div>
+                  <strong>Abre às 15h30</strong>
+                  <p>A dança começa às 16h00. Chegares mais cedo dá-te tempo para entrar no espaço com calma.</p>
+                </div>
+              </li>
+              <li>
+                <div>
+                  <strong>Sem substâncias</strong>
+                  <p>O estado alterado é natural — é a música e o movimento. O espaço é sóbrio e isso é intencional.</p>
+                </div>
+              </li>
+              <li>
+                <div>
+                  <strong>Deixa o telemóvel</strong>
+                  <p>Não há fotografias na pista. O momento pertence a quem está presente.</p>
+                </div>
+              </li>
+            </ol>
+
+            <div style="margin-top:2rem;border:1px solid rgba(245,239,230,.08);padding:2rem">
+              <p style="font-family:'Cormorant Garamond',serif;font-size:1.3rem;font-weight:300;color:rgba(245,239,230,.6);font-style:italic;line-height:1.6">
+                "A música não pede para dançares.<br>
+                O teu corpo simplesmente responde."
+              </p>
+            </div>
+
+            <div style="margin-top:2.5rem">
+              <p style="font-size:.84rem;color:rgba(245,239,230,.4);font-weight:300;line-height:1.7">
+                Dúvidas? Escreve para
+                <a href="mailto:info@ecstaticdanceviseu.pt" style="color:var(--gold)">info@ecstaticdanceviseu.pt</a>
+              </p>
+              <a href="https://instagram.com/ecstaticdanceviseu" target="_blank" rel="noopener"
+                 style="display:inline-block;margin-top:1rem;font-size:.72rem;letter-spacing:.16em;text-transform:uppercase;color:var(--gold);text-decoration:none;font-family:'DM Sans',sans-serif">
+                Seguir no Instagram
+              </a>
+            </div>
+          </div>
+
+        </div>
+      </div>
+
+      <!-- Error state -->
+      <div id="ticketError" class="booking-error" style="display:none;max-width:600px" role="alert">
+        <strong>Não foi possível carregar o teu bilhete.</strong><br>
+        Se efectuaste o pagamento ou a reserva, enviámos o teu bilhete por email.
+        Verifica a caixa de entrada ou escreve para
+        <a href="mailto:info@ecstaticdanceviseu.pt" style="color:var(--terra-l)">info@ecstaticdanceviseu.pt</a>
+        com o assunto "Bilhete".
+      </div>
+
+    </div>
+  </section>
+
+
+  <!-- FOOTER -->
+  <footer>
+    <div class="footer-inner">
+      <div class="footer-brand">
+                <img
+          class="edv-mark edv-mark--footer"
+          src="/images/branding/logo_white.png"
+          alt=""
+          width="120"
+          height="120"
+          decoding="async"
+          aria-hidden="true"
+        />
+        <p>Dança livre, guiada pela música. Sem passos, sem substâncias, sem performance.</p>
+      </div>
+      <div class="footer-col">
+        <h5>Páginas</h5>
+        <ul>
+          <li><a href="/">Início</a></li>
+          <li><a href="/eventos">Eventos</a></li>
+          <li><a href="/bilhetes">Bilhetes</a></li>
+        </ul>
+      </div>
+      <div class="footer-col">
+        <h5>Contacto</h5>
+        <ul>
+          <li><a href="https://instagram.com/ecstaticdanceviseu" target="_blank" rel="noopener">Instagram</a></li>
+          <li><a href="mailto:info@ecstaticdanceviseu.pt">Email</a></li>
+        </ul>
+      </div>
+    </div>
+    <div class="footer-bottom">
+      <p>© 2026 Ecstatic Dance Viseu</p>
+    </div>
+  </footer>
+
+
+  <script type="module" src="/js/main.js"></script>
+  <script type="module" src="/js/pages.js"></script>
+  <script type="module" src="/js/bilhetes.js"></script>
+
+</body>
+</html>

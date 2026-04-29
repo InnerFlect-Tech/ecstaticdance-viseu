@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html lang="pt">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="description" content="Pagamento cancelado — Ecstatic Dance Viseu." />
+  <meta name="robots" content="noindex" />
+  <title>Pagamento cancelado — Ecstatic Dance Viseu</title>
+  <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;1,300;1,400;1,500&family=DM+Sans:opsz,wght@9..40,300;9..40,400;9..40,500&display=swap" rel="stylesheet" />
+
+  <link rel="stylesheet" href="css/styles.css" />
+  <link rel="stylesheet" href="css/pages.css" />
+  <link rel="stylesheet" href="css/bilhetes.css" />
+</head>
+<body>
+
+  <!-- NAV -->
+  <nav class="nav" id="nav" aria-label="Navegação principal">
+    <a class="nav-logo" href="/" aria-label="Ecstatic Dance Viseu — início">
+            <img
+        class="edv-mark edv-mark--nav"
+        src="/images/branding/logo_white.png"
+        alt=""
+        width="120"
+        height="120"
+        decoding="async"
+        aria-hidden="true"
+      />
+    </a>
+
+    <ul class="nav-links">
+      <li><a href="/sobre">Sobre</a></li>
+      <li><a href="/eventos">Eventos</a></li>
+      <li><a href="/galeria">Galeria</a></li>
+      <li><a href="/faq">FAQ</a></li>
+      <li><a href="/contacto">Contacto</a></li>
+    </ul>
+
+    <a href="/bilhetes" class="nav-btn">Reservar</a>
+    <button class="nav-hamburger" id="menuToggle" aria-label="Abrir menu" aria-expanded="false">
+      <span></span><span></span><span></span>
+    </button>
+  </nav>
+
+  <div class="mobile-menu" id="mobileMenu" aria-hidden="true">
+    <nav aria-label="Menu mobile">
+      <ul>
+        <li><a href="/sobre">Sobre</a></li>
+        <li><a href="/eventos">Eventos</a></li>
+        <li><a href="/galeria">Galeria</a></li>
+        <li><a href="/faq">FAQ</a></li>
+        <li><a href="/contacto">Contacto</a></li>
+        <li><a href="/bilhetes" class="btn-primary" style="margin-top:1.5rem;display:block;text-align:center">Reservar</a></li>
+      </ul>
+    </nav>
+  </div>
+
+
+  <!-- PAGE HERO -->
+  <header class="page-hero">
+    <div class="page-hero-bg">
+      <img
+        src="https://images.unsplash.com/photo-1493676304819-0d7a8d026dcf?w=1800&q=80&fit=crop"
+        alt=""
+        fetchpriority="high"
+        style="filter:brightness(.25) saturate(.5)"
+      />
+    </div>
+    <div class="page-hero-overlay"></div>
+    <div class="breadcrumb">
+      <a href="/">Início</a><span class="sep">/</span>
+      <a href="/bilhetes">Bilhetes</a><span class="sep">/</span>
+      <span>Cancelado</span>
+    </div>
+    <div class="page-hero-content">
+      <p class="section-eyebrow">Pagamento cancelado</p>
+      <h1>Não foi<br>concluído.</h1>
+      <p>Não te preocupes — nenhum valor foi cobrado.</p>
+    </div>
+  </header>
+
+
+  <!-- CANCEL CONTENT -->
+  <section class="content-section dark">
+    <div class="content-max-wide">
+      <div class="cancel-wrap">
+
+        <div class="cancel-icon" aria-hidden="true">
+          <svg fill="none" viewBox="0 0 24 24" stroke-width="1.5" xmlns="http://www.w3.org/2000/svg">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M6 18 18 6M6 6l12 12" />
+          </svg>
+        </div>
+
+        <p class="section-eyebrow" style="color:rgba(245,239,230,.4)">O que aconteceu</p>
+        <h2 class="reveal" style="color:var(--bone)">O pagamento foi<br>interrompido.</h2>
+
+        <p class="reveal reveal-delay-1" style="color:rgba(245,239,230,.5);font-size:.95rem;line-height:1.85;font-weight:300;max-width:480px;margin-top:1.5rem">
+          Cancelaste o pagamento ou ocorreu um erro. Não foi efectuada qualquer cobrança.
+          O teu lugar ainda não está garantido.
+        </p>
+
+        <p class="reveal reveal-delay-2" style="color:rgba(245,239,230,.5);font-size:.95rem;line-height:1.85;font-weight:300;max-width:480px;margin-top:1rem">
+          Os lugares são limitados. Se queres garantir a tua presença, podes tentar novamente.
+        </p>
+
+        <div class="reveal reveal-delay-2" style="display:flex;gap:1.2rem;flex-wrap:wrap;margin-top:3rem;align-items:center">
+          <a href="/bilhetes" class="btn-book">Tentar novamente</a>
+          <a href="/contacto"
+             style="font-size:.78rem;letter-spacing:.14em;text-transform:uppercase;color:rgba(245,239,230,.4);text-decoration:none;font-family:'DM Sans',sans-serif;font-weight:400">
+            Pedir ajuda
+          </a>
+        </div>
+
+        <div class="reveal" style="margin-top:4rem;border-top:1px solid rgba(245,239,230,.08);padding-top:2.5rem;max-width:480px">
+          <p style="font-size:.82rem;color:rgba(245,239,230,.3);font-weight:300;line-height:1.7">
+            Se acreditas que foi cobrado algum valor por engano, escreve para
+            <a href="mailto:info@ecstaticdanceviseu.pt" style="color:var(--gold)">info@ecstaticdanceviseu.pt</a>
+            e resolveremos de imediato.
+          </p>
+        </div>
+
+      </div>
+    </div>
+  </section>
+
+
+  <!-- FOOTER -->
+  <footer>
+    <div class="footer-inner">
+      <div class="footer-brand">
+                <img
+          class="edv-mark edv-mark--footer"
+          src="/images/branding/logo_white.png"
+          alt=""
+          width="120"
+          height="120"
+          decoding="async"
+          aria-hidden="true"
+        />
+        <p>Dança livre, guiada pela música. Sem passos, sem substâncias, sem performance.</p>
+      </div>
+      <div class="footer-col">
+        <h5>Páginas</h5>
+        <ul>
+          <li><a href="/">Início</a></li>
+          <li><a href="/bilhetes">Bilhetes</a></li>
+          <li><a href="/contacto">Contacto</a></li>
+        </ul>
+      </div>
+    </div>
+    <div class="footer-bottom">
+      <p>© 2026 Ecstatic Dance Viseu</p>
+    </div>
+  </footer>
+
+
+  <script type="module" src="/js/main.js"></script>
+  <script type="module" src="/js/pages.js"></script>
+
+</body>
+</html>

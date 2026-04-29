@@ -6,27 +6,27 @@
     <priority>1.0</priority>
   </url>
   <url>
-    <loc>https://ecstaticdanceviseu.pt/sobre.html</loc>
+    <loc>https://ecstaticdanceviseu.pt/sobre</loc>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://ecstaticdanceviseu.pt/eventos.html</loc>
+    <loc>https://ecstaticdanceviseu.pt/eventos</loc>
     <changefreq>weekly</changefreq>
     <priority>0.9</priority>
   </url>
   <url>
-    <loc>https://ecstaticdanceviseu.pt/galeria.html</loc>
+    <loc>https://ecstaticdanceviseu.pt/galeria</loc>
     <changefreq>monthly</changefreq>
     <priority>0.6</priority>
   </url>
   <url>
-    <loc>https://ecstaticdanceviseu.pt/faq.html</loc>
+    <loc>https://ecstaticdanceviseu.pt/faq</loc>
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
   </url>
   <url>
-    <loc>https://ecstaticdanceviseu.pt/contacto.html</loc>
+    <loc>https://ecstaticdanceviseu.pt/contacto</loc>
     <changefreq>yearly</changefreq>
     <priority>0.5</priority>
   </url>

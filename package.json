@@ -4,8 +4,10 @@
   "private": true,
   "scripts": {
     "dev": "vite",
+    "dev:local": "bash scripts/dev-local.sh",
     "build": "vite build",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "start": "vite preview --host 0.0.0.0 --port ${PORT:-4173}"
   },
   "devDependencies": {
     "vite": "^6.3.3"
