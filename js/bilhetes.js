@@ -3,22 +3,18 @@
    Handles: booking form (bilhetes.html) + ticket display (confirmacao.html)
    ============================================================ */
 
-import { applyBilhetesAmountRange, isEarlyBird, ticketMinEur } from './pricing.js'
+import { applyBilhetesAmountRange, ticketMinEur } from './pricing.js'
 
 const API_BASE = '/api';
 
 function paintBookingTldrStrip() {
   const ptEl = document.getElementById('edv-booking-tldr-pt')
   const enEl = document.getElementById('edv-booking-tldr-en')
+  const wrap = ptEl?.closest('.edv-booking-tldr')
   if (!ptEl || !enEl) return
-  const min = ticketMinEur()
-  if (isEarlyBird()) {
-    ptEl.textContent = `Sliding scale desde ${min}€ (early bird até 5 de maio). Bilhete até 200€.`
-    enEl.textContent = `Sliding scale from €${min} (early bird through 5 May). Tickets up to €200.`
-  } else {
-    ptEl.textContent = `Sliding scale desde ${min}€ até 200€.`
-    enEl.textContent = `Sliding scale from €${min} up to €200.`
-  }
+  ptEl.textContent = ''
+  enEl.textContent = ''
+  if (wrap) wrap.hidden = true
 }
 
 /* ─────────────────────────────────────────────
@@ -195,12 +191,7 @@ function renderEventInfo(container, ev) {
   const fillPct   = capacity > 0 ? Math.min(100, Math.round((sold / capacity) * 100)) : 0;
 
   const fromMin = ticketMinEur()
-  const priceLabel =
-    ev.type === 'paid'
-      ? isEarlyBird()
-        ? `Desde €${fromMin} (early bird até 3 mai) · até 200€`
-        : `A partir de €${fromMin} · até 200€`
-      : 'Gratuito'
+  const priceLabel = ev.type === 'paid' ? `Desde €${fromMin} · até 200€` : 'Gratuito'
 
   container.innerHTML = `
     <div class="event-info-card reveal">

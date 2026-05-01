@@ -1,5 +1,5 @@
 /**
- * Frases do sliding scale (hub /links + reserva manual).
+ * Frases por patamar de valor (hub /links + reserva manual).
  * Limites em € alinhados com manual-booking.js.
  */
 
@@ -28,13 +28,13 @@ export const TIER_PHRASES = /** @type {const TierPhrase[]} */ ([
   },
   {
     max: 160,
-    pt: 'Apoio forte — ajudas de forma muito concreta a manter a escala acessível.',
-    en: 'Strong support — you concretely help keep the low end of the scale possible.',
+    pt: 'Apoio forte — ajudas de forma muito concreta a manter o acesso acessível.',
+    en: 'Strong support — you concretely help keep the lower end of the range possible.',
   },
   {
     max: 999,
-    pt: 'Contribuição de apoio — tornas o sliding scale possível para toda a gente.',
-    en: 'Patron-style support — you help make the whole sliding scale system work.',
+    pt: 'Contribuição de apoio — tornas possível para toda a gente um preço justo.',
+    en: 'Patron-style support — you help make fair pricing work for everyone.',
   },
 ])
 

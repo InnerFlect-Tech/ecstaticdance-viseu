@@ -1,42 +1,30 @@
 /**
- * Preços alinhados com server/api/create-checkout.php (early bird até fim de 5 mai, Lisboa).
- * Mín. 20€ (early bird) ou 30€; máx. 200€; de 5 em 5.
+ * Preços alinhados com server/api/ticket-pricing.php (PHP).
+ * Early bird: piso 20€ até ao fim do dia 5 de maio de 2026 (Europe/Lisbon); depois 30€.
+ * Máx. 200€; de 5 em 5 no slider até 100€.
  */
 
 export const TICKET_MAX_EUR = 200
 /** Teto do range visual (hub + reserva manual); acima disto usar campo livre 101–200. */
 export const TICKET_SLIDER_CAP_EUR = 100
 export const TICKET_STEP = 5
-export const EARLY_BIRD_MIN_EUR = 20
 export const STANDARD_MIN_EUR = 30
-/** "Até" = inclusive 5 maio; a partir de 6 mai, min standard (sincronizado com PHP). */
-const EARLY_BIRD_END_YMD = '2026-05-06'
+export const EARLY_BIRD_MIN_EUR = 20
 
 /**
- * @param {Date} [d]
- * @returns {string} YYYY-MM-DD no fuso de Lisboa
- */
-function lisbonYmd(d = new Date()) {
-  return new Intl.DateTimeFormat('en-CA', {
-    timeZone: 'Europe/Lisbon',
-    year: 'numeric',
-    month: '2-digit',
-    day: '2-digit',
-  }).format(d)
-}
-
-/**
+ * Early bird até ao fim do dia 5 de maio de 2026 (calendário em Europe/Lisbon; alinhado a ticket-pricing.php).
  * @param {Date} [d]
  */
-export function isEarlyBird(d = new Date()) {
-  return lisbonYmd(d) < EARLY_BIRD_END_YMD
+export function isEarlyBirdPeriod(d = new Date()) {
+  const ymd = d.toLocaleDateString('en-CA', { timeZone: 'Europe/Lisbon' })
+  return ymd <= '2026-05-05'
 }
 
 /**
  * @param {Date} [d]
  */
 export function ticketMinEur(d = new Date()) {
-  return isEarlyBird(d) ? EARLY_BIRD_MIN_EUR : STANDARD_MIN_EUR
+  return isEarlyBirdPeriod(d) ? EARLY_BIRD_MIN_EUR : STANDARD_MIN_EUR
 }
 
 /**
@@ -79,7 +67,7 @@ export function normalizeTicketAmountEur(raw, d = new Date()) {
 export const DEFAULT_TICKET_EUR = 30
 
 /**
- * bilhetes.html — aplica min/max e rótulo early bird no slider Stripe.
+ * bilhetes.html — aplica min/max e rótulo do piso no slider Stripe.
  */
 export function applyBilhetesAmountRange() {
   const range = document.getElementById('amountRange')
@@ -99,19 +87,6 @@ export function applyBilhetesAmountRange() {
   disp.textContent = String(v)
 
   if (minLb) {
-    if (isEarlyBird()) {
-      minLb.textContent = '20€ — early bird'
-    } else {
-      minLb.textContent = '30€ — mínimo'
-    }
-  }
-
-  const note = document.getElementById('bilhetes-early-bird')
-  if (note) {
-    if (isEarlyBird()) {
-      note.removeAttribute('hidden')
-    } else {
-      note.setAttribute('hidden', '')
-    }
+    minLb.textContent = `${min}€ — mínimo`
   }
 }

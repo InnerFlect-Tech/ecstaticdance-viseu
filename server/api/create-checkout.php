@@ -6,6 +6,7 @@
    ============================================================ */
 
 require_once __DIR__ . '/helpers.php';
+require_once __DIR__ . '/ticket-pricing.php';
 
 cors();
 header('Cache-Control: no-store');
@@ -61,10 +62,7 @@ if (!$event_id || !$name || !$email || !$phone) {
 if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
     json_err('Email inválido.');
 }
-$tz_early = new DateTimeZone('Europe/Lisbon');
-$now_lx   = new DateTime('now', $tz_early);
-$early_end = new DateTime('2026-05-04 00:00:00', $tz_early);
-$min_allowed = ($now_lx < $early_end) ? 20 : 30;
+$min_allowed = (int) edv_ticket_min_eur();
 
 if ($amount < $min_allowed || $amount > 200) {
     json_err('Valor fora do intervalo permitido (€' . $min_allowed . '–€200).');

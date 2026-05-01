@@ -37,6 +37,8 @@ if (!is_readable($__cfg)) {
 }
 require_once $__cfg;
 
+require_once __DIR__ . '/ticket-pricing.php';
+
 /* Usados em link_notify_team(); sem estes, PHP 8+ pode gerar fatal e corpo vazio (HTTP 500) após INSERT. */
 if (!defined('FROM_EMAIL')) {
     define('FROM_EMAIL', 'info@ecstaticdanceviseu.pt');
@@ -87,13 +89,9 @@ function link_sql_now(): string {
     return $d->format('Y-m-d H:i:s');
 }
 
-/** Mínimo do bilhete (sliding): early bird 20€ até fim de 3 mai 2026 (Lisboa); depois 30€. Igual a create-checkout.php */
+/** Mínimo do bilhete; igual a create-checkout.php e js/pricing.js */
 function link_ticket_min_eur(): float {
-    $tz = new DateTimeZone('Europe/Lisbon');
-    $now = new DateTime('now', $tz);
-    $early_end = new DateTime('2026-05-04 00:00:00', $tz);
-
-    return ($now < $early_end) ? 20.0 : 30.0;
+    return edv_ticket_min_eur();
 }
 
 function link_ticket_max_eur(): float {

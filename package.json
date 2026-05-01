@@ -8,7 +8,7 @@
     "dev:local": "bash scripts/dev-local.sh",
     "build": "vite build",
     "preview": "vite preview",
-    "start": "vite preview --host 0.0.0.0 --port ${PORT:-4173}"
+    "start": "bash scripts/start-preview-with-php.sh"
   },
   "devDependencies": {
     "vite": "^6.3.3"

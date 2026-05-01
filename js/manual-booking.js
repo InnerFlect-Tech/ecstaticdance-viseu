@@ -5,7 +5,7 @@ import {
   TICKET_MAX_EUR,
   TICKET_SLIDER_CAP_EUR,
   TICKET_STEP,
-  isEarlyBird,
+  isEarlyBirdPeriod,
   normalizeTicketAmountEur,
   snapTicketSliderEur,
   ticketMinEur,
@@ -561,12 +561,14 @@ function applyTicketPricingToDom() {
   if (minEl) {
     const pt = minEl.querySelector('.lang-pt')
     const en = minEl.querySelector('.lang-en')
-    if (isEarlyBird()) {
-      if (pt) pt.textContent = '20€ — early bird'
-      if (en) en.textContent = '€20 — early bird'
-    } else {
-      if (pt) pt.textContent = '30€ — mínimo'
-      if (en) en.textContent = '€30 — minimum'
+    if (pt && en) {
+      if (isEarlyBirdPeriod()) {
+        pt.textContent = `${min}€ — early bird`
+        en.textContent = `€${min} — early bird`
+      } else {
+        pt.textContent = `${min}€ — mínimo`
+        en.textContent = `€${min} — minimum`
+      }
     }
   }
 

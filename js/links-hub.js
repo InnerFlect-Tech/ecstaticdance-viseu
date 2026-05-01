@@ -1,5 +1,5 @@
 import { syncManualBookingLang } from './manual-booking.js'
-import { isEarlyBird } from './pricing.js'
+import { isEarlyBirdPeriod, ticketMinEur } from './pricing.js'
 
 /**
  * links.html — language toggle, sticky mobile CTA, inline booking panel (same page).
@@ -9,17 +9,33 @@ function prefersReducedMotion() {
 }
 
 function paintLinksDynamicPricing() {
-  let pt = 'Sliding scale desde 30€.'
-  let en = 'Sliding scale from €30.'
-  if (isEarlyBird()) {
-    pt = 'Sliding scale desde 30€.'
-    en = 'Sliding scale from €30.'
-  }
+  const min = ticketMinEur()
+  const early = isEarlyBirdPeriod()
+  const pt = early
+    ? `Sliding scale desde ${min}€ · early bird até 5 de maio`
+    : `Sliding scale desde ${min}€`
+  const en = early
+    ? `Sliding scale from €${min} · early bird through 5 May`
+    : `Sliding scale from €${min}`
   document.querySelectorAll('[data-links-price-pt]').forEach((el) => {
     el.textContent = pt
   })
   document.querySelectorAll('[data-links-price-en]').forEach((el) => {
     el.textContent = en
+  })
+}
+
+function paintLinksContributionEarly() {
+  const early = isEarlyBirdPeriod()
+  document.querySelectorAll('[data-links-contrib-early-pt]').forEach((el) => {
+    el.textContent = early
+      ? 'Early bird: o bilhete é 20€ até 5 de maio.'
+      : 'Piso mínimo 30€ (early bird de 20€ até 5 de maio já terminou).'
+  })
+  document.querySelectorAll('[data-links-contrib-early-en]').forEach((el) => {
+    el.textContent = early
+      ? 'Early bird: the ticket is €20 through 5 May.'
+      : 'Minimum €30 (early bird at €20 through 5 May has ended).'
   })
 }
 
@@ -144,6 +160,7 @@ function setBodyLang(lang) {
   }
   syncManualBookingLang(lang === 'en' ? 'en' : 'pt')
   paintLinksDynamicPricing()
+  paintLinksContributionEarly()
 }
 
 function initStickyCta() {
@@ -196,7 +213,6 @@ function init() {
   setBodyLang(stored)
   document.getElementById('lang-pt')?.addEventListener('click', () => setBodyLang('pt'))
   document.getElementById('lang-en')?.addEventListener('click', () => setBodyLang('en'))
-  paintLinksDynamicPricing()
   initHeroVisualFallback()
   initStickyCta()
   initInlineBooking()

@@ -9,7 +9,7 @@ npm install
 npm run dev       # só Vite em http://localhost:5173 (HTML/CSS/JS)
 npm run build     # produção em dist/
 npm run preview   # preview do build em http://localhost:4173
-npm run start     # (para Coolify/Nixpacks) preview em 0.0.0.0:$PORT (default 4173)
+npm run start     # (Coolify/Nixpacks) vite preview + PHP em 127.0.0.1:8080–8099 para /api (ver scripts/start-preview-with-php.sh)
 ```
 
 ### API PHP (`/api/*`, formulário em `/links`)
@@ -91,20 +91,24 @@ No Coolify, cria um novo recurso do tipo **Docker** e liga ao repositório Git.
 
 Depois de um deploy bem-sucedido, `https://ecstaticdanceviseu.pt/links` e `/links.html` devem servir o HTML do hub (e os ficheiros em `/assets/` mudam de hash em cada build).
 
-### Opção B: Nixpacks (Node)
+### Opção B: Nixpacks (Node + PHP)
 
-Se estiveres a usar **Nixpacks**, garante que existe um comando de runtime (senão o Coolify pode lançar um `bash -c` vazio e falhar). Este repo inclui:
+O `vite preview` faz **proxy** de `/api`, `/admin` e `/uploads` para `http://127.0.0.1:${EDV_PHP_API_PORT}` (por omissão **8080**). Só com Vite, nada ouve na 8080 → logs tipo **`ECONNREFUSED 127.0.0.1:8080`**.
 
-- `nixpacks.toml` com `start.cmd = "npm run start"`
-- `npm run start` a fazer `vite preview --host 0.0.0.0 --port $PORT`
+Este repo inclui:
+
+- `nixpacks.toml` — Node **e** `php83` (Nix), build `npm run build`, arranque `npm run start`.
+- `scripts/start-preview-with-php.sh` — sobe **PHP built-in** (`php -S … -t server`) na primeira porta livre **8080–8099**, exporta `EDV_PHP_API_PORT`, e corre `vite preview` em `0.0.0.0:$PORT`.
+- `BROWSER=none` / `CI=true` por omissão no script para evitar `xdg-open ENOENT` em contentores.
+
+**Base de dados em produção:** `server/api/config.php` não vai no Git. No Coolify, monta o ficheiro (secret file) ou adiciona-o ao artefacto antes do start; define **MySQL** e `LINK_USE_SQLITE` / `LINK_USE_JSON` a **`false`**. Sem isto, o proxy deixa de dar `ECONNREFUSED`, mas a API pode responder 500 se as credenciais forem placeholders.
 
 ### 2. Variáveis de ambiente
 
-Não existem variáveis obrigatórias em runtime. As variáveis de build são opcionais:
-
 | Variável | Descrição | Exemplo |
 |----------|-----------|---------|
-| (nenhuma no estado actual) | — | — |
+| `PORT` | Porta do Vite preview (Coolify define automaticamente) | `3000` |
+| `EDV_PHP_API_PORT` | Porta do PHP built-in (opcional; omissão = primeira livre 8080–8099) | `8080` |
 
 ### 3. Formulário de contacto — Web3Forms
 
