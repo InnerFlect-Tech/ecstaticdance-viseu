@@ -70,9 +70,9 @@ O sistema de bilhetes está implementado como camada PHP + MySQL no cPanel, sepa
 
 O contentor faz **build Vite** → serve `dist/` com **Nginx** e sobe **PHP built-in** (`php -S … -t server`) em `127.0.0.1:8080`, com **Supervisor** a gerir os dois processos. O Nginx envia `/api`, `/admin` e `/uploads` para esse PHP (ver `nginx.conf`).
 
-Na **primeira arranque**, se não existir `config.php` no contentor, o `entrypoint` copia `server/api/config.example.php` → `config.php`. O exemplo inclui **`ADMIN_PASSWORD_HASH` para a palavra-passe `admin123`** — o painel em **`/admin/`** fica acessível com essa password assim que o deploy sobe (sem montar ficheiro à parte).
+Na **primeira arranque**, se não existir `config.php` no contentor, o `entrypoint` copia `server/api/config.example.php` → `config.php`. O exemplo inclui **`ADMIN_PASSWORD_HASH` para a palavra-passe `admin123`** e **`USE_SQLITE_MAIN_DB = true`** (eventos/bilhetes em ficheiro SQLite em `server/data/`, sem MySQL no contentor). O painel em **`/admin/`** deixa de rebentar com *No such file or directory* no MySQL.
 
-Para **MySQL + Stripe** em produção no Coolify, monta um **`config.php`** real como ficheiro secreto em **`/var/www/edv-server/api/config.php`** (ou sobrescreve o gerado no primeiro boot); caso contrário a API pode responder 500 com credenciais placeholder.
+Se já tinhas um `config.php` antigo (só MySQL placeholder) no volume, edita-o ou apaga para voltar a gerar a partir do exemplo, ou monta um **`config.php`** completo. Para **MySQL** em produção, monta credenciais reais e define **`USE_SQLITE_MAIN_DB = false`**.
 
 ### 1. Configurar o repositório
 
