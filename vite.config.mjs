@@ -5,6 +5,9 @@ import { defineConfig } from 'vite'
 
 const __dirname = dirname(fileURLToPath(import.meta.url))
 
+/** `npm run dev:local` escolhe 8080–8099 livre e exporta EDV_PHP_API_PORT. */
+const phpApiTarget = `http://127.0.0.1:${process.env.EDV_PHP_API_PORT ?? '8080'}`
+
 /** Dev: GET /faq → ./faq.html (same idea as nginx try_files … $uri.html). */
 function extensionlessHtmlPages() {
   return {
@@ -51,6 +54,7 @@ export default defineConfig({
         eventos:      resolve(__dirname, 'eventos.html'),
         galeria:      resolve(__dirname, 'galeria.html'),
         faq:          resolve(__dirname, 'faq.html'),
+        acesso:       resolve(__dirname, 'acesso.html'),
         contacto:     resolve(__dirname, 'contacto.html'),
         bilhetes:     resolve(__dirname, 'bilhetes.html'),
         buy:          resolve(__dirname, 'buy.html'),
@@ -65,10 +69,10 @@ export default defineConfig({
   server: {
     port: 5173,
     open: true,
-    // PHP dev: `npm run dev:local` inicia Vite + PHP:8080; ou manualmente: `php -S 127.0.0.1:8080 -t server` com `npm run dev`
+    // `/api/*` → servidor PHP (`dev:local` define EDV_PHP_API_PORT; sem isso falha como 8080).
     proxy: {
       '/api': {
-        target: 'http://127.0.0.1:8080',
+        target: phpApiTarget,
         changeOrigin: true,
       },
     },

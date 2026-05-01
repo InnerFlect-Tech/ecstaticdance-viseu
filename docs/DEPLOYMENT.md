@@ -110,6 +110,37 @@ VALUES
    'Viseu (local a confirmar)', 'paid', 60, 25.00, 1);
 ```
 
+### Link hub (`links.html`) — MB Way, transferência, Revolut
+
+O fluxo público usa:
+
+- **`/api/save-link-booking.php`** — passo 1  
+- **`/api/complete-link-booking.php`** — passo 2 (multipart ou JSON)
+
+Os dados vão sempre para **MySQL** através da tabela **`link_registrations`**.
+
+1. **Criar a tabela na base já existente** (executar **uma vez** no phpMyAdmin → SQL):
+
+   - Copia `server/setup/migration_2026_04_link_registrations.sql`.
+
+   *(Instalações novas criadas apenas com `server/setup/schema.sql` já trazem a tabela.)*
+
+2. **Produção: `public_html/api/config.php`**
+
+   - `LINK_USE_SQLITE` → **`false`**
+   - `LINK_USE_JSON` → **`false`** (JSON é só desenvolvimento local; **nunca** em cPanel.)
+
+3. **Upload** destes ficheiros para `public_html/api/` ao actualizares código:
+
+   - `save-link-booking.php`, `complete-link-booking.php`
+   - `link-common.php`, `link-json-store.php`
+
+4. **Pasta gravável para comprovativos** (upload PDF/imagem até 5 MB):
+
+   `public_html/uploads/link-proofs/`
+
+   Cria a pasta pelo File Manager/FTP se não existir; confirma que o utilizador PHP consegue escrever (permissões habituais 0755; se falhar, o painel da hospedagem indica valores correctos).
+
 ### 9. Test end-to-end
 
 1. Visit `https://ecstaticdanceviseu.pt/bilhetes.html` — event should load
@@ -162,6 +193,10 @@ public_html/
 │   ├── webhook.php
 │   ├── verify-ticket.php
 │   ├── reconcile.php
+│   ├── save-link-booking.php
+│   ├── complete-link-booking.php
+│   ├── link-common.php
+│   ├── link-json-store.php
 │   └── .htaccess
 └── admin/
     ├── index.php
@@ -180,6 +215,7 @@ public_html/
 | Problem | Solution |
 |---|---|
 | API returns 500 | Check PHP error log in cPanel → Error Log |
+| Links page: erro ao gravar / comprovativo | Confirma tabela `link_registrations`, `LINK_USE_SQLITE`/`LINK_USE_JSON` falsos em produção, pasta `uploads/link-proofs` gravável (`docs/DEPLOYMENT.md` → Link hub). |
 | Emails not sending | Verify `FROM_EMAIL` in config.php matches a cPanel email account |
 | Stripe webhook fails | Check Stripe Dashboard → Webhooks → Recent events for error details |
 | Admin redirect loop | Clear cookies; check session cookie settings in auth.php |

@@ -375,6 +375,28 @@
   margin-bottom: 1.5rem;
 }
 
+.booking-field-error {
+  display: block;
+  margin: 0.45rem 0 0;
+  padding: 0.55rem 0.75rem;
+  font-size: 0.84rem;
+  font-weight: 500;
+  line-height: 1.5;
+  color: rgba(245, 239, 230, 0.88);
+  background: rgba(196, 89, 63, 0.15);
+  border: 1px solid rgba(196, 89, 63, 0.38);
+}
+
+.booking-field-error[hidden] {
+  display: none !important;
+}
+
+#bookingForm .form-group input:focus-visible,
+#bookingForm .form-group textarea:focus-visible {
+  outline: 2px solid var(--gold);
+  outline-offset: 2px;
+}
+
 /* ─── CONFIRMATION PAGE ─── */
 .ticket-wrap {
   display: grid;

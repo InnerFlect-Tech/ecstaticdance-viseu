@@ -1,10 +1,35 @@
 import { syncManualBookingLang } from './manual-booking.js'
+import { isEarlyBird } from './pricing.js'
 
 /**
  * links.html — language toggle, sticky mobile CTA, inline booking panel (same page).
  */
 function prefersReducedMotion() {
   return typeof matchMedia !== 'undefined' && matchMedia('(prefers-reduced-motion: reduce)').matches
+}
+
+function paintLinksDynamicPricing() {
+  let pt = 'Sliding scale desde 30€.'
+  let en = 'Sliding scale from €30.'
+  if (isEarlyBird()) {
+    pt = 'Sliding scale desde 30€.'
+    en = 'Sliding scale from €30.'
+  }
+  document.querySelectorAll('[data-links-price-pt]').forEach((el) => {
+    el.textContent = pt
+  })
+  document.querySelectorAll('[data-links-price-en]').forEach((el) => {
+    el.textContent = en
+  })
+}
+
+function initHeroVisualFallback() {
+  const img = document.querySelector('.links-hero-visual-img')
+  const fig = img?.closest('.links-hero-visual')
+  if (!img || !fig) return
+  img.addEventListener('error', () => {
+    fig.classList.add('links-hero-visual--fallback')
+  })
 }
 
 /**
@@ -16,6 +41,8 @@ function openLinksInlineBooking(opts) {
 
   const scroll = opts?.scroll !== false
   const reduced = prefersReducedMotion()
+
+  document.body.classList.add('links-hub-booking-open')
 
   shell.classList.remove('links-inline-booking-shell--collapsed')
   shell.classList.add('links-inline-booking-shell--open')
@@ -66,6 +93,7 @@ function initInlineBooking() {
 
   document.getElementById('links-primary-cta')?.addEventListener('click', go)
   document.getElementById('links-sticky-booking-btn')?.addEventListener('click', go)
+  document.getElementById('links-footer-cta')?.addEventListener('click', go)
 
   if (location.hash === '#reserva-manual') {
     openLinksInlineBooking({ scroll: true })
@@ -81,13 +109,16 @@ function setBodyLang(lang) {
     // ignore
   }
   syncManualBookingLang(lang === 'en' ? 'en' : 'pt')
+  paintLinksDynamicPricing()
 }
 
 function initStickyCta() {
   const page = document.getElementById('links-page')
-  const sentinel = document.getElementById('links-primary-cta')
+  const sentinel = document.getElementById('links-sticky-sentinel')
+  const fallbackSentinel = document.getElementById('links-primary-cta')
   const bar = document.getElementById('links-sticky-cta')
-  if (!page || !sentinel || !bar || typeof IntersectionObserver === 'undefined') return
+  const target = sentinel || fallbackSentinel
+  if (!page || !target || !bar || typeof IntersectionObserver === 'undefined') return
 
   const mqWide = window.matchMedia('(min-width: 768px)')
   let observer = null
@@ -114,7 +145,7 @@ function initStickyCta() {
       },
       { root: null, rootMargin: '0px', threshold: 0 }
     )
-    observer.observe(sentinel)
+    observer.observe(target)
   }
 
   attach()
@@ -131,6 +162,8 @@ function init() {
   setBodyLang(stored)
   document.getElementById('lang-pt')?.addEventListener('click', () => setBodyLang('pt'))
   document.getElementById('lang-en')?.addEventListener('click', () => setBodyLang('en'))
+  paintLinksDynamicPricing()
+  initHeroVisualFallback()
   initStickyCta()
   initInlineBooking()
 }

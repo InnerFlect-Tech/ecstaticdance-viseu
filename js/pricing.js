@@ -1,5 +1,5 @@
 /**
- * Preços alinhados com server/api/create-checkout.php (early bird até fim de 3 mai, Lisboa).
+ * Preços alinhados com server/api/create-checkout.php (early bird até fim de 5 mai, Lisboa).
  * Mín. 20€ (early bird) ou 30€; máx. 200€; de 5 em 5.
  */
 
@@ -9,8 +9,8 @@ export const TICKET_SLIDER_CAP_EUR = 100
 export const TICKET_STEP = 5
 export const EARLY_BIRD_MIN_EUR = 20
 export const STANDARD_MIN_EUR = 30
-/** "Até" = inclusive 3 maio; a partir de 4 mai, min standard (sincronizado com PHP). */
-const EARLY_BIRD_END_YMD = '2026-05-04'
+/** "Até" = inclusive 5 maio; a partir de 6 mai, min standard (sincronizado com PHP). */
+const EARLY_BIRD_END_YMD = '2026-05-06'
 
 /**
  * @param {Date} [d]

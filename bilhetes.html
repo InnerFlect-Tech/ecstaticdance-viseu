@@ -22,6 +22,8 @@
 </head>
 <body>
 
+  <a href="#main" class="skip-link">Saltar para o conteúdo</a>
+
   <!-- NAV -->
   <nav class="nav" id="nav" aria-label="Navegação principal">
     <a class="nav-logo" href="/" aria-label="Ecstatic Dance Viseu — início">
@@ -48,6 +50,7 @@
       <li><a href="/eventos">Eventos</a></li>
       <li><a href="/galeria">Galeria</a></li>
       <li><a href="/faq">FAQ</a></li>
+      <li><a href="/acesso">Acesso</a></li>
       <li><a href="/contacto">Contacto</a></li>
     </ul>
 
@@ -64,12 +67,15 @@
         <li><a href="/eventos">Eventos</a></li>
         <li><a href="/galeria">Galeria</a></li>
         <li><a href="/faq">FAQ</a></li>
+        <li><a href="/acesso">Acesso</a></li>
         <li><a href="/contacto">Contacto</a></li>
         <li><a href="/eventos" class="btn-primary" style="margin-top:1.5rem;display:block;text-align:center">Ver eventos</a></li>
       </ul>
     </nav>
   </div>
 
+
+  <main id="main">
 
   <!-- PAGE HERO -->
   <header class="page-hero">
@@ -92,6 +98,11 @@
       <p>Lugares limitados. Confirmação imediata por email com código QR.</p>
     </div>
   </header>
+
+  <div class="content-max-wide edv-booking-tldr reveal" aria-live="polite">
+    <p class="lang-pt" id="edv-booking-tldr-pt"></p>
+    <p class="lang-en" id="edv-booking-tldr-en"></p>
+  </div>
 
 
   <!-- BOOKING SECTION -->
@@ -135,6 +146,7 @@
                 autocomplete="email"
                 placeholder="Para receberes o bilhete"
               />
+              <p id="email_error" class="booking-field-error" role="alert" hidden></p>
             </div>
 
             <div class="form-group">
@@ -278,6 +290,8 @@
   </section>
 
 
+  </main>
+
   <!-- FOOTER -->
   <footer>
     <div class="footer-inner">
@@ -307,6 +321,7 @@
         <h5>Contexto</h5>
         <ul>
           <li><a href="/sobre">Sobre o projecto</a></li>
+          <li><a href="/acesso">Acesso ao evento</a></li>
           <li><a href="/faq">FAQ</a></li>
           <li><a href="/galeria">Galeria</a></li>
         </ul>

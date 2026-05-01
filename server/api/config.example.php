@@ -3,16 +3,23 @@
    config.php — copy to config.php and fill in (not committed)
    ============================================================ */
 
+/* ── Reservas links.html (save/complete link-booking) ──
+ * Escolhe **um** modo de armazenamento:
+ * • **Local com SQLite:** `LINK_USE_SQLITE = true`, `LINK_USE_JSON = false` — requer pacote php-sqlite3 (PDO sqlite).
+ * • **Local só com JSON:** `LINK_USE_SQLITE = false`, `LINK_USE_JSON = true` — dados em LINK_JSON_PATH (sem MySQL nem sqlite); útil quando o PDO sqlite não está instalado.
+ * • **Produção (cPanel / MySQL):** `LINK_USE_SQLITE = false`, `LINK_USE_JSON = false` — usa DB_HOST… abaixo; necessária a tabela `link_registrations` (ver docs/DEPLOYMENT.md ou migration SQL).
+ */
+
 define('DB_HOST', 'localhost');
 define('DB_NAME', 'your_db');
 define('DB_USER', 'your_user');
 define('DB_PASS', 'your_pass');
 
-/* ── Reservas links.html: save/complete link-booking ──
- * Local: `true` + SQLite (sem MySQL). Produção: `false` e credenciais MySQL de cima. */
 define('LINK_USE_SQLITE', true);
-/* Caminho do ficheiro .sqlite (o directório server/data/ deve ser gravável pelo PHP) */
+define('LINK_USE_JSON', false);
 define('LINK_SQLITE_PATH', __DIR__ . '/../data/link-bookings.sqlite');
+/** Ficheiro de desenvolvimento (ignorado no .gitignore). Nunca activar JSON em produção. */
+define('LINK_JSON_PATH', __DIR__ . '/../data/link-registrations-dev.json');
 
 define('STRIPE_PUBLIC_KEY',    'YOUR_STRIPE_PUBLISHABLE_KEY_HERE');
 define('STRIPE_SECRET_KEY',    'YOUR_STRIPE_SECRET_KEY_HERE');

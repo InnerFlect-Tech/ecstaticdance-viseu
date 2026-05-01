@@ -3,6 +3,53 @@
    Shared styles for all pages except index.html
    ============================================================ */
 
+/* ─── SKIP LINK (WCAG 2.4.1) ─── */
+.skip-link {
+  position: absolute;
+  left: -9999px;
+  top: auto;
+  z-index: 10000;
+  padding: 0.65rem 1rem;
+  background: var(--bone);
+  color: var(--dark-m);
+  font-family: 'DM Sans', system-ui, sans-serif;
+  font-size: 0.78rem;
+  font-weight: 500;
+  text-decoration: none;
+  border-radius: 2px;
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.2);
+}
+.skip-link:focus {
+  left: max(0.65rem, env(safe-area-inset-left, 0));
+  top: max(0.65rem, env(safe-area-inset-top, 0));
+  outline: 2px solid var(--gold);
+  outline-offset: 2px;
+}
+
+/* TL;DR / faixa resumo — bilhetes, buy */
+.edv-booking-tldr {
+  max-width: 42rem;
+  margin: 0 auto 1.75rem;
+  padding: 0.85rem 1.1rem;
+  background: rgba(184, 146, 74, 0.12);
+  border: 1px solid rgba(184, 146, 74, 0.28);
+  border-radius: 4px;
+  font-size: 0.84rem;
+  line-height: 1.55;
+  color: rgba(245, 239, 230, 0.82);
+  text-align: center;
+}
+.edv-booking-tldr strong {
+  color: var(--gold-l);
+  font-weight: 500;
+}
+html[lang='pt'] .edv-booking-tldr .lang-en {
+  display: none;
+}
+html[lang='en'] .edv-booking-tldr .lang-pt {
+  display: none;
+}
+
 /* ─── PAGE HERO (smaller than home hero) ─── */
 .page-hero {
   position: relative;

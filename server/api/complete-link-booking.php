@@ -68,17 +68,29 @@ if (strlen($rid) < 32) {
     link_json_err('registration_id em falta.');
 }
 
-try {
-    $pdo = link_api_db();
-} catch (Throwable $e) {
-    link_json_err('Base de dados: ' . $e->getMessage(), 500);
+$backend = link_registration_backend();
+
+$pdo = null;
+if ($backend !== 'json') {
+    try {
+        $pdo = link_api_db();
+    } catch (Throwable $e) {
+        link_json_err('Base de dados: ' . $e->getMessage(), 500);
+    }
 }
+
 $now = link_sql_now();
 
-$q = $pdo->prepare('SELECT * FROM link_registrations WHERE id = ?');
-$q->execute([$rid]);
-$row = $q->fetch();
-if (!$row) {
+if ($backend === 'json') {
+    $row = link_json_find_registration($rid);
+} elseif (!$pdo instanceof PDO) {
+    link_json_err('Base de dados em falta.', 500);
+} else {
+    $q = $pdo->prepare('SELECT * FROM link_registrations WHERE id = ?');
+    $q->execute([$rid]);
+    $row = $q->fetch();
+}
+if (!is_array($row) || $row === []) {
     link_json_err('Registo não encontrado.', 404);
 }
 if (!empty($row['step2_at'])) {
@@ -86,16 +98,29 @@ if (!empty($row['step2_at'])) {
 }
 
 if ($email_later && !$file_saved) {
-    $u = $pdo->prepare(
-        'UPDATE link_registrations SET
-            step2_type = ?,
-            proof_relpath = NULL,
-            proof_mime = NULL,
-            step2_at = ?,
-            updated_at = ?
-         WHERE id = ?'
-    );
-    $u->execute(['email_later', $now, $now, $rid]);
+    $patch = [
+        'step2_type'      => 'email_later',
+        'proof_relpath'   => null,
+        'proof_mime'      => null,
+        'step2_at'        => $now,
+        'updated_at'      => $now,
+    ];
+    if ($backend === 'json') {
+        if (!link_json_patch_registration($rid, $patch)) {
+            link_json_err('Registo não encontrado.', 404);
+        }
+    } else {
+        $u = $pdo->prepare(
+            'UPDATE link_registrations SET
+                step2_type = ?,
+                proof_relpath = NULL,
+                proof_mime = NULL,
+                step2_at = ?,
+                updated_at = ?
+             WHERE id = ?'
+        );
+        $u->execute(['email_later', $now, $now, $rid]);
+    }
     $info = link_org_info();
     $line = "Passo 2 — comprovativo depois por email\nRef: {$row['payment_ref']}\nID: $rid\n"
         . "O participante indicou que envia o comprovativo para $info em seguida.\n";
@@ -104,16 +129,29 @@ if ($email_later && !$file_saved) {
 }
 
 if ($file_saved) {
-    $u = $pdo->prepare(
-        'UPDATE link_registrations SET
-            step2_type = ?,
-            proof_relpath = ?,
-            proof_mime = ?,
-            step2_at = ?,
-            updated_at = ?
-         WHERE id = ?'
-    );
-    $u->execute(['upload', $file_saved, $mime, $now, $now, $rid]);
+    $patch = [
+        'step2_type'     => 'upload',
+        'proof_relpath'  => $file_saved,
+        'proof_mime'     => $mime,
+        'step2_at'       => $now,
+        'updated_at'     => $now,
+    ];
+    if ($backend === 'json') {
+        if (!link_json_patch_registration($rid, $patch)) {
+            link_json_err('Registo não encontrado.', 404);
+        }
+    } else {
+        $u = $pdo->prepare(
+            'UPDATE link_registrations SET
+                step2_type = ?,
+                proof_relpath = ?,
+                proof_mime = ?,
+                step2_at = ?,
+                updated_at = ?
+             WHERE id = ?'
+        );
+        $u->execute(['upload', $file_saved, $mime, $now, $now, $rid]);
+    }
     $line = "Passo 2 — comprovativo carregado\nRef: {$row['payment_ref']}\nID: $rid\nFicheiro: $file_saved\n";
     link_notify_team("Comprovativo $rid", $line);
     link_json_ok(['status' => 'uploaded', 'message' => 'Obrigado! Recebemos o comprovativo.']);

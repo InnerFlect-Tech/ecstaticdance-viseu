@@ -6,12 +6,28 @@ Site estático multi-página construído com **Vite**, com sistema de bilhetes v
 
 ```bash
 npm install
-npm run dev       # dev server em http://localhost:5173
+npm run dev       # só Vite em http://localhost:5173 (HTML/CSS/JS)
 npm run build     # produção em dist/
 npm run preview   # preview do build em http://localhost:4173
 npm run start     # (para Coolify/Nixpacks) preview em 0.0.0.0:$PORT (default 4173)
 ```
 
+### API PHP (`/api/*`, formulário em `/links`)
+
+O proxy do Vite em `vite.config.mjs` envia `/api/*` para `http://127.0.0.1:${EDV_PHP_API_PORT}` (variável definida pelo `dev:local`; omissão = **8080**).
+
+- **`npm run dev`** só sobe o front — sem PHP a responder no proxy, aparecem `EPIPE` / `ECONNRESET` e o formulário de links falha.
+
+Para gravar pedidos **localmente**:
+
+1. Instala **PHP 8+** com **mbstring**. Para modo **SQLite** (recomendado em dev), também `php-sqlite3`:  
+   `sudo apt update && sudo apt install -y php-cli php-sqlite3 php-mbstring`
+2. **`npm run dev:local`** — sobe PHP built‑in na **primeira porta livre entre 8080–8099** (resolve «Address already in use» na 8080), exporta `EDV_PHP_API_PORT`, e arranca o Vite; cria `server/api/config.php` a partir do exemplo se faltar.
+3. Em **`server/api/config.php`:**  
+   - **SQLite:** `LINK_USE_SQLITE=true`, `LINK_USE_JSON=false` (exemplo típico).  
+   - **Sem extensão sqlite:** `LINK_USE_SQLITE=false`, `LINK_USE_JSON=true` — dados em `server/data/link-registrations-dev.json` (**só desenvolvimento; nunca em produção**).
+
+Em produção (cPanel) os mesmos ficheiros usam **MySQL**; checklist em **`docs/DEPLOYMENT.md`** (secção *Link hub (links.html)*). No servidor continua a ser necessário o interpretador PHP com as extensões do hosting para o `/api`.
 ---
 
 ## Sistema de bilhetes

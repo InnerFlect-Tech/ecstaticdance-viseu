@@ -7,6 +7,20 @@ import { applyBilhetesAmountRange, isEarlyBird, ticketMinEur } from './pricing.j
 
 const API_BASE = '/api';
 
+function paintBookingTldrStrip() {
+  const ptEl = document.getElementById('edv-booking-tldr-pt')
+  const enEl = document.getElementById('edv-booking-tldr-en')
+  if (!ptEl || !enEl) return
+  const min = ticketMinEur()
+  if (isEarlyBird()) {
+    ptEl.textContent = `Sliding scale desde ${min}€ (early bird até 5 de maio). Bilhete até 200€.`
+    enEl.textContent = `Sliding scale from €${min} (early bird through 5 May). Tickets up to €200.`
+  } else {
+    ptEl.textContent = `Sliding scale desde ${min}€ até 200€.`
+    enEl.textContent = `Sliding scale from €${min} up to €200.`
+  }
+}
+
 /* ─────────────────────────────────────────────
    BOOKING PAGE — bilhetes.html
 ───────────────────────────────────────────── */
@@ -26,6 +40,8 @@ async function initBookingPage() {
   const amountDisp  = document.getElementById('amountDisplay');
 
   let currentEvent = null;
+
+  paintBookingTldrStrip();
 
   // ── Load current event ──
   try {
@@ -73,11 +89,14 @@ async function initBookingPage() {
     });
   }
 
+  document.getElementById('email')?.addEventListener('input', clearEmailFieldError);
+
   // ── Form submit ──
   bookingForm.addEventListener('submit', async (e) => {
     e.preventDefault();
 
     const errorEl = document.getElementById('formError');
+    clearEmailFieldError();
     errorEl.style.display = 'none';
 
     const name  = document.getElementById('name').value.trim();
@@ -94,7 +113,7 @@ async function initBookingPage() {
       return;
     }
     if (!isValidEmail(email)) {
-      showError(errorEl, 'O email introduzido não é válido.');
+      showEmailFieldError('O email introduzido não é válido.');
       return;
     }
 
@@ -107,10 +126,18 @@ async function initBookingPage() {
       } else {
         await handleFreeBooking(name, email, phone, currentEvent.id, errorEl);
       }
-    } catch {
+    } catch (ex) {
       submitBtn.disabled = false;
       submitBtn.textContent = 'Reservar lugar';
-      showError(errorEl, 'Ocorreu um erro. Por favor tenta novamente ou escreve para info@ecstaticdanceviseu.pt');
+      const fallback =
+        'Ocorreu um erro. Por favor tenta novamente ou escreve para info@ecstaticdanceviseu.pt';
+      const msg = ex instanceof Error ? ex.message.trim() : '';
+      const text = msg || fallback;
+      if (text.includes('Email inválido')) {
+        showEmailFieldError(text);
+      } else {
+        showError(errorEl, text);
+      }
     }
   });
 }
@@ -141,7 +168,12 @@ async function handleFreeBooking(name, email, phone, eventId, errorEl) {
 
   const data = await res.json();
   if (!data.ok) {
-    showError(errorEl, data.error || 'Não foi possível completar a reserva. Tenta novamente.');
+    const msg = data.error || 'Não foi possível completar a reserva. Tenta novamente.';
+    if (msg.includes('Email inválido')) {
+      showEmailFieldError(msg);
+    } else {
+      showError(errorEl, msg);
+    }
     document.getElementById('submitBtn').disabled = false;
     document.getElementById('submitBtn').textContent = 'Reservar lugar';
     return;
@@ -292,7 +324,40 @@ function renderTicket(ticket) {
 /* ─────────────────────────────────────────────
    UTILITIES
 ───────────────────────────────────────────── */
+function clearEmailFieldError() {
+  const err = document.getElementById('email_error');
+  const input = document.getElementById('email');
+  if (err) {
+    err.textContent = '';
+    err.hidden = true;
+  }
+  if (input) {
+    input.removeAttribute('aria-invalid');
+    if (input.getAttribute('aria-describedby') === 'email_error') {
+      input.removeAttribute('aria-describedby');
+    }
+  }
+}
+
+function showEmailFieldError(message) {
+  const formErr = document.getElementById('formError');
+  if (formErr) formErr.style.display = 'none';
+  const err = document.getElementById('email_error');
+  const input = document.getElementById('email');
+  if (!err || !input) {
+    if (formErr) showError(formErr, message);
+    return;
+  }
+  err.textContent = message;
+  err.hidden = false;
+  input.setAttribute('aria-invalid', 'true');
+  input.setAttribute('aria-describedby', 'email_error');
+  input.focus({ preventScroll: true });
+  err.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+}
+
 function showError(el, msg) {
+  clearEmailFieldError();
   el.textContent = msg;
   el.style.display = '';
   el.scrollIntoView({ behavior: 'smooth', block: 'nearest' });

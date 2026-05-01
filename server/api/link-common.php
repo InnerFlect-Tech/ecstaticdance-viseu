@@ -4,6 +4,30 @@
 
 declare(strict_types=1);
 
+/** Em erros fatais (ex.: mb_substr em falta), o PHP devolve HTTP 500 com corpo vazio; aqui garantimos JSON para o cliente. */
+register_shutdown_function(static function (): void {
+    $e = error_get_last();
+    if ($e === null) {
+        return;
+    }
+    $fatal = [E_ERROR, E_PARSE, E_CORE_ERROR, E_COMPILE_ERROR];
+    if (!in_array($e['type'], $fatal, true)) {
+        return;
+    }
+    if (headers_sent()) {
+        return;
+    }
+    http_response_code(500);
+    header('Content-Type: application/json; charset=utf-8');
+    echo json_encode(
+        [
+            'ok'    => false,
+            'error' => 'Erro interno (PHP): ' . $e['message'] . ' — em ' . basename((string) $e['file']) . ':' . $e['line'],
+        ],
+        JSON_UNESCAPED_UNICODE
+    );
+});
+
 $__cfg = __DIR__ . '/config.php';
 if (!is_readable($__cfg)) {
     header('Content-Type: application/json; charset=utf-8');
@@ -13,11 +37,44 @@ if (!is_readable($__cfg)) {
 }
 require_once $__cfg;
 
+/* Usados em link_notify_team(); sem estes, PHP 8+ pode gerar fatal e corpo vazio (HTTP 500) após INSERT. */
+if (!defined('FROM_EMAIL')) {
+    define('FROM_EMAIL', 'info@ecstaticdanceviseu.pt');
+}
+if (!defined('FROM_NAME')) {
+    define('FROM_NAME', 'Ecstatic Dance Viseu');
+}
+
 if (!defined('LINK_USE_SQLITE')) {
     define('LINK_USE_SQLITE', false);
 }
 if (!defined('LINK_SQLITE_PATH')) {
     define('LINK_SQLITE_PATH', __DIR__ . '/../data/link-bookings.sqlite');
+}
+if (!defined('LINK_USE_JSON')) {
+    define('LINK_USE_JSON', false);
+}
+if (!defined('LINK_JSON_PATH')) {
+    define('LINK_JSON_PATH', __DIR__ . '/../data/link-registrations-dev.json');
+}
+
+/** Modo de gravação do fluxo links.html: mysql (produção) | sqlite (local típico) | json (local sem PDO sqlite). */
+function link_registration_backend(): string {
+    static $resolved = false;
+    static $backend = '';
+    if ($resolved) {
+        return $backend;
+    }
+    $resolved = true;
+    if (LINK_USE_JSON === true) {
+        require_once __DIR__ . '/link-json-store.php';
+        return $backend = 'json';
+    }
+    if (link_is_sqlite()) {
+        return $backend = 'sqlite';
+    }
+
+    return $backend = 'mysql';
 }
 
 function link_is_sqlite(): bool {
@@ -147,7 +204,11 @@ function link_json_err(string $message, int $status = 400): never {
 }
 
 function link_sanitise(string $val, int $max = 255): string {
-    return mb_substr(trim(strip_tags($val)), 0, $max);
+    $t = trim(strip_tags($val));
+    if (function_exists('mb_substr')) {
+        return mb_substr($t, 0, $max);
+    }
+    return strlen($t) <= $max ? $t : substr($t, 0, $max);
 }
 
 function link_generate_payment_ref(): string {
@@ -188,14 +249,23 @@ function link_uuid_v4(): string {
 }
 
 function link_notify_team(string $subject_line, string $body): void {
-    if (!function_exists('mail')) {
-        return;
-    }
-    $headers  = "MIME-Version: 1.0\r\n";
-    $headers .= "Content-Type: text/plain; charset=UTF-8\r\n";
-    $headers .= 'From: ' . FROM_NAME . ' <' . FROM_EMAIL . ">\r\n";
-    $enc = '=?UTF-8?B?' . base64_encode('EDV — ' . $subject_line) . '?=';
-    foreach ([link_org_hello(), link_org_info()] as $to) {
-        @mail($to, $enc, $body, $headers);
+    try {
+        if (!function_exists('mail')) {
+            return;
+        }
+        $fromName = defined('FROM_NAME') && is_string(FROM_NAME) ? FROM_NAME : 'Ecstatic Dance Viseu';
+        $fromEmail = defined('FROM_EMAIL') && is_string(FROM_EMAIL) ? FROM_EMAIL : 'info@ecstaticdanceviseu.pt';
+        $headers  = "MIME-Version: 1.0\r\n";
+        $headers .= "Content-Type: text/plain; charset=UTF-8\r\n";
+        $headers .= 'From: ' . $fromName . ' <' . $fromEmail . ">\r\n";
+        $enc = '=?UTF-8?B?' . base64_encode('EDV — ' . $subject_line) . '?=';
+        foreach ([link_org_hello(), link_org_info()] as $to) {
+            if ($to === '') {
+                continue;
+            }
+            @mail($to, $enc, $body, $headers);
+        }
+    } catch (Throwable $e) {
+        // O pedido já foi gravado; não rebentar a API por falha opcional de mail / headers.
     }
 }

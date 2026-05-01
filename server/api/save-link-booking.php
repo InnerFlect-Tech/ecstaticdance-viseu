@@ -60,11 +60,17 @@ if ($ticket_euros < $tmin - 0.001 || $ticket_euros > $tmax + 0.001) {
     );
 }
 
-try {
-    $pdo = link_api_db();
-} catch (Throwable $e) {
-    link_json_err('Base de dados: ' . $e->getMessage(), 500);
+$backend = link_registration_backend();
+
+$pdo = null;
+if ($backend !== 'json') {
+    try {
+        $pdo = link_api_db();
+    } catch (Throwable $e) {
+        link_json_err('Base de dados: ' . $e->getMessage(), 500);
+    }
 }
+
 $now   = link_sql_now();
 $done  = false;
 $lastE = null;
@@ -73,40 +79,76 @@ $id    = '';
 for ($tries = 0; $tries < 6 && !$done; $tries++) {
     $id  = link_uuid_v4();
     $ref = link_generate_payment_ref();
-    try {
-        $st = $pdo->prepare(
-            'INSERT INTO link_registrations
-             (id, payment_ref, event_slug, name, email, phone, ticket_euros, dinner_note, total_euros, payment_method, heard_from, heard_other, step1_at, created_at, updated_at)
-             VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)'
-        );
-        $st->execute([
-            $id,
-            $ref,
-            $event_slug,
-            $name,
-            $email,
-            $phone,
-            $ticket_euros,
-            $dinner_note,
-            $total_euros,
-            $payment_method,
-            $heard_from,
-            $heard_other === '' ? null : $heard_other,
-            $now,
-            $now,
-            $now,
-        ]);
-        $done = true;
-    } catch (PDOException $e) {
-        $lastE = $e;
-        if (
-            str_contains($e->getMessage(), '1062')
-            || str_contains($e->getMessage(), 'Duplicate')
-            || str_contains($e->getMessage(), 'UNIQUE constraint')
-        ) {
-            continue;
+    if ($backend === 'json') {
+        $payload = [
+            'id'              => $id,
+            'payment_ref'     => $ref,
+            'event_slug'      => $event_slug,
+            'name'            => $name,
+            'email'           => $email,
+            'phone'           => $phone,
+            'ticket_euros'    => $ticket_euros,
+            'dinner_note'     => $dinner_note,
+            'total_euros'     => $total_euros,
+            'payment_method'  => $payment_method,
+            'heard_from'      => $heard_from,
+            'heard_other'     => $heard_other === '' ? null : $heard_other,
+            'step1_at'        => $now,
+            'step2_type'      => null,
+            'proof_relpath'   => null,
+            'proof_mime'      => null,
+            'step2_at'        => null,
+            'created_at'      => $now,
+            'updated_at'      => $now,
+        ];
+        try {
+            link_json_insert_registration($payload);
+            $done = true;
+        } catch (RuntimeException $e) {
+            $lastE = $e;
+            if ($e->getMessage() === 'duplicate_key') {
+                continue;
+            }
+            link_json_err('Erro a gravar: ' . $e->getMessage(), 500);
         }
-        link_json_err('Erro a gravar: ' . $e->getMessage(), 500);
+    } elseif (!$pdo instanceof PDO) {
+        link_json_err('Base de dados em falta.', 500);
+    } else {
+        try {
+            $st = $pdo->prepare(
+                'INSERT INTO link_registrations
+                 (id, payment_ref, event_slug, name, email, phone, ticket_euros, dinner_note, total_euros, payment_method, heard_from, heard_other, step1_at, created_at, updated_at)
+                 VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)'
+            );
+            $st->execute([
+                $id,
+                $ref,
+                $event_slug,
+                $name,
+                $email,
+                $phone,
+                $ticket_euros,
+                $dinner_note,
+                $total_euros,
+                $payment_method,
+                $heard_from,
+                $heard_other === '' ? null : $heard_other,
+                $now,
+                $now,
+                $now,
+            ]);
+            $done = true;
+        } catch (PDOException $e) {
+            $lastE = $e;
+            if (
+                str_contains($e->getMessage(), '1062')
+                || str_contains($e->getMessage(), 'Duplicate')
+                || str_contains($e->getMessage(), 'UNIQUE constraint')
+            ) {
+                continue;
+            }
+            link_json_err('Erro a gravar: ' . $e->getMessage(), 500);
+        }
     }
 }
 if (!$done) {

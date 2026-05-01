@@ -14,7 +14,24 @@ import {
 const DEFAULT_EVENT_SLUG = 'edv-2026-05-23'
 const INFO_EMAIL = 'info@ecstaticdanceviseu.pt'
 /** Extra fixo: jantar no local (reserva manual em bilhetes.html) */
-const DINNER_EUR = 15
+const DINNER_EUR = 12
+
+function prefersReducedMotionBooking() {
+  return typeof matchMedia !== 'undefined' && matchMedia('(prefers-reduced-motion: reduce)').matches
+}
+
+/**
+ * @param {HTMLElement | null} el
+ */
+function flashStepCard(el) {
+  if (!el || prefersReducedMotionBooking()) return
+  el.classList.remove('links-step-enter')
+  void el.offsetWidth
+  el.classList.add('links-step-enter')
+  const done = () => el.classList.remove('links-step-enter')
+  el.addEventListener('animationend', done, { once: true })
+  window.setTimeout(done, 520)
+}
 
 function apiBase() {
   const raw = import.meta.env.VITE_API_BASE
@@ -41,15 +58,15 @@ async function parseLinkApiJson(res) {
   const raw = await res.text()
   const status = res.status
   const url = typeof res.url === 'string' ? res.url : ''
-  if (!raw.trim()) {
+    if (!raw.trim()) {
     if (status === 502 || status === 503 || status === 504) {
       throw new Error(
-        `API inacessível (HTTP ${status}). Em desenvolvimento, inicia o PHP na porta 8080: deixa um terminal com «php -S 127.0.0.1:8080 -t server» a correr e usa «npm run dev:local» (Vite + PHP). Cria também server/api/config.php a partir de config.example.php.`
+        `API inacessível (HTTP ${status}). Em desenvolvimento usa «npm run dev:local» (Vite + PHP no loopback; a porta 8080–8099 é escolhida automaticamente). Garante server/api/config.php e, se precisares de gravar sem SQLite, LINK_USE_JSON => true.`
       )
     }
     throw new Error(
       status >= 500
-        ? `Resposta vazia do servidor (HTTP ${status})${url ? ` — ${url}` : ''}. Verifica se a API PHP está no ar, se existe config.php e a base de dados.`
+        ? `Resposta vazia do servidor (HTTP ${status})${url ? ` — ${url}` : ''}. Confirma que o PHP está a correr (mensagem no terminal ao iniciar dev:local), que existe config.php e que a base de dados / modo JSON está correto.`
         : `Resposta vazia (HTTP ${status}).`
     )
   }
@@ -81,6 +98,169 @@ function getEl(id) {
   const el = document.getElementById(id)
   if (!el) throw new Error('Missing #' + id)
   return el
+}
+
+/** @param {string} id */
+function elMaybe(id) {
+  return document.getElementById(id)
+}
+
+/** Alinha com bilhetes.js / PHP típico para endereços correntes. */
+function isValidLinkEmail(email) {
+  return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)
+}
+
+const API_ERR_PT_TO_EN = new Map([
+  ['Email inválido.', 'Please enter a valid email address (e.g. name@example.com).'],
+  ['Nome, email e telemóvel são obrigatórios.', 'Name, email and phone are required.'],
+  ['JSON inválido.', 'Something went wrong. Please try again.'],
+  ['Método de pagamento inválido.', 'Invalid payment method.'],
+  ['Indica como tiveste conhecimento do evento.', 'Please tell us how you heard about this event.'],
+  ['Especifica em «Outro» como tiveste conhecimento.', 'Please add details under “Other”.'],
+  ['Valores inválidos.', 'Invalid amounts.'],
+])
+
+/**
+ * @param {string} msg
+ * @param {boolean} isPt
+ */
+function translateApiUserMessage(msg, isPt) {
+  if (isPt || !msg) return msg
+  const t = msg.trim()
+  if (API_ERR_PT_TO_EN.has(t)) return /** @type {string} */ (API_ERR_PT_TO_EN.get(t))
+  if (t.startsWith('Valor do bilhete fora do intervalo')) {
+    return 'Ticket amount is outside the allowed range.'
+  }
+  return msg
+}
+
+/** @param {HTMLElement} el */
+function clearFormBanner(el) {
+  el.textContent = ''
+  el.classList.remove('links-form-error-banner')
+}
+
+/** @param {HTMLElement} el */
+function showFormBanner(el, message) {
+  el.textContent = message
+  el.classList.add('links-form-error-banner')
+  el.scrollIntoView({ behavior: 'smooth', block: 'nearest' })
+}
+
+function clearStep1InlineErrors() {
+  clearInlineFieldError('lb_name', 'lb_name_error')
+  clearInlineFieldError('lb_email', 'lb_email_error')
+  clearInlineFieldError('lb_phone', 'lb_phone_error')
+  clearInlineFieldError('lb_heard_other', 'lb_heard_other_error')
+}
+
+/**
+ * @param {string} inputId
+ * @param {string} errorElId
+ */
+function clearInlineFieldError(inputId, errorElId) {
+  const inp = elMaybe(inputId)
+  const errEl = elMaybe(errorElId)
+  if (errEl) {
+    errEl.textContent = ''
+    errEl.hidden = true
+  }
+  if (inp) {
+    inp.removeAttribute('aria-invalid')
+    if (inp.getAttribute('aria-describedby') === errorElId) {
+      inp.removeAttribute('aria-describedby')
+    }
+  }
+}
+
+/**
+ * @param {string} inputId
+ * @param {string} errorElId
+ * @param {string} message
+ */
+function showInlineFieldError(inputId, errorElId, message) {
+  clearStep1InlineErrors()
+  clearFormBanner(getEl('lb_form_error'))
+  const inp = elMaybe(inputId)
+  const errEl = elMaybe(errorElId)
+  if (!inp || !errEl) return
+  errEl.textContent = message
+  errEl.hidden = false
+  inp.setAttribute('aria-invalid', 'true')
+  inp.setAttribute('aria-describedby', errorElId)
+  inp.focus({ preventScroll: true })
+  errEl.scrollIntoView({ behavior: 'smooth', block: 'nearest' })
+}
+
+/**
+ * Erros sem campo dedicado ou vários campos.
+ * @param {string} message
+ */
+function showFormSummaryError(message) {
+  clearStep1InlineErrors()
+  showFormBanner(getEl('lb_form_error'), message)
+}
+
+/**
+ * @param {string} rawMessage
+ */
+function applyApiErrorToUi(rawMessage) {
+  const isPt = isManualPt()
+  const raw = String(rawMessage || '').trim()
+  const msg = translateApiUserMessage(raw, isPt)
+
+  if (raw === 'Email inválido.' || raw.includes('Email inválido')) {
+    showInlineFieldError('lb_email', 'lb_email_error', msg)
+    return
+  }
+  if (raw.startsWith('Especifica em «Outro»')) {
+    showInlineFieldError('lb_heard_other', 'lb_heard_other_error', msg)
+    return
+  }
+  if (raw === 'Nome, email e telemóvel são obrigatórios.') {
+    const name = getEl('lb_name').value.trim()
+    const email = getEl('lb_email').value.trim()
+    const phone = getEl('lb_phone').value.trim()
+    const short = isPt ? 'Este campo é obrigatório.' : 'This field is required.'
+    if (!name) showInlineFieldError('lb_name', 'lb_name_error', short)
+    else if (!email) showInlineFieldError('lb_email', 'lb_email_error', short)
+    else if (!phone) showInlineFieldError('lb_phone', 'lb_phone_error', short)
+    else showFormSummaryError(msg)
+    return
+  }
+  if (raw.startsWith('Valor do bilhete fora do intervalo')) {
+    showFormSummaryError(msg)
+    const range = document.getElementById('lb_ticket_range')
+    range?.focus({ preventScroll: true })
+    document.getElementById('links-amount-picker')?.scrollIntoView({ behavior: 'smooth', block: 'nearest' })
+    return
+  }
+  if (raw === 'Indica como tiveste conhecimento do evento.') {
+    showFormSummaryError(msg)
+    const sel = getEl('lb_heard_from')
+    sel.focus({ preventScroll: true })
+    sel.scrollIntoView({ behavior: 'smooth', block: 'nearest' })
+    return
+  }
+  showFormSummaryError(msg)
+}
+
+function wireStep1InlineErrorClearing() {
+  const banner = getEl('lb_form_error')
+  const pairs = [
+    ['lb_name', 'lb_name_error'],
+    ['lb_email', 'lb_email_error'],
+    ['lb_phone', 'lb_phone_error'],
+    ['lb_heard_other', 'lb_heard_other_error'],
+  ]
+  for (const [inpId, errId] of pairs) {
+    const inp = elMaybe(inpId)
+    if (!inp) continue
+    inp.addEventListener('input', () => {
+      clearInlineFieldError(inpId, errId)
+      clearFormBanner(banner)
+    })
+  }
 }
 
 function manualLangRoot() {
@@ -149,11 +329,51 @@ function paintInstructions() {
 function showStep1() {
   getEl('lb_step_1').hidden = false
   getEl('lb_step_2').hidden = true
+  requestAnimationFrame(() => flashStepCard(document.getElementById('lb_step_1')))
+}
+
+function hideStep2CompletionUi() {
+  const active = document.getElementById('lb_step_2_heading_active')
+  const done = document.getElementById('lb_step_2_heading_done')
+  const bodyUp = document.getElementById('lb_step_2_done_body_upload')
+  const bodyLater = document.getElementById('lb_step_2_done_body_later')
+  if (active) active.hidden = false
+  if (done) done.hidden = true
+  if (bodyUp) bodyUp.hidden = true
+  if (bodyLater) bodyLater.hidden = true
+}
+
+function showStep2CompletionUploaded() {
+  const active = document.getElementById('lb_step_2_heading_active')
+  const done = document.getElementById('lb_step_2_heading_done')
+  const bodyUp = document.getElementById('lb_step_2_done_body_upload')
+  const bodyLater = document.getElementById('lb_step_2_done_body_later')
+  if (active) active.hidden = true
+  if (done) done.hidden = false
+  if (bodyLater) bodyLater.hidden = true
+  if (bodyUp) bodyUp.hidden = false
+}
+
+function showStep2CompletionEmailLater() {
+  const active = document.getElementById('lb_step_2_heading_active')
+  const done = document.getElementById('lb_step_2_heading_done')
+  const bodyUp = document.getElementById('lb_step_2_done_body_upload')
+  const bodyLater = document.getElementById('lb_step_2_done_body_later')
+  if (active) active.hidden = true
+  if (done) done.hidden = false
+  if (bodyUp) bodyUp.hidden = true
+  if (bodyLater) bodyLater.hidden = false
 }
 
 function showStep2() {
   getEl('lb_step_1').hidden = true
   getEl('lb_step_2').hidden = false
+  hideStep2CompletionUi()
+  getEl('lb_step_2_in').hidden = false
+  const ok = document.getElementById('lb_step2_success')
+  if (ok) ok.textContent = ''
+  const err = document.getElementById('lb_step2_error')
+  if (err) err.textContent = ''
   for (const el of document.querySelectorAll('.js-summary-ref')) {
     el.textContent = state.paymentRef
   }
@@ -161,6 +381,7 @@ function showStep2() {
     el.textContent = formatEur(state.totalEur)
   }
   paintInstructions()
+  requestAnimationFrame(() => flashStepCard(document.getElementById('lb_step_2')))
 }
 
 function setHeardOtherVisible() {
@@ -168,6 +389,9 @@ function setHeardOtherVisible() {
   const other = getEl('lb_heard_other_wrap')
   const v = sel.value
   other.hidden = v !== 'other'
+  if (v !== 'other') {
+    clearInlineFieldError('lb_heard_other', 'lb_heard_other_error')
+  }
 }
 
 let lastTicketTierForAnim = /** @type {number | null} */ (null)
@@ -343,10 +567,23 @@ function wireTotals() {
     if (custom) custom.value = ''
     recalcTotals()
   }
-  range?.addEventListener('input', onRangeAdjust)
-  range?.addEventListener('change', onRangeAdjust)
-  custom?.addEventListener('input', recalcTotals)
-  custom?.addEventListener('change', recalcTotals)
+  const clearTotalsBanner = () => clearFormBanner(getEl('lb_form_error'))
+  range?.addEventListener('input', () => {
+    clearTotalsBanner()
+    onRangeAdjust()
+  })
+  range?.addEventListener('change', () => {
+    clearTotalsBanner()
+    onRangeAdjust()
+  })
+  custom?.addEventListener('input', () => {
+    clearTotalsBanner()
+    recalcTotals()
+  })
+  custom?.addEventListener('change', () => {
+    clearTotalsBanner()
+    recalcTotals()
+  })
   incl?.addEventListener('change', () => {
     if (!incl.checked) {
       const note = document.getElementById('lb_dinner_note')
@@ -375,25 +612,65 @@ function onPaymentChange() {
 
 async function onSubmitStep1(e) {
   e.preventDefault()
-  const err = getEl('lb_form_error')
-  err.textContent = ''
+  const errBanner = getEl('lb_form_error')
+  clearStep1InlineErrors()
+  clearFormBanner(errBanner)
+
   const name = getEl('lb_name').value.trim()
   const email = getEl('lb_email').value.trim()
   const phone = getEl('lb_phone').value.trim()
   const dinnerNote = getEl('lb_dinner_note').value.trim()
   const heard = getEl('lb_heard_from').value
   const heardOther = getEl('lb_heard_other').value.trim()
+  const isPt = isManualPt()
   onPaymentChange()
+
+  if (!name) {
+    showInlineFieldError(
+      'lb_name',
+      'lb_name_error',
+      isPt ? 'Indica o teu nome.' : 'Please enter your name.'
+    )
+    return
+  }
+  if (!email) {
+    showInlineFieldError(
+      'lb_email',
+      'lb_email_error',
+      isPt ? 'Indica o email.' : 'Please enter your email.'
+    )
+    return
+  }
+  if (!isValidLinkEmail(email)) {
+    showInlineFieldError(
+      'lb_email',
+      'lb_email_error',
+      isPt ? 'O email introduzido não é válido.' : 'That email does not look valid (e.g. name@example.com).'
+    )
+    return
+  }
+  if (!phone) {
+    showInlineFieldError(
+      'lb_phone',
+      'lb_phone_error',
+      isPt ? 'Indica o telemóvel.' : 'Please enter your mobile number.'
+    )
+    return
+  }
+
   if (heard === 'other' && heardOther === '') {
-    const isPt = isManualPt()
-    err.textContent = isPt
-      ? 'Indica o texto em «Outro».'
-      : 'Please add details for “Other”.'
+    showInlineFieldError(
+      'lb_heard_other',
+      'lb_heard_other_error',
+      isPt ? 'Indica o texto em «Outro».' : 'Please add details for “Other”.'
+    )
     return
   }
   if (state.totalEur <= 0) {
-    const isPt = isManualPt()
-    err.textContent = isPt ? 'O total deve ser maior que zero.' : 'Total must be greater than zero.'
+    showFormSummaryError(isPt ? 'O total deve ser maior que zero.' : 'Total must be greater than zero.')
+    const range = document.getElementById('lb_ticket_range')
+    range?.focus({ preventScroll: true })
+    document.getElementById('links-amount-picker')?.scrollIntoView({ behavior: 'smooth', block: 'nearest' })
     return
   }
   getEl('lb_step1_submit').disabled = true
@@ -422,7 +699,8 @@ async function onSubmitStep1(e) {
     state.paymentRef = data.payment_ref
     showStep2()
   } catch (ex) {
-    err.textContent = ex instanceof Error ? ex.message : 'Erro.'
+    const raw = ex instanceof Error ? ex.message : 'Erro.'
+    applyApiErrorToUi(raw)
   } finally {
     getEl('lb_step1_submit').disabled = false
   }
@@ -455,11 +733,9 @@ async function onUploadProof() {
     if (!res.ok || !data.ok) {
       throw new Error(data.error || 'Erro no envio.')
     }
-    const isPt = isManualPt()
-    ok.textContent = isPt
-      ? (data.message || 'Obrigado! Recebemos o comprovativo.')
-      : (data.message || 'Thank you — proof received.')
+    ok.textContent = ''
     getEl('lb_step_2_in').hidden = true
+    showStep2CompletionUploaded()
   } catch (ex) {
     err.textContent = ex instanceof Error ? ex.message : 'Erro.'
   } finally {
@@ -484,11 +760,9 @@ async function onEmailLater() {
     if (!res.ok || !data.ok) {
       throw new Error(data.error || 'Erro.')
     }
-    const isPt = isManualPt()
-    ok.textContent = isPt
-      ? (data.message || 'Combinado. Envia o comprovativo para ' + INFO_EMAIL + ' quando puderes.')
-      : (data.message || "Got it. Send the proof to " + INFO_EMAIL + " when you can.")
+    ok.textContent = ''
     getEl('lb_step_2_in').hidden = true
+    showStep2CompletionEmailLater()
   } catch (ex) {
     err.textContent = ex instanceof Error ? ex.message : 'Erro.'
   } finally {
@@ -525,6 +799,7 @@ function init() {
   initManualLang()
   applyTicketPricingToDom()
   applyHubPrefTicket()
+  wireStep1InlineErrorClearing()
   getEl('lb_booking_form').addEventListener('submit', onSubmitStep1)
   getEl('lb_heard_from').addEventListener('change', setHeardOtherVisible)
   setHeardOtherVisible()
@@ -539,6 +814,7 @@ function init() {
     ev.preventDefault()
     state.registrationId = null
     state.paymentRef = null
+    hideStep2CompletionUi()
     getEl('lb_step_2_in').hidden = false
     getEl('lb_step2_success').textContent = ''
     getEl('lb_booking_form').reset()
@@ -557,6 +833,8 @@ function init() {
     lastTicketTierForAnim = null
     recalcTotals()
     showStep1()
+    clearStep1InlineErrors()
+    clearFormBanner(getEl('lb_form_error'))
   })
   if (location.hash === '#reserva-manual' && document.body.id !== 'links-page') {
     const el = document.getElementById('reserva-manual')

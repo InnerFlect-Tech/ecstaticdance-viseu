@@ -1,0 +1,7 @@
+# Apache (cPanel): mirror nginx “coming soon” routing — redirects brochure pages to home.
+# /links, /confirmacao, /cancelamento stay reachable (Stripe + hub).
+<IfModule mod_rewrite.c>
+RewriteEngine On
+RewriteRule ^(sobre|eventos|galeria|faq|contacto|bilhetes|buy|ticket)\.html$ / [R=302,L]
+RewriteRule ^(sobre|eventos|galeria|faq|contacto|bilhetes|buy|ticket)/?$ / [R=302,L]
+</IfModule>
