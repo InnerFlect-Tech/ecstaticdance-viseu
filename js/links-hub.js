@@ -12,7 +12,7 @@ function paintLinksDynamicPricing() {
   const min = ticketMinEur()
   const early = isEarlyBirdPeriod()
   const pt = early
-    ? `Sliding scale desde ${min}€ · early bird até 5 de maio`
+    ? `Sliding Scale deste ${min}€.`
     : `Sliding scale desde ${min}€`
   const en = early
     ? `Sliding scale from €${min} · early bird through 5 May`

@@ -330,6 +330,10 @@ a.links-landing-site:focus-visible {
   padding: 1.75rem max(1.25rem, env(safe-area-inset-left, 0)) 3rem max(1.25rem, env(safe-area-inset-right, 0));
 }
 
+#links-page .links-landing-main {
+  padding-bottom: 2rem;
+}
+
 .links-landing-intro {
   text-align: center;
   max-width: 40rem;
@@ -1579,10 +1583,10 @@ a.links-landing-site:focus-visible {
   }
 }
 
-/* Espaço para a barra fixa em viewports estreitos (evita sobrepor o FAQ) */
+/* Espaço para a barra fixa em viewports estreitos (evita sobrepor o FAQ ao fazer scroll no meio da página). */
 @media (max-width: 767px) {
   #links-page.has-sticky-cta .links-landing-main {
-    padding-bottom: 5.5rem;
+    padding-bottom: 4rem;
   }
 }
 
@@ -1787,7 +1791,7 @@ details[open] .links-faq-chevron {
   outline: none;
 }
 
-/* FAQ na página /links: mesmo shell visual que .links-v2-card */
+/* FAQ na página /links: mesmo shell visual que .links-v2-card (largura alinhada via .links-stack) */
 #links-page .links-faq-compact {
   background: #fffefb;
   border: 1px solid rgba(74, 16, 16, 0.09);
@@ -1797,6 +1801,13 @@ details[open] .links-faq-chevron {
   max-width: 26rem;
   margin: 0 auto 2rem;
   padding: 1.35rem 1.25rem 1.25rem;
+}
+
+/* Dentro da coluna .links-stack: mesma largura útil que os .links-v2-card (sem segunda “margem” lateral). */
+#links-page .links-stack .links-faq-compact {
+  width: 100%;
+  max-width: none;
+  margin: 0;
 }
 
 #links-page .links-faq-compact-title {
@@ -2054,21 +2065,22 @@ details[open] .links-faq-chevron {
 
 .links-lang {
   display: flex;
-  gap: 0.35rem;
+  gap: 0.4rem;
   align-items: center;
   margin-left: auto;
+  padding: 0.35rem 0.45rem;
 }
 .links-lang button {
   font-family: inherit;
-  font-size: 0.7rem;
-  letter-spacing: 0.12em;
+  font-size: 0.62rem;
+  letter-spacing: 0.1em;
   text-transform: uppercase;
   background: rgba(255, 252, 247, 0.75);
   border: 1px solid rgba(74, 16, 16, 0.2);
   color: var(--hub-ink);
-  min-height: 44px;
-  min-width: 44px;
-  padding: 0.35rem 0.9rem;
+  min-height: 40px;
+  min-width: 40px;
+  padding: 0.5rem 1.05rem;
   border-radius: 2px;
   cursor: pointer;
 }
@@ -3715,7 +3727,7 @@ body#links-page.lang-en .links-masthead .links-lang #lang-en {
 
 .links-pullquote {
   max-width: 24rem;
-  margin: 0 auto 2rem;
+  margin: 0 auto;
   padding: 1.35rem 1.25rem;
   background: linear-gradient(165deg, rgba(237, 230, 216, 0.75) 0%, rgba(228, 218, 202, 0.9) 100%);
   border: 1px solid rgba(184, 146, 74, 0.35);
@@ -3730,6 +3742,12 @@ body#links-page.lang-en .links-masthead .links-lang #lang-en {
   font-style: italic;
   line-height: 1.45;
   color: rgba(44, 24, 16, 0.78);
+}
+
+/* Na coluna do stack, mesma largura útil que os cartões (evita max-width: 24rem mais estreito). */
+.links-stack .links-pullquote {
+  max-width: none;
+  width: 100%;
 }
 
 .links-foot-cta {
