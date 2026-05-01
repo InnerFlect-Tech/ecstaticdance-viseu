@@ -8,18 +8,14 @@ The admin panel is a PHP-based dashboard for managing ticket check-ins and viewi
 
 ## First login
 
-### Setting the admin password
+### Default deployment password
 
-Generate a password hash using PHP:
+If you copied `server/api/config.example.php` to `config.php` without changing `ADMIN_PASSWORD_HASH`, the admin password is **`admin123`**.
+
+To use a different password, generate a bcrypt hash and put it in `server/api/config.php`:
 
 ```bash
 php -r "echo password_hash('yourpassword', PASSWORD_DEFAULT);"
-```
-
-Copy the output (starts with `$2y$12$...`) into `server/api/config.php`:
-
-```php
-define('ADMIN_PASSWORD_HASH', '$2y$12$xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx');
 ```
 
 Then upload the updated `config.php` to cPanel.
@@ -28,7 +24,7 @@ Then upload the updated `config.php` to cPanel.
 
 1. Go to `https://ecstaticdanceviseu.pt/admin/`
 2. You will be redirected to the login page
-3. Enter the password you set above
+3. Enter **`admin123`** (unless you changed the hash above)
 4. Session expires when you close the browser
 
 ---

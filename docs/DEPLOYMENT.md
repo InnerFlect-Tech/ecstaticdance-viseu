@@ -35,10 +35,7 @@ Edit `server/api/config.php` and fill in:
 - `STRIPE_WEBHOOK_SECRET` (from step 4 below)
 - `RECONCILE_TOKEN` — run `openssl rand -hex 32` to generate
 - `INSTALL_TOKEN` — run `openssl rand -hex 32` to generate
-- `ADMIN_PASSWORD_HASH` — run:
-  ```bash
-  php -r "echo password_hash('yourpassword', PASSWORD_DEFAULT);"
-  ```
+- `ADMIN_PASSWORD_HASH` — `config.example.php` is pre-filled for password **`admin123`**. To use a different password, run `php -r "echo password_hash('yourpassword', PASSWORD_DEFAULT);"` and replace the hash in `config.php`.
 
 ### 3. Build the Vite site locally
 

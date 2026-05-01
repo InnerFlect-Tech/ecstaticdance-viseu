@@ -60,19 +60,25 @@ O sistema de bilhetes está implementado como camada PHP + MySQL no cPanel, sepa
 | Reserva de bilhetes | `/bilhetes.html` |
 | Confirmação / QR code | `/confirmacao.html` |
 | Pagamento cancelado | `/cancelamento.html` |
-| Painel de admin | **`https://ecstaticdanceviseu.pt/admin/`** — faz login em **`/admin/login.php`** se não tiveres sessão ([docs/ADMIN.md](docs/ADMIN.md)). É PHP na hospedagem, não no contentor Nginx que só serve o estático. |
+| Painel de admin | **`https://ecstaticdanceviseu.pt/admin/`** — faz login em **`/admin/login.php`** se não tiveres sessão ([docs/ADMIN.md](docs/ADMIN.md)). No **Coolify com Dockerfile**, PHP corre no mesmo contentor (proxy Nginx → `php -S`). No **cPanel**, PHP é o da hospedagem. |
 
 ---
 
 ## Deploy no Coolify (Hetzner)
 
-### Opção A (recomendada): Dockerfile (Nginx)
+### Opção A (recomendada): Dockerfile (Nginx + PHP)
+
+O contentor faz **build Vite** → serve `dist/` com **Nginx** e sobe **PHP built-in** (`php -S … -t server`) em `127.0.0.1:8080`, com **Supervisor** a gerir os dois processos. O Nginx envia `/api`, `/admin` e `/uploads` para esse PHP (ver `nginx.conf`).
+
+Na **primeira arranque**, se não existir `config.php` no contentor, o `entrypoint` copia `server/api/config.example.php` → `config.php`. O exemplo inclui **`ADMIN_PASSWORD_HASH` para a palavra-passe `admin123`** — o painel em **`/admin/`** fica acessível com essa password assim que o deploy sobe (sem montar ficheiro à parte).
+
+Para **MySQL + Stripe** em produção no Coolify, monta um **`config.php`** real como ficheiro secreto em **`/var/www/edv-server/api/config.php`** (ou sobrescreve o gerado no primeiro boot); caso contrário a API pode responder 500 com credenciais placeholder.
 
 ### 1. Configurar o repositório
 
 No Coolify, cria um novo recurso do tipo **Docker** e liga ao repositório Git.
 
-- **Build Pack**: **Dockerfile** (não uses Nixpacks para este site — o contentor final é Nginx a servir `dist/`.)
+- **Build Pack**: **Dockerfile** (Nixpacks é alternativa — ver Opção B.)
 - **Dockerfile location**: `./Dockerfile` (raiz do repo)
 - **Base directory**: `/` (vazio ou raiz)
 - **Porta exposta / Publish port**: `80` (o `EXPOSE 80` do Dockerfile; no painel, o tráfego público deve mapear para a porta **80** do contentor.)
@@ -101,7 +107,7 @@ Este repo inclui:
 - `scripts/start-preview-with-php.sh` — sobe **PHP built-in** (`php -S … -t server`) na primeira porta livre **8080–8099**, exporta `EDV_PHP_API_PORT`, e corre `vite preview` em `0.0.0.0:$PORT`.
 - `BROWSER=none` / `CI=true` por omissão no script para evitar `xdg-open ENOENT` em contentores.
 
-**Base de dados em produção:** `server/api/config.php` não vai no Git. No Coolify, monta o ficheiro (secret file) ou adiciona-o ao artefacto antes do start; define **MySQL** e `LINK_USE_SQLITE` / `LINK_USE_JSON` a **`false`**. Sem isto, o proxy deixa de dar `ECONNREFUSED`, mas a API pode responder 500 se as credenciais forem placeholders.
+**Base de dados em produção:** `server/api/config.php` não vai no Git. No Coolify (Nixpacks), monta o ficheiro (secret file) ou adiciona-o ao artefacto antes do start; define **MySQL** e `LINK_USE_SQLITE` / `LINK_USE_JSON` a **`false`**. Sem isto, o proxy deixa de dar `ECONNREFUSED`, mas a API pode responder 500 se as credenciais forem placeholders. Com **Dockerfile**, o mesmo: monta `config.php` em `/var/www/edv-server/api/config.php` quando precisares de credenciais reais.
 
 ### 2. Variáveis de ambiente
 
@@ -189,8 +195,9 @@ Após confirmar o domínio final, verificar que os URLs em `public/sitemap.xml` 
 │   ├── STRIPE.md
 │   └── ADMIN.md
 ├── vite.config.mjs     ← Config Vite MPA (9 entradas HTML)
-├── Dockerfile          ← Build multi-stage Node → Nginx
-├── nginx.conf          ← Nginx: gzip, cache, security headers
+├── Dockerfile          ← Node build → Nginx + PHP (Supervisor) para Coolify
+├── docker/supervisord.conf
+├── nginx.conf          ← Nginx: gzip, cache, proxy /api /admin → PHP
 └── package.json
 ```
 

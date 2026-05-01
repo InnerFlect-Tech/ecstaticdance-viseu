@@ -1,0 +1,11 @@
+# Build context hygiene (do not bake local secrets or slow artifacts)
+node_modules
+dist
+.git
+.env
+.env.*
+server/api/config.php
+*.md
+.specstory
+.cursor
+boatsunset.innerflect.tech

@@ -11,19 +11,36 @@ RUN npm run build \
   && test -f dist/links.html \
   && test -f dist/buy.html
 
-# ── Stage 2: Serve ──────────────────────────────────────────
+# ── Stage 2: Nginx + PHP (admin /api no mesmo contentor — Coolify) ──
 FROM nginx:1.27-alpine AS production
 
-# Remove default nginx static assets
+RUN apk add --no-cache \
+    supervisor \
+    php83 \
+    php83-ctype \
+    php83-curl \
+    php83-mbstring \
+    php83-openssl \
+    php83-pdo \
+    php83-pdo_mysql \
+    php83-pdo_sqlite \
+    php83-session \
+    php83-xml \
+    php83-sqlite3
+
 RUN rm -rf /usr/share/nginx/html/*
 
-# Copy built site
 COPY --from=builder /app/dist /usr/share/nginx/html
+COPY server /var/www/edv-server
 
-# Custom nginx config
 COPY nginx.conf /etc/nginx/conf.d/default.conf
+COPY docker/supervisord.conf /etc/supervisord.conf
+COPY scripts/docker-entrypoint.sh /entrypoint.sh
+RUN chmod +x /entrypoint.sh
 
 EXPOSE 80
 
-HEALTHCHECK --interval=30s --timeout=5s --start-period=10s --retries=3 \
+ENTRYPOINT ["/entrypoint.sh"]
+
+HEALTHCHECK --interval=30s --timeout=5s --start-period=15s --retries=3 \
   CMD wget -qO- http://localhost/ || exit 1

@@ -35,7 +35,8 @@ define('FROM_NAME',   'Ecstatic Dance Viseu');
 
 define('RECONCILE_TOKEN', 'change_me');
 define('INSTALL_TOKEN',   'change_me');
-define('ADMIN_PASSWORD_HASH', '$2y$12$...');
+/** Admin login password: `admin123` (change in production if you replace this hash). */
+define('ADMIN_PASSWORD_HASH', '$2y$12$ep6Uq2RlUgQsVZy88gdICu96nDUokHKo9FilFZDEIPiO7M9jA6OpG');
 
 define('ORG_NOTIFY_EMAIL', 'hello@ecstaticdanceviseu.pt');
 define('ORG_INFO_EMAIL',   'info@ecstaticdanceviseu.pt');
