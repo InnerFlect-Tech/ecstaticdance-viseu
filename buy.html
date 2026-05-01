@@ -198,10 +198,10 @@
 
       <!-- Passo 1 -->
       <div id="lb_step_1" class="links-form-card reveal" aria-labelledby="lb_step_1_title">
-        <p class="links-step-badge"><span class="lang-pt">1 — Pedido</span><span class="lang-en">1 — Request</span></p>
+        <p class="links-step-badge"><span class="lang-pt">1 Dados</span><span class="lang-en">1 Details</span></p>
         <h2 id="lb_step_1_title" class="links-step-heading reveal" tabindex="-1" style="font-family:'Cormorant Garamond',serif;font-weight:300;font-size:1.75rem;color:var(--bone);margin:0 0 1.25rem">
-          <span class="lang-pt">Dados e montante</span>
-          <span class="lang-en">Details and amount</span>
+          <span class="lang-pt">Dados e valor</span>
+          <span class="lang-en">Your details &amp; amount</span>
         </h2>
         <form id="lb_booking_form" novalidate autocomplete="on">
           <input type="hidden" name="event_slug" id="lb_event_slug" value="edv-2026-05-23" />
@@ -300,23 +300,7 @@
               </span>
             </div>
             <input type="hidden" id="lb_dinner_euros" name="dinner_euros" value="0" />
-            <p class="links-dinner-footnote" role="note">
-              <span class="lang-pt">O total em baixo passa a incluir estes 12€ quando assinalas a opção.</span>
-              <span class="lang-en">The total below includes this €12 when the option is checked.</span>
-            </p>
           </fieldset>
-
-          <p class="links-totals" aria-live="polite">
-            <span class="lang-pt">Total a pagar</span>
-            <span class="lang-en">Total to pay</span>
-            <strong id="lb_total_euros_out">30,00 €</strong>
-            <span id="lb_total_detail_line" class="links-totals-detail" hidden>
-              <span class="lang-pt">Bilhete + jantar 12€</span>
-              <span class="lang-en">Ticket + €12 dinner</span>
-            </span>
-            <small class="lang-pt">Sliding scale no bilhete; jantar = 12€ (prato e bebida) se optares.</small>
-            <small class="lang-en">Sliding scale for the ticket; dinner is €12 (plate and drink) if you opt in.</small>
-          </p>
 
           <div class="field links-dinner-note-wrap" id="lb_dinner_note_wrap" hidden>
             <label for="lb_dinner_note">
@@ -371,8 +355,8 @@
           </fieldset>
           <p id="lb_form_error" class="reveal links-form-error-slot" role="alert" aria-live="assertive"></p>
           <button type="submit" class="btn-primary" id="lb_step1_submit" style="width:100%;margin-top:1.25rem">
-            <span class="lang-pt">Continuar para comprovativo</span>
-            <span class="lang-en">Continue to proof of payment</span>
+            <span class="lang-pt">Seguinte: pagar</span>
+            <span class="lang-en">Next: pay</span>
           </button>
         </form>
       </div>
@@ -380,36 +364,36 @@
       <!-- Passo 2 -->
       <div id="lb_step_2" class="links-form-card reveal" hidden aria-labelledby="lb_step_2_title">
         <div id="lb_step_2_heading_active">
-        <p class="links-step-badge"><span class="lang-pt">2 — Comprovativo</span><span class="lang-en">2 — Proof of payment</span></p>
+        <p class="links-step-badge"><span class="lang-pt">2 Pagar</span><span class="lang-en">2 Pay</span></p>
         <h2 id="lb_step_2_title" class="links-step-heading" style="font-family:'Cormorant Garamond',serif;font-weight:300;font-size:1.75rem;color:var(--bone);margin:0 0 1rem">
-          <span class="lang-pt">Pagamento e comprovativo</span>
-          <span class="lang-en">Pay, then send proof</span>
+          <span class="lang-pt">Paga e envia o comprovativo</span>
+          <span class="lang-en">Pay &amp; upload proof</span>
         </h2>
         </div>
         <div id="lb_step_2_heading_done" class="links-step2-complete" hidden aria-live="polite">
           <p class="links-step-badge links-step-badge--success"><span class="lang-pt">Pronto ✓</span><span class="lang-en">All set ✓</span></p>
           <div id="lb_step_2_done_body_upload" class="links-step2-complete-detail" hidden>
-            <p class="lang-pt" style="font-family:'Cormorant Garamond',serif;font-weight:300;font-size:1.5rem;line-height:1.3;color:var(--bone);margin:0 0 1rem">Recebemos o teu comprovativo.</p>
-            <p class="lang-en" style="font-family:'Cormorant Garamond',serif;font-weight:300;font-size:1.5rem;line-height:1.3;color:var(--bone);margin:0 0 1rem">We received your proof of payment.</p>
-            <p class="links-muted lang-pt" style="line-height:1.75;font-size:0.95rem;margin:0">O envio ficou bem registado. A equipa <strong style="color:var(--bone)">confirma o teu lugar por email</strong> depois de conferir o pagamento — normalmente até 48 horas úteis.</p>
-            <p class="links-muted lang-en" style="line-height:1.75;font-size:0.95rem;margin:0">Your file was uploaded. We will <strong style="color:var(--bone)">confirm by email</strong> after verifying the payment, usually within 2 business days.</p>
-            <p style="margin-top:1.1rem;line-height:1.6;font-size:0.9rem;color:rgba(245,239,230,.55)"><span class="lang-pt">Guarda esta referência: </span><span class="lang-en">Keep this reference: </span><strong class="js-summary-ref" style="color:var(--gold);word-break:break-all"></strong></p>
+            <p class="lang-pt" style="font-family:'Cormorant Garamond',serif;font-weight:300;font-size:1.5rem;line-height:1.3;color:var(--bone);margin:0 0 0.75rem">Comprovativo recebido.</p>
+            <p class="lang-en" style="font-family:'Cormorant Garamond',serif;font-weight:300;font-size:1.5rem;line-height:1.3;color:var(--bone);margin:0 0 0.75rem">Proof received.</p>
+            <p class="links-muted lang-pt" style="line-height:1.65;font-size:0.95rem;margin:0"><strong style="color:var(--bone)">Confirmamos por email</strong> após verificar o pagamento (até ~48h úteis).</p>
+            <p class="links-muted lang-en" style="line-height:1.65;font-size:0.95rem;margin:0">We <strong style="color:var(--bone)">confirm by email</strong> after checking payment (~2 business days).</p>
+            <p style="margin-top:1.1rem;line-height:1.6;font-size:0.9rem;color:rgba(245,239,230,.55)"><span class="lang-pt">Ref.: </span><span class="lang-en">Ref.: </span><strong class="js-summary-ref" style="color:var(--gold);letter-spacing:0.06em;font-variant-numeric:tabular-nums"></strong></p>
             <p style="line-height:1.6;font-size:0.9rem;color:rgba(245,239,230,.55)"><span class="lang-pt">Montante: </span><span class="lang-en">Amount: </span><span class="js-summary-total"></span></p>
           </div>
           <div id="lb_step_2_done_body_later" class="links-step2-complete-detail" hidden>
-            <p class="lang-pt" style="font-family:'Cormorant Garamond',serif;font-weight:300;font-size:1.5rem;line-height:1.3;color:var(--bone);margin:0 0 1rem">Ainda falta o comprovativo.</p>
-            <p class="lang-en" style="font-family:'Cormorant Garamond',serif;font-weight:300;font-size:1.5rem;line-height:1.3;color:var(--bone);margin:0 0 1rem">Still need your proof of payment.</p>
-            <p class="links-muted lang-pt" style="line-height:1.75;font-size:0.95rem;margin:0">Envia quando puderes para <a href="mailto:info@ecstaticdanceviseu.pt" style="color:var(--gold)">info@ecstaticdanceviseu.pt</a> o PDF ou foto do comprovativo. Indica a <strong style="color:var(--bone)">referência do pedido</strong>; quando recebermos, respondemos por email.</p>
-            <p class="links-muted lang-en" style="line-height:1.75;font-size:0.95rem;margin:0">When you can, email a PDF or photo of proof to <a href="mailto:info@ecstaticdanceviseu.pt" style="color:var(--gold)">info@ecstaticdanceviseu.pt</a>. Include your <strong style="color:var(--bone)">booking reference</strong>; we reply by email once it matches your payment.</p>
-            <p style="margin-top:1.1rem;line-height:1.6;font-size:0.9rem;color:rgba(245,239,230,.55)"><span class="lang-pt">Referência: </span><span class="lang-en">Reference: </span><strong class="js-summary-ref" style="color:var(--gold);word-break:break-all"></strong></p>
+            <p class="lang-pt" style="font-family:'Cormorant Garamond',serif;font-weight:300;font-size:1.5rem;line-height:1.3;color:var(--bone);margin:0 0 0.75rem">Envia o comprovativo por email.</p>
+            <p class="lang-en" style="font-family:'Cormorant Garamond',serif;font-weight:300;font-size:1.5rem;line-height:1.3;color:var(--bone);margin:0 0 0.75rem">Email your proof when ready.</p>
+            <p class="links-muted lang-pt" style="line-height:1.65;font-size:0.95rem;margin:0"><a href="mailto:info@ecstaticdanceviseu.pt" style="color:var(--gold)">info@ecstaticdanceviseu.pt</a> — junta PDF ou foto e a <strong style="color:var(--bone)">ref. abaixo</strong>.</p>
+            <p class="links-muted lang-en" style="line-height:1.65;font-size:0.95rem;margin:0"><a href="mailto:info@ecstaticdanceviseu.pt" style="color:var(--gold)">info@ecstaticdanceviseu.pt</a> — attach PDF or photo and the <strong style="color:var(--bone)">ref. below</strong>.</p>
+            <p style="margin-top:1.1rem;line-height:1.6;font-size:0.9rem;color:rgba(245,239,230,.55)"><span class="lang-pt">Ref.: </span><span class="lang-en">Ref.: </span><strong class="js-summary-ref" style="color:var(--gold);letter-spacing:0.06em;font-variant-numeric:tabular-nums"></strong></p>
             <p style="line-height:1.6;font-size:0.9rem;color:rgba(245,239,230,.55)"><span class="lang-pt">Montante: </span><span class="lang-en">Amount: </span><span class="js-summary-total"></span></p>
           </div>
         </div>
         <div id="lb_step_2_in">
           <p style="color:rgba(245,239,230,.6);line-height:1.7;font-size:0.92rem">
-            <span class="lang-pt">Referência do teu pedido: </span>
-            <span class="lang-en">Reference: </span>
-            <strong class="js-summary-ref" style="color: var(--bone)">—</strong>
+            <span class="lang-pt">Ref.: </span>
+            <span class="lang-en">Ref.: </span>
+            <strong class="js-summary-ref" style="color: var(--bone);letter-spacing:0.06em;font-variant-numeric:tabular-nums">—</strong>
           </p>
           <p style="color:rgba(245,239,230,.5);font-size:0.85rem;margin:0.25rem 0 1rem">
             <span class="lang-pt">Montante: </span>
@@ -417,15 +401,15 @@
             <span class="js-summary-total">—</span>
           </p>
           <div id="lb_payment_instructions" class="reveal" style="margin-bottom:0.5rem"></div>
-          <p class="links-muted lang-pt" style="margin-top:1rem">Se preferires, podes enviar o comprovativo mais tarde por email para <a href="mailto:info@ecstaticdanceviseu.pt" style="color:var(--gold)">info@ecstaticdanceviseu.pt</a> — usa o botão «Envio depois».</p>
-          <p class="links-muted lang-en" style="margin-top:1rem">Or email proof later to <a href="mailto:info@ecstaticdanceviseu.pt" style="color:var(--gold)">info@ecstaticdanceviseu.pt</a> — use «I will email the proof later».</p>
+          <p class="links-muted lang-pt" style="margin-top:1rem">Comprovativo depois? Usa «Envio depois» e envia por email com a ref.</p>
+          <p class="links-muted lang-en" style="margin-top:1rem">Proof later? Use «Email proof later» and send with the ref.</p>
           <div class="field links-proof-upload-field" style="margin-top:1.25rem">
             <label for="lb_proof">
               <span class="lang-pt">Comprovativo (foto, captura de ecrã ou PDF)</span>
               <span class="lang-en">Proof (photo, screenshot, or PDF)</span>
             </label>
-            <p class="links-proof-hint lang-pt">Foto tirada com o telemóvel, printscreen da app ou extrato PDF — até 5&nbsp;MB. Tem de dar para ler o montante e a referência.</p>
-            <p class="links-proof-hint lang-en">Phone camera shot, app screenshot, or bank PDF — max 5&nbsp;MB. Amount and reference must be readable.</p>
+            <p class="links-proof-hint lang-pt">Foto ou PDF, até 5&nbsp;MB — montante e ref. legíveis.</p>
+            <p class="links-proof-hint lang-en">Photo or PDF, max 5&nbsp;MB — amount and ref. readable.</p>
             <input type="file" id="lb_proof" name="proof" accept=".pdf,image/jpeg,image/png,image/webp,application/pdf" />
           </div>
           <div class="links-step2-actions">
@@ -434,8 +418,8 @@
               <span class="lang-en">Upload file</span>
             </button>
             <button type="button" class="btn-links-secondary" id="lb_btn_later" style="flex:1;min-width:200px">
-              <span class="lang-pt">Envio do comprovativo depois (email)</span>
-              <span class="lang-en">I will email the proof later</span>
+              <span class="lang-pt">Envio depois (email)</span>
+              <span class="lang-en">Email proof later</span>
             </button>
           </div>
           <p id="lb_step2_error" role="alert" aria-live="assertive"></p>

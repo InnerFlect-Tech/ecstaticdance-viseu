@@ -12,3 +12,11 @@ server/data/*.sqlite
 server/data/*.sqlite-journal
 server/data/*.sqlite-wal
 server/data/link-registrations-dev.json
+
+# Boat sunset static export — secrets and junk from macOS zip
+boatsunset.innerflect.tech/api/config.php
+boatsunset.innerflect.tech/__MACOSX/
+boatsunset.innerflect.tech/Archive.zip
+
+# User-uploaded payment proofs (do not version)
+server/uploads/link-proofs/

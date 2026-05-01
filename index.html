@@ -3,14 +3,14 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <meta name="description" content="Ecstatic Dance Viseu — novo site em breve. Ligações e bilhetes na página oficial do evento." />
+  <meta name="description" content="Ecstatic Dance Viseu — Just let's dance! Bilhetes e FAQs na página de ligações." />
   <meta name="robots" content="index,follow" />
-  <meta property="og:title"       content="Ecstatic Dance Viseu — Em breve" />
-  <meta property="og:description" content="Website completo brevemente. Ligações úteis e bilhetes: ecstaticdanceviseu.pt/links" />
+  <meta property="og:title"       content="Ecstatic Dance Viseu" />
+  <meta property="og:description" content="Just let's dance! — bilhetes e ligações úteis: ecstaticdanceviseu.pt/links" />
   <meta property="og:type"        content="website" />
   <meta property="og:url"         content="https://ecstaticdanceviseu.pt/" />
   <link rel="canonical"           href="https://ecstaticdanceviseu.pt/" />
-  <title>Em breve — Ecstatic Dance Viseu</title>
+  <title>Ecstatic Dance Viseu</title>
   <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
 
   <link rel="preconnect" href="https://fonts.googleapis.com" />
@@ -46,14 +46,6 @@
       height: auto;
       display: block;
     }
-    .eyebrow {
-      font-size: 0.7rem;
-      letter-spacing: 0.22em;
-      text-transform: uppercase;
-      color: var(--terra);
-      opacity: 0.72;
-      font-weight: 500;
-    }
     h1 {
       font-family: "Cormorant Garamond", Georgia, serif;
       font-size: clamp(1.85rem, 5vw, 2.65rem);
@@ -61,25 +53,23 @@
       line-height: 1.25;
       max-width: 18ch;
     }
+    .ticket-row {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      align-items: baseline;
+      gap: 0.35rem 0.65rem;
+    }
     p.lead {
       font-size: 1rem;
       line-height: 1.6;
       opacity: 0.78;
-      max-width: 36ch;
+      max-width: none;
     }
-    .links-row {
-      display: flex;
-      flex-wrap: wrap;
-      align-items: center;
-      justify-content: center;
-      gap: 0.85rem 1.25rem;
-      margin-top: 0.5rem;
-    }
-    .links-row a {
+    .lead a {
       color: var(--gold);
       text-decoration: none;
       font-weight: 500;
-      font-size: 0.95rem;
       border-bottom: 1px solid rgba(184, 146, 74, 0.45);
       padding-bottom: 2px;
     }
@@ -87,11 +77,13 @@
       color: var(--gold);
       text-decoration: underline;
     }
+    .ticket-row .lang-en {
+      margin-top: 0;
+    }
     .lang-en {
       font-size: 0.85rem;
       opacity: 0.55;
-      max-width: 34ch;
-      margin-top: 0.75rem;
+      max-width: none;
     }
   </style>
 </head>
@@ -105,13 +97,10 @@
       decoding="async"
     />
   </div>
-  <p class="eyebrow">Ecstatic Dance Viseu</p>
-  <h1>O site completo chega em breve.</h1>
-  <p class="lead">Informações sobre o primeiro evento, bilhetes e FAQs estão reunidos na nossa página de ligações.</p>
-  <div class="links-row">
-    <a href="/links">Ir para página de ligações</a>
-    <a href="mailto:info@ecstaticdanceviseu.pt">info@ecstaticdanceviseu.pt</a>
+  <h1>Just let's dance!</h1>
+  <div class="ticket-row">
+    <p class="lead">Apanha já o teu bilhete <a href="/links">aqui</a>.</p>
+    <p class="lang-en" lang="en">Grab yours <a href="/links">here</a>.</p>
   </div>
-  <p class="lang-en" lang="en">Full website coming soon. Event info and tickets:<br /><a href="/links">ecstaticdanceviseu.pt/links</a></p>
 </body>
 </html>

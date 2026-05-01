@@ -1,0 +1,135 @@
+========================================
+  KO PHA NGAM BOAT PARTY
+  UPLOAD TO PUBLIC_HTML
+========================================
+
+READY TO UPLOAD - Everything in this folder is configured and working.
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+🎯 WHAT'S IN THIS FOLDER
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+✓ Homepage (/) = Ticketing Page
+  - Customers land directly on ticketing
+  - Buy tickets via Stripe or WhatsApp
+  - Default: 1 ticket selected, quantity auto-syncs with Stripe
+  - WhatsApp: +351964205522
+
+✓ What's Included:
+  - 12:00 - 18:00 Experience, food & refreshments, coast exploration
+  - Stops & snorkeling, music & vibes, sunset experience
+
+✓ Extras on Boat:
+  - Beer: 100 THB | Long drinks: 300 THB
+
+✓ Financials (/financials/) = Password protected
+  - Password: admin123
+  - Revenue projections (3 headcounts, 3 drink scenarios)
+  - DJs: Indias + Katarzyna (both paid, 50/50 split); Indias provides website & system for free
+  - Fixed costs: boat, speaker, extra, website/system (0 – Indias provides for free)
+  - Team profit distribution, shopping list, cocktail pricing
+
+✓ Other pages (not in main nav):
+  - /team/ – Team distribution calculator
+  - /ticket/ – Ticket view
+  - /admin/tickets/ – Admin tickets
+
+✓ Community:
+  - Private Group: 🔒 Locked (link sent after payment)
+  - Community Group: Open to all
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+📤 HOW TO UPLOAD
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+OPTION 1: Upload via ZIP (RECOMMENDED)
+--------------------------------------
+1. Compress this "upload" folder to a ZIP file on your computer
+2. Log in to cPanel → File Manager
+3. Go to public_html (or your domain root folder)
+4. Upload the ZIP file
+5. Right-click the ZIP → Extract
+6. Delete the ZIP after extraction
+7. Done. Site is live.
+
+OPTION 2: Direct upload
+--------------------------------------
+1. Log in to cPanel → File Manager
+2. Go to public_html (or your domain root folder)
+3. Select ALL files and folders inside this "upload" folder
+4. Drag and drop them into public_html
+5. Wait for upload to finish
+6. Done. Site is live.
+
+⚠️  Upload the CONTENTS of this folder into public_html,
+    NOT the "upload" folder itself (so index.html is at
+    yourdomain.com/index.html, not yourdomain.com/upload/index.html).
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+✅ FILES & FOLDERS TO UPLOAD
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+  • index.html              → Homepage (ticketing)
+  • index.txt                → Metadata (optional)
+  • 404.html                 → Error page
+  • 404/                     → Error page assets
+  • boat-party-poster.png    → Poster (used in financials)
+  • financials/              → Financials page (password: admin123)
+  • team/                    → Team page
+  • ticket/                  → Ticket page
+  • admin/                   → Admin tickets (admin/tickets/)
+  • _next/                   → JS, CSS, fonts (REQUIRED – do not skip)
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+🎯 URLS AFTER UPLOAD
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+  • Home (Ticketing):  yourdomain.com/
+  • Financials:        yourdomain.com/financials/   (password: admin123)
+  • Team:              yourdomain.com/team/
+  • Ticket:            yourdomain.com/ticket/
+  • Admin tickets:     yourdomain.com/admin/tickets/
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+🔧 CONFIGURATION (ALREADY SET)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+  ✓ Stripe: https://buy.stripe.com/14AdR8cjz1bx7H2cb41Nu00 (quantity syncs)
+  ✓ WhatsApp: +351964205522
+  ✓ Financials password: admin123
+  ✓ Extras: Beer 100 THB, Long drinks 300 THB
+  ✓ Profit distribution:
+    - Indias: 50% boat + 50% drinks + referral + DJ fee (half)
+    - Furkan: 50% boat + referral
+    - Ginger: 50% drinks + referral
+    - Katarzyna: DJ fee (half) + referral
+  ✓ Fixed costs: Boat 16,000 | Speaker 2,000 | Extra 1,500 | Website/system 0 (Indias provides for free)
+  ✓ DJ fee: 30€ (>15 pax) / 65€ (>20) / 100€ (25+), split 50/50 between Indias and Katarzyna
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+🚀 AFTER UPLOAD – QUICK CHECK
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+  1. Open yourdomain.com → ticketing page, 1 ticket default
+  2. Test "Buy via Stripe" and "Buy via WhatsApp" (+351964205522)
+  3. Open yourdomain.com/financials/ → login with admin123
+  4. In financials: check DJs (Indias + Katarzyna paid), Fixed costs (website/system 0)
+  5. Test on mobile (responsive)
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+🔧 TROUBLESHOOTING 403
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+  • Files must be directly in public_html (not inside public_html/upload/)
+  • Permissions: files 644, folders 755 (Recurse in cPanel)
+  • Show hidden files and check .htaccess if needed
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+📝 NOTES
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+  • 100% static – no server config required
+  • Financials password is client-side (admin123); for production consider server-side auth
+  • Private group link is sent manually after payment
+
+Need help? Everything is configured. Upload and go. 🎉

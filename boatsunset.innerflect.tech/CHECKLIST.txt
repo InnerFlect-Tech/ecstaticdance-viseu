@@ -1,0 +1,63 @@
+✅ UPLOAD CHECKLIST – KO PHA NGAM BOAT PARTY
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Status: READY TO UPLOAD (build included in this folder)
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+BEFORE UPLOAD
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+  □ You have cPanel (or host) login
+  □ You know where public_html (or domain root) is
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+FILES & FOLDERS (must all be uploaded)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+  □ index.html
+  □ index.txt (optional)
+  □ 404.html
+  □ 404/ (folder and contents)
+  □ boat-party-poster.png
+  □ financials/ (folder and contents)
+  □ team/ (folder and contents)
+  □ ticket/ (folder and contents)
+  □ admin/ (folder and contents)
+  □ _next/ (entire folder – REQUIRED for site to work)
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+AFTER UPLOAD – PUBLIC PAGES
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+  □ yourdomain.com/ shows ticketing page
+  □ Default quantity: 1 ticket
+  □ "Buy via Stripe" opens Stripe with correct quantity
+  □ "Buy via WhatsApp" opens WhatsApp to +351964205522
+  □ Extras: Beer 100 THB, Long drinks 300 THB
+  □ Private Group: 🔒 locked; Community Group: open
+  □ Mobile layout works
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+AFTER UPLOAD – FINANCIALS
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+  □ yourdomain.com/financials/ shows password screen
+  □ Password admin123 opens dashboard
+  □ Projections by headcount (15, 20, 25) and drink scenarios
+  □ DJs section: Indias + Katarzyna (both paid, 50/50); Indias provides system for free
+  □ Fixed costs: Boat, Speaker, Extra, Website/system = 0 (Indias provides for free)
+  □ Team & people brought, profit distribution, shopping list all work
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+CONFIGURED VALUES (no change needed)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+  Stripe:     quantity syncs with ticket selection
+  WhatsApp:   +351964205522
+  Financials: admin123
+  DJs:        Indias + Katarzyna paid (50/50); Indias gives website/system for free
+  Fixed:      Boat 20k, Speaker 3k, Extra 1.5k, Website/system 0
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Upload the contents of this folder to public_html. You’re good to go. 🚀

@@ -211,14 +211,15 @@ function link_sanitise(string $val, int $max = 255): string {
     return strlen($t) <= $max ? $t : substr($t, 0, $max);
 }
 
+/** Código curto para descrição bancária: 3 letras + 3 algarismos (ex. KQP391). */
 function link_generate_payment_ref(): string {
-    $chars  = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
-    $suffix = '';
-    for ($i = 0; $i < 6; $i++) {
-        $suffix .= $chars[random_int(0, strlen($chars) - 1)];
+    $letters = 'ABCDEFGHJKLMNPQRSTUVWXYZ';
+    $a = '';
+    for ($i = 0; $i < 3; $i++) {
+        $a .= $letters[random_int(0, strlen($letters) - 1)];
     }
-    $d = new DateTime('now', new DateTimeZone('Europe/Lisbon'));
-    return 'EDV-' . $d->format('Ymd') . '-' . $suffix;
+    $n = str_pad((string) random_int(0, 999), 3, '0', STR_PAD_LEFT);
+    return $a . $n;
 }
 
 function link_proofs_dir(): string {
@@ -246,6 +247,24 @@ function link_uuid_v4(): string {
     $bytes[6] = chr((ord($bytes[6]) & 0x0f) | 0x40);
     $bytes[8] = chr((ord($bytes[8]) & 0x3f) | 0x80);
     return vsprintf('%s%s-%s-%s-%s-%s%s%s', str_split(bin2hex($bytes), 4));
+}
+
+/**
+ * Todas as linhas da tabela link_registrations (fluxo links.html), mais recentes primeiro.
+ * Suporta SQLite, MySQL ou armazenamento JSON (dev).
+ *
+ * @return list<array<string,mixed>>
+ */
+function link_registrations_all(): array {
+    $backend = link_registration_backend();
+    if ($backend === 'json') {
+        require_once __DIR__ . '/link-json-store.php';
+        return link_json_all_registrations_ordered();
+    }
+    $pdo = link_api_db();
+    $stmt = $pdo->query('SELECT * FROM link_registrations ORDER BY step1_at DESC');
+
+    return $stmt ? $stmt->fetchAll() : [];
 }
 
 function link_notify_team(string $subject_line, string $body): void {

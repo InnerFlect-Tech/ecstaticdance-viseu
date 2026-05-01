@@ -189,6 +189,7 @@ foreach ($events as $ev) {
 <div class="topbar">
   <span class="topbar-brand">Ecstatic Dance Viseu — Admin</span>
   <div class="topbar-actions">
+    <a href="/admin/link-bookings.php" class="btn btn-outline">Reservas /links</a>
     <button class="btn btn-scan" id="openScannerBtn">Scan QR</button>
     <?php if ($selected_event): ?>
       <a href="/admin/export.php?event_id=<?= $selected_event ?>" class="btn btn-outline">Exportar CSV</a>

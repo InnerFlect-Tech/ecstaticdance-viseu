@@ -100,3 +100,41 @@ function link_json_patch_registration(string $id, array $patch): bool {
         return false;
     });
 }
+
+/**
+ * Lista todas as reservas (modo JSON), mais recentes primeiro.
+ *
+ * @return list<array<string,mixed>>
+ */
+function link_json_all_registrations_ordered(): array {
+    $path = link_json_store_path();
+    if (!is_readable($path)) {
+        return [];
+    }
+    $fh = fopen($path, 'rb');
+    if ($fh === false) {
+        return [];
+    }
+    try {
+        if (!flock($fh, LOCK_SH)) {
+            return [];
+        }
+        $raw = stream_get_contents($fh);
+        flock($fh, LOCK_UN);
+    } finally {
+        fclose($fh);
+    }
+    $raw = ($raw !== false && $raw !== '') ? $raw : '{}';
+    $data = json_decode($raw, true);
+    if (!is_array($data) || !isset($data['registrations']) || !is_array($data['registrations'])) {
+        return [];
+    }
+    $regs = array_values(array_filter($data['registrations'], 'is_array'));
+    usort(
+        $regs,
+        static function (array $a, array $b): int {
+            return strcmp((string)($b['step1_at'] ?? ''), (string)($a['step1_at'] ?? ''));
+        }
+    );
+    return $regs;
+}

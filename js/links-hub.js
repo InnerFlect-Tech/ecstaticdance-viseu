@@ -32,6 +32,28 @@ function initHeroVisualFallback() {
   })
 }
 
+/** Retorno ao /links após compra online: não abrir o painel «Pedir bilhete». */
+function isLinksReturnAfterOnlineCheckout() {
+  const p = new URLSearchParams(window.location.search)
+  return p.has('session_id') || p.get('checkout_success') === '1'
+}
+
+function closeLinksInlineBooking() {
+  const shell = document.getElementById('links-inline-booking-mount')
+  if (!shell) return
+
+  document.body.classList.remove('links-hub-booking-open')
+
+  shell.classList.add('links-inline-booking-shell--collapsed')
+  shell.classList.remove('links-inline-booking-shell--open')
+  shell.setAttribute('aria-hidden', 'true')
+  shell.setAttribute('inert', '')
+
+  shell.querySelectorAll('.links-inline-booking-content .reveal').forEach((el) => {
+    el.classList.remove('visible')
+  })
+}
+
 /**
  * @param {{ scroll?: boolean }} [opts]
  */
@@ -95,7 +117,19 @@ function initInlineBooking() {
   document.getElementById('links-sticky-booking-btn')?.addEventListener('click', go)
   document.getElementById('links-footer-cta')?.addEventListener('click', go)
 
-  if (location.hash === '#reserva-manual') {
+  const skipOpenAfterCheckout = isLinksReturnAfterOnlineCheckout()
+  if (skipOpenAfterCheckout) {
+    closeLinksInlineBooking()
+    if (location.hash === '#reserva-manual') {
+      try {
+        const u = new URL(window.location.href)
+        u.hash = ''
+        history.replaceState(null, '', u.pathname + u.search + u.hash)
+      } catch {
+        // ignore
+      }
+    }
+  } else if (location.hash === '#reserva-manual') {
     openLinksInlineBooking({ scroll: true })
   }
 }

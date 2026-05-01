@@ -88,52 +88,42 @@ export function renderPaymentInstructions(method, ctx, el, langPt = null) {
     if (isPt) {
       appendStepByStep(
         el,
-        'Segue estes passos na app MB Way. Antes de confirmar, verifica sempre que o número do destinatário corresponde exatamente aos dados da equipa (evita erros e fraudes).',
+        'MB Way — confere o número do destinatário antes de confirmar.',
         [
           {
-            text: 'Abre o MB Way no telemóvel e inicia um envio de dinheiro para um número de telemóvel.',
+            text: 'Envia dinheiro para o número:',
+            rows: [{ label: 'Número', value: MBWAY_PHONE }],
           },
           {
-            text: 'Confere o destinatário — o número de telemóvel tem de coincidir dígito a dígito com o indicado abaixo (não alteres espaços nem o indicativo se a app já o mostrar).',
-            rows: [{ label: 'Número MB Way da equipa', value: MBWAY_PHONE }],
-          },
-          {
-            text: 'Indica o montante exato. No campo de descrição, mensagem ou nota ao destinatário, escreve obrigatoriamente só a referência do teu pedido (a equipa cruza o pagamento com esta referência).',
+            text: 'Montante certo; na descrição/nota, só esta ref.:',
             rows: [
-              { label: 'Referência (obrigatória na descrição)', value: paymentRef, highlight: true },
-              { label: 'Montante a enviar', value: totalLabel },
+              { label: 'Ref.', value: paymentRef, highlight: true },
+              { label: 'Montante', value: totalLabel },
             ],
           },
-          {
-            text: 'Confirma o envio na app. No ecrã de confirmação ou na notificação, deves ver o montante e a referência. Guarda esse ecrã para o passo seguinte.',
-          },
+          { text: 'Confirma e guarda o ecrã de confirmação.' },
         ],
-        'Depois de pagares: usa o campo «Comprovativo» mais abaixo para anexares uma foto do ecrã, uma captura de ecrã (printscreen) ou um PDF — o importante é que se leia o comprovativo da operação.'
+        'Em baixo: anexa foto ou PDF do comprovativo.'
       )
     } else {
       appendStepByStep(
         el,
-        'Follow these steps in the MB Way app. Before you confirm, always check the recipient phone number matches the team details exactly.',
+        'MB Way — verify the recipient number before you confirm.',
         [
           {
-            text: 'Open MB Way and start sending money to a mobile number.',
+            text: 'Send to this number:',
+            rows: [{ label: 'Number', value: MBWAY_PHONE }],
           },
           {
-            text: 'Verify the recipient — the phone number must match character for character:',
-            rows: [{ label: 'Team MB Way number', value: MBWAY_PHONE }],
-          },
-          {
-            text: 'Enter the exact amount. In the description or note to the recipient, you must enter only your booking reference:',
+            text: 'Correct amount; in the note, only this ref.:',
             rows: [
-              { label: 'Reference (required in the note)', value: paymentRef, highlight: true },
-              { label: 'Amount to send', value: totalLabel },
+              { label: 'Ref.', value: paymentRef, highlight: true },
+              { label: 'Amount', value: totalLabel },
             ],
           },
-          {
-            text: "Confirm the payment. On the confirmation screen or notification you should see the amount and reference. Keep that screen for the next step.",
-          },
+          { text: 'Confirm and keep the confirmation screen.' },
         ],
-        'After paying: use the «Proof of payment» field below to attach a screenshot, phone photo of the confirmation, or a PDF — it must clearly show the transaction proof.'
+        'Below: attach a screenshot or PDF of the proof.'
       )
     }
     return
@@ -143,13 +133,10 @@ export function renderPaymentInstructions(method, ctx, el, langPt = null) {
     if (isPt) {
       appendStepByStep(
         el,
-        'Faz uma transferência SEPA a partir do teu banco. Confirma IBAN e beneficiário carácter a carácter com os dados abaixo antes de autorizar.',
+        'Transferência SEPA — confere IBAN e beneficiário letra a letra.',
         [
           {
-            text: 'Abre o homebanking ou a app do teu banco e escolhe transferência para um novo IBAN (ou gestão de beneficiários, se já tiveres o nosso IBAN guardado — confere na mesma se continua igual).',
-          },
-          {
-            text: 'Verifica que o IBAN e o beneficiário são exatamente estes (erros no IBAN devolvem o dinheiro com atraso ou impedem o matching automático):',
+            text: 'Dados do destino:',
             rows: [
               { label: 'Banco', value: BANK_NAME },
               { label: 'IBAN', value: BANK_IBAN, mono: true },
@@ -157,28 +144,23 @@ export function renderPaymentInstructions(method, ctx, el, langPt = null) {
             ],
           },
           {
-            text: 'Preenche o montante e, no campo de descrição / informação ao destinatário, indica obrigatoriamente a referência abaixo (muitos bancos chamam-lhe «Descrição», «Informação» ou «Nota»).',
+            text: 'Montante; na descrição ao destinatário, só esta ref.:',
             rows: [
-              { label: 'Referência (obrigatória)', value: paymentRef, highlight: true },
+              { label: 'Ref.', value: paymentRef, highlight: true },
               { label: 'Montante', value: totalLabel },
             ],
           },
-          {
-            text: 'Autoriza a transferência. Quando o banco mostrar o comprovativo ou o PDF da operação, guarda-o ou faz captura de ecrã.',
-          },
+          { text: 'Autoriza e guarda o comprovativo do banco.' },
         ],
-        'Anexa abaixo o PDF do banco ou uma imagem nítida do comprovativo / ecrã da app (o IBAN, montante e referência devem ser legíveis).'
+        'Em baixo: PDF ou foto legível (IBAN, montante, ref.).'
       )
     } else {
       appendStepByStep(
         el,
-        'Make a SEPA bank transfer. Verify the IBAN and beneficiary character by character before you authorise.',
+        'SEPA transfer — verify IBAN and beneficiary character by character.',
         [
           {
-            text: 'Open your bank’s website or app and start a transfer to a new IBAN.',
-          },
-          {
-            text: 'The IBAN and beneficiary must match exactly:',
+            text: 'Destination:',
             rows: [
               { label: 'Bank', value: BANK_NAME },
               { label: 'IBAN', value: BANK_IBAN, mono: true },
@@ -186,17 +168,15 @@ export function renderPaymentInstructions(method, ctx, el, langPt = null) {
             ],
           },
           {
-            text: 'Enter the amount and, in the transfer description / reference to beneficiary, include only:',
+            text: 'Amount; in the transfer reference/description, only:',
             rows: [
-              { label: 'Reference (required)', value: paymentRef, highlight: true },
+              { label: 'Ref.', value: paymentRef, highlight: true },
               { label: 'Amount', value: totalLabel },
             ],
           },
-          {
-            text: 'Authorise the transfer. Save the bank receipt or take a screenshot of the confirmation.',
-          },
+          { text: 'Authorise and save the bank receipt.' },
         ],
-        'Below, upload the bank PDF or a clear image of the receipt (IBAN, amount and reference must be readable).'
+        'Below: PDF or clear photo (IBAN, amount, ref.).'
       )
     }
     return
@@ -206,52 +186,42 @@ export function renderPaymentInstructions(method, ctx, el, langPt = null) {
     if (isPt) {
       appendStepByStep(
         el,
-        'Envia o valor pela Revolut. Confirma o utilizador (@tag) antes de tocar em enviar — deve ser exatamente o indicado abaixo.',
+        'Revolut — confere a @tag antes de enviar.',
         [
           {
-            text: 'Abre a Revolut, escolhe enviar dinheiro ou pagar a alguém e procura pelo utilizador pela tag.',
+            text: 'Envia para:',
+            rows: [{ label: 'Tag', value: REVOLUT_HANDLE, mono: true }],
           },
           {
-            text: 'Verifica a Revolut Tag do destinatário (atenção a @, maiúsculas e caracteres iguais):',
-            rows: [{ label: 'Revolut — enviar para', value: REVOLUT_HANDLE, mono: true }],
-          },
-          {
-            text: 'Indica o montante. No campo de nota do pagamento, escreve obrigatoriamente a referência do pedido — a equipa usa esta nota para identificar o teu pagamento.',
+            text: 'Montante; na nota do pagamento, só esta ref.:',
             rows: [
-              { label: 'Nota do pagamento (obrigatória)', value: paymentRef, highlight: true },
+              { label: 'Ref.', value: paymentRef, highlight: true },
               { label: 'Montante', value: totalLabel },
             ],
           },
-          {
-            text: 'Confirma o envio. No ecrã de conclusão, confirma montante e nota; guarda captura ou exporta recibo se a app permitir.',
-          },
+          { text: 'Confirma e guarda o ecrã final.' },
         ],
-        'Carregas abaixo uma captura de ecrã ou foto do telemóvel com o comprovativo Revolut (montante e nota legíveis).'
+        'Em baixo: captura ou foto do comprovativo.'
       )
     } else {
       appendStepByStep(
         el,
-        'Send via Revolut. Confirm the recipient @tag matches exactly before you send.',
+        'Revolut — confirm the @tag before you send.',
         [
           {
-            text: 'Open Revolut and start a payment to a Revolut user by tag.',
+            text: 'Send to:',
+            rows: [{ label: 'Tag', value: REVOLUT_HANDLE, mono: true }],
           },
           {
-            text: 'The recipient tag must match:',
-            rows: [{ label: 'Revolut — send to', value: REVOLUT_HANDLE, mono: true }],
-          },
-          {
-            text: 'Enter the amount. In the payment note, you must include only your booking reference:',
+            text: 'Amount; in the payment note, only:',
             rows: [
-              { label: 'Payment note (required)', value: paymentRef, highlight: true },
+              { label: 'Ref.', value: paymentRef, highlight: true },
               { label: 'Amount', value: totalLabel },
             ],
           },
-          {
-            text: 'Confirm the payment. On the success screen, check amount and note; save a screenshot or receipt.',
-          },
+          { text: 'Confirm and save the success screen.' },
         ],
-        'Upload below a screenshot or phone photo of the Revolut proof (amount and note must be readable).'
+        'Below: screenshot or photo of the proof.'
       )
     }
     return

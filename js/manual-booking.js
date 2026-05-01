@@ -33,6 +33,20 @@ function flashStepCard(el) {
   window.setTimeout(done, 520)
 }
 
+/**
+ * Centra o viewport no elemento foco do passo (ex.: título do passo 2).
+ * @param {HTMLElement | null} el
+ */
+function scrollBookingStepIntoView(el) {
+  if (!el) return
+  const reduced = prefersReducedMotionBooking()
+  el.scrollIntoView({
+    behavior: reduced ? 'auto' : 'smooth',
+    block: 'center',
+    inline: 'nearest',
+  })
+}
+
 function apiBase() {
   const raw = import.meta.env.VITE_API_BASE
   if (raw && String(raw).trim() !== '') {
@@ -189,7 +203,7 @@ function showInlineFieldError(inputId, errorElId, message) {
   inp.setAttribute('aria-invalid', 'true')
   inp.setAttribute('aria-describedby', errorElId)
   inp.focus({ preventScroll: true })
-  errEl.scrollIntoView({ behavior: 'smooth', block: 'nearest' })
+  inp.scrollIntoView({ behavior: 'smooth', block: 'center' })
 }
 
 /**
@@ -381,7 +395,11 @@ function showStep2() {
     el.textContent = formatEur(state.totalEur)
   }
   paintInstructions()
-  requestAnimationFrame(() => flashStepCard(document.getElementById('lb_step_2')))
+  requestAnimationFrame(() => {
+    const card = document.getElementById('lb_step_2')
+    flashStepCard(card)
+    requestAnimationFrame(() => scrollBookingStepIntoView(document.getElementById('lb_step_2_title')))
+  })
 }
 
 function setHeardOtherVisible() {
@@ -454,7 +472,7 @@ function recalcTotals() {
   const ticketHidden = getEl('lb_ticket_euros')
   const out = document.getElementById('lb_ticket_amount_out')
   const dinner = getEl('lb_dinner_euros')
-  const totalOut = getEl('lb_total_euros_out')
+  const totalOut = elMaybe('lb_total_euros_out')
   let t = DEFAULT_TICKET_EUR
   if (range) {
     const customRaw = custom?.value?.trim() ?? ''
@@ -493,7 +511,7 @@ function recalcTotals() {
     state.dinnerEur = Math.max(0, parseMoney(dinner.value) || 0)
   }
   state.totalEur = state.ticketEur + state.dinnerEur
-  totalOut.textContent = formatEur(state.totalEur)
+  if (totalOut) totalOut.textContent = formatEur(state.totalEur)
   const detail = document.getElementById('lb_total_detail_line')
   if (detail) {
     const pt = detail.querySelector('.lang-pt')

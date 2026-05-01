@@ -15,6 +15,10 @@ define('DB_NAME', 'your_db');
 define('DB_USER', 'your_user');
 define('DB_PASS', 'your_pass');
 
+/** Local sem extensão MySQL: `true` + ficheiro SQLite (ver schema-main-sqlite.sql). Produção: `false`. */
+define('USE_SQLITE_MAIN_DB', false);
+define('MAIN_DB_SQLITE_PATH', __DIR__ . '/../data/events-tickets.sqlite');
+
 define('LINK_USE_SQLITE', true);
 define('LINK_USE_JSON', false);
 define('LINK_SQLITE_PATH', __DIR__ . '/../data/link-bookings.sqlite');

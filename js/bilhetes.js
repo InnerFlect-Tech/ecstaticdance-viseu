@@ -353,7 +353,7 @@ function showEmailFieldError(message) {
   input.setAttribute('aria-invalid', 'true');
   input.setAttribute('aria-describedby', 'email_error');
   input.focus({ preventScroll: true });
-  err.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+  input.scrollIntoView({ behavior: 'smooth', block: 'center' });
 }
 
 function showError(el, msg) {

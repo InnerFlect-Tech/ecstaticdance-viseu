@@ -75,6 +75,14 @@
   color: var(--hub-cream);
 }
 
+/* Headings: styles.css usa Cormorant globalmente; na página links o tipo é só DM Sans. */
+#links-page h1,
+#links-page h2,
+#links-page h3,
+#links-page h4 {
+  font-family: 'DM Sans', system-ui, sans-serif;
+}
+
 .links-landing-header {
   flex-shrink: 0;
   padding: max(1.25rem, env(safe-area-inset-top, 0)) max(1.25rem, env(safe-area-inset-left, 0)) 1.5rem
@@ -342,7 +350,7 @@ a.links-landing-site:focus-visible {
 }
 
 .links-hero-title {
-  font-family: 'Cormorant Garamond', serif;
+  font-family: 'DM Sans', system-ui, sans-serif;
   font-weight: 300;
   color: var(--hub-burgundy);
   margin: 0 0 1.1rem;
@@ -625,7 +633,7 @@ a.links-landing-site:focus-visible {
 }
 .links-experience-title {
   position: relative;
-  font-family: 'Cormorant Garamond', serif;
+  font-family: 'DM Sans', system-ui, sans-serif;
   font-weight: 400;
   font-size: clamp(1.55rem, 4vw, 2.05rem);
   line-height: 1.15;
@@ -966,7 +974,7 @@ a.links-landing-site:focus-visible {
 }
 .links-experience-venue-name {
   margin: 0;
-  font-family: 'Cormorant Garamond', serif;
+  font-family: 'DM Sans', system-ui, sans-serif;
   font-size: 1.35rem;
   font-weight: 400;
   color: var(--hub-burgundy);
@@ -974,7 +982,7 @@ a.links-landing-site:focus-visible {
   line-height: 1.35;
 }
 .links-experience-venue-name .links-step-ig {
-  font-family: 'Cormorant Garamond', serif;
+  font-family: 'DM Sans', system-ui, sans-serif;
   font-size: 1.35rem;
   font-weight: 500;
   letter-spacing: 0.02em;
@@ -1011,7 +1019,7 @@ a.links-landing-site:focus-visible {
 }
 
 .links-section-title {
-  font-family: 'Cormorant Garamond', serif;
+  font-family: 'DM Sans', system-ui, sans-serif;
   font-weight: 300;
   font-size: clamp(1.35rem, 3.2vw, 1.85rem);
   line-height: 1.2;
@@ -1090,7 +1098,7 @@ a.links-landing-site:focus-visible {
   color: rgba(37, 61, 42, 0.8);
 }
 .links-min-badge-price {
-  font-family: 'Cormorant Garamond', serif;
+  font-family: 'DM Sans', system-ui, sans-serif;
   font-size: 1.65rem;
   font-weight: 400;
   color: var(--hub-rust);
@@ -1162,7 +1170,7 @@ a.links-landing-site:focus-visible {
 }
 
 .links-hub-amount-out {
-  font-family: 'Cormorant Garamond', serif;
+  font-family: 'DM Sans', system-ui, sans-serif;
   font-size: 2rem;
   font-weight: 400;
   color: var(--hub-rust);
@@ -1170,7 +1178,7 @@ a.links-landing-site:focus-visible {
 }
 
 .links-hub-eur-suffix {
-  font-family: 'Cormorant Garamond', serif;
+  font-family: 'DM Sans', system-ui, sans-serif;
   font-size: 1.15rem;
   color: var(--hub-rust);
   opacity: 0.85;
@@ -1309,7 +1317,7 @@ a.links-landing-site:focus-visible {
 
 .links-pricing-scale-title {
   margin: 0 0 0.5rem;
-  font-family: 'Cormorant Garamond', serif;
+  font-family: 'DM Sans', system-ui, sans-serif;
   font-size: 1.2rem;
   font-weight: 400;
   color: var(--hub-burgundy);
@@ -1427,7 +1435,7 @@ a.links-landing-site:focus-visible {
 .links-foot-tagline {
   margin: 0 auto 0.65rem;
   max-width: 26rem;
-  font-family: 'Cormorant Garamond', serif;
+  font-family: 'DM Sans', system-ui, sans-serif;
   font-size: 0.97rem;
   font-weight: 300;
   font-style: italic;
@@ -1579,7 +1587,7 @@ a.links-landing-site:focus-visible {
 
 /* Secção "A tua reserva" + nota bilhetes */
 .links-reserva-section-title {
-  font-family: 'Cormorant Garamond', serif;
+  font-family: 'DM Sans', system-ui, sans-serif;
   font-weight: 300;
   font-size: clamp(1.45rem, 3.2vw, 1.85rem);
   text-align: center;
@@ -1699,7 +1707,7 @@ a.links-landing-site:focus-visible {
 }
 
 .links-info-title {
-  font-family: 'Cormorant Garamond', serif;
+  font-family: 'DM Sans', system-ui, sans-serif;
   font-weight: 300;
   font-size: clamp(1.25rem, 2.5vw, 1.75rem);
   line-height: 1.2;
@@ -1727,7 +1735,7 @@ a.links-landing-site:focus-visible {
   max-width: 36rem;
 }
 .links-faq-compact-title {
-  font-family: 'Cormorant Garamond', serif;
+  font-family: 'DM Sans', system-ui, sans-serif;
   font-size: 1.35rem;
   font-weight: 300;
   color: var(--hub-burgundy);
@@ -1754,7 +1762,9 @@ a.links-landing-site:focus-visible {
   list-style: none;
   display: flex;
   align-items: center;
+  justify-content: center;
   gap: 0.5rem;
+  text-align: center;
 }
 .links-faq-item summary::-webkit-details-marker {
   display: none;
@@ -1769,10 +1779,11 @@ details[open] .links-faq-chevron {
   transform: rotate(180deg);
 }
 .links-faq-item p {
-  margin: 0.65rem 0 0 1.6rem;
+  margin: 0.65rem 0 0;
   font-size: 0.88rem;
   color: rgba(44, 24, 16, 0.58);
   line-height: 1.65;
+  text-align: center;
 }
 .links-faq-more {
   margin: 1rem 0 0;
@@ -1828,7 +1839,7 @@ details[open] .links-faq-chevron {
 }
 
 .links-info-scale-title {
-  font-family: 'Cormorant Garamond', serif;
+  font-family: 'DM Sans', system-ui, sans-serif;
   font-size: 1.5rem;
   font-weight: 300;
   color: var(--bone);
@@ -2263,20 +2274,13 @@ body.lang-en .lang-pt {
   line-height: 1.35;
 }
 .links-dinner-price {
-  font-family: 'Cormorant Garamond', serif;
+  font-family: 'DM Sans', system-ui, sans-serif;
   font-size: 1.25rem;
   font-weight: 400;
   color: var(--gold-l);
   line-height: 1;
   margin-left: auto;
   letter-spacing: 0.02em;
-}
-.links-dinner-footnote {
-  font-size: 0.68rem;
-  line-height: 1.45;
-  color: rgba(245, 239, 230, 0.38);
-  margin: 0.55rem 0 0;
-  font-weight: 300;
 }
 .links-dinner-note-wrap .links-dinner-note-hint {
   font-size: 0.7rem;
@@ -2328,7 +2332,7 @@ body.lang-en .lang-pt {
 }
 
 .links-totals {
-  font-family: 'Cormorant Garamond', serif;
+  font-family: 'DM Sans', system-ui, sans-serif;
   font-size: 1.35rem;
   color: var(--gold-l);
   font-weight: 300;
@@ -2746,7 +2750,7 @@ body.links-hub-booking-open #links-page .links-inline-booking-inner {
 }
 
 #links-page .links-inline-booking-content #reserva-manual .links-step-heading {
-  font-family: 'Cormorant Garamond', serif !important;
+  font-family: 'DM Sans', system-ui, sans-serif !important;
   font-weight: 400 !important;
   font-size: 1.45rem !important;
   color: var(--hub-burgundy) !important;
@@ -2808,10 +2812,6 @@ body.links-hub-booking-open #links-page .links-inline-booking-inner {
   background: rgba(224, 192, 151, 0.32);
   border-color: rgba(160, 74, 37, 0.35);
   box-shadow: 0 0 0 1px rgba(160, 74, 37, 0.08);
-}
-
-#links-page .links-inline-booking-content #reserva-manual .links-dinner-footnote {
-  color: rgba(44, 24, 16, 0.52);
 }
 
 #links-page .links-inline-booking-content #reserva-manual label.links-dinner-label {
@@ -3141,8 +3141,8 @@ body#links-page.lang-en .links-masthead .links-lang #lang-en {
 }
 .links-masthead-title {
   margin: 0 0 0.65rem;
-  font-family: 'Cormorant Garamond', serif;
-  font-weight: 300;
+  font-family: 'DM Sans', system-ui, sans-serif;
+  font-weight: 500;
   font-size: clamp(2rem, 8vw, 2.65rem);
   line-height:1.08;
   letter-spacing: 0.01em;
@@ -3154,13 +3154,43 @@ body#links-page.lang-en .links-masthead .links-lang #lang-en {
   color: rgba(232, 195, 122, 0.95);
 }
 .links-masthead-tagline {
-  margin: 0 auto 1.15rem;
+  margin: 0 auto 0.9rem;
   max-width: 22rem;
-  font-family: 'Cormorant Garamond', serif;
+  font-family: 'DM Sans', system-ui, sans-serif;
   font-size: clamp(1.02rem, 3.2vw, 1.22rem);
   font-weight: 400;
   line-height: 1.45;
   color: rgba(247, 242, 234, 0.88);
+}
+.links-masthead-lineup {
+  margin: 0 auto 0.75rem;
+  max-width: 22rem;
+}
+.links-masthead-lineup-names {
+  margin: 0;
+  font-family: 'DM Sans', system-ui, sans-serif;
+  font-size: 0.72rem;
+  font-weight: 400;
+  line-height: 1.5;
+  color: rgba(247, 242, 234, 0.84);
+  letter-spacing: 0.02em;
+}
+.links-masthead-lineup-role {
+  font-size: 0.58rem;
+  font-weight: 600;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: rgba(232, 195, 122, 0.75);
+}
+.links-masthead-venue-hours {
+  margin: 0 auto 1.05rem;
+  max-width: 22rem;
+  font-family: 'DM Sans', system-ui, sans-serif;
+  font-size: 0.6rem;
+  font-weight: 400;
+  letter-spacing: 0.07em;
+  color: rgba(247, 242, 234, 0.48);
+  line-height: 1.45;
 }
 .links-masthead-meta {
   list-style: none;
@@ -3319,31 +3349,50 @@ body#links-page.lang-en .links-masthead .links-lang #lang-en {
   line-height: 1.55;
   color: rgba(44, 24, 16, 0.82);
 }
-.links-v2-hint {
+.links-v2-contribution-price {
+  margin: 0 0 1rem;
+  padding: 1rem 1.05rem 1.05rem;
+  text-align: center;
+  border-radius: 12px;
+  border: 1px solid rgba(201, 168, 108, 0.45);
+  background: linear-gradient(
+    165deg,
+    rgba(255, 252, 247, 0.98) 0%,
+    rgba(237, 230, 216, 0.72) 48%,
+    rgba(255, 248, 240, 0.95) 100%
+  );
+  box-shadow:
+    0 1px 0 rgba(255, 255, 255, 0.9) inset,
+    0 8px 22px rgba(44, 24, 16, 0.06);
+}
+.links-v2-contribution-price .links-v2-price-line {
   margin: 0;
-  font-size: 0.82rem;
-  line-height: 1.55;
-  color: rgba(44, 24, 16, 0.55);
+  font-family: 'DM Sans', system-ui, sans-serif;
+  font-size: clamp(1.2rem, 3.6vw, 1.45rem);
+  font-weight: 400;
+  line-height: 1.35;
+  letter-spacing: 0.02em;
+  color: var(--hub-burgundy);
 }
-.links-v2-hint--earlybird {
-  display: flex;
-  align-items: center;
-  gap: 0.45rem;
-  margin-top: 0.75rem;
-  padding: 0.6rem 0.7rem;
-  border-radius: 10px;
-  border: 1px solid rgba(199, 90, 50, 0.28);
-  background: linear-gradient(180deg, rgba(255, 244, 235, 0.98) 0%, rgba(255, 249, 243, 1) 100%);
-  color: rgba(108, 45, 20, 0.84);
+.links-v2-contribution-body {
+  margin: 0 0 1rem;
 }
-.links-v2-hint-icon {
-  width: 18px;
-  height: 18px;
-  flex-shrink: 0;
-  color: #c75a32;
+/* Early bird: mesmo sistema visual que os passos do programa (masthead embed) */
+.links-v2-card--contribution .links-contribution-earlybird.links-experience-steps--embed {
+  margin: 0.85rem 0 0;
+  padding: 0;
+  list-style: none;
+}
+.links-v2-card--contribution .links-contribution-earlybird .links-experience-step {
+  padding-bottom: 0;
+}
+.links-v2-card--contribution .links-contribution-earlybird .links-experience-time {
+  text-transform: none;
+  letter-spacing: 0.1em;
+  font-size: 0.67rem;
 }
 .links-v2-card--contribution .links-v2-card-head {
-  margin-bottom: 0.65rem;
+  margin-bottom: 0.85rem;
 }
 
 .links-timeline-h {
@@ -3359,7 +3408,7 @@ body#links-page.lang-en .links-masthead .links-lang #lang-en {
 .links-timeline-h-item {
   flex: 0 0 auto;
   scroll-snap-align: start;
-  width: 4.5rem;
+  width: 6.25rem;
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -3381,12 +3430,40 @@ body#links-page.lang-en .links-masthead .links-lang #lang-en {
 }
 .links-timeline-label {
   font-family: 'DM Sans', system-ui, sans-serif;
-  font-size: 0.55rem;
+  font-size: 0.58rem;
   font-weight: 600;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
+  letter-spacing: 0.02em;
+  text-transform: none;
   color: rgba(37, 61, 42, 0.85);
-  line-height: 1.25;
+  line-height: 1.3;
+  hyphens: auto;
+}
+
+/* «Como funciona»: em telemóveis a linha horizontal não cabe → scroll lateral.
+   Grelha 2×2 sem overflow; ícones um pouco mais pequenos. */
+@media (max-width: 600px) {
+  .links-timeline-h {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 0.75rem 0.45rem;
+    justify-content: stretch;
+    overflow-x: visible;
+    scroll-snap-type: none;
+    padding-bottom: 0;
+  }
+  .links-timeline-h-item {
+    width: auto;
+    min-width: 0;
+    flex: unset;
+    padding: 0.5rem 0.15rem;
+  }
+  .links-timeline-ico {
+    width: 22px;
+    height: 22px;
+  }
+  .links-timeline-label {
+    overflow-wrap: anywhere;
+  }
 }
 
 .links-agreements-grid {
@@ -3468,14 +3545,9 @@ body#links-page.lang-en .links-masthead .links-lang #lang-en {
   padding: 0.7rem 1rem 1.4rem;
   border-top: 1px solid rgba(74, 16, 16, 0.08);
 }
-.links-experience-venue--embed {
-  margin: 0 auto 1.1rem;
-  max-width: 100%;
-  background: rgba(255, 255, 255, 0.86);
-  border-color: rgba(74, 16, 16, 0.09);
-  box-shadow:
-    0 1px 0 rgba(255, 255, 255, 0.9) inset,
-    0 10px 26px rgba(44, 24, 16, 0.06);
+/* Masthead usa text-align:center; programa legível alinhado à esquerda */
+#links-programa-completo .links-v2-details-body {
+  text-align: left;
 }
 .links-experience-steps--embed {
   margin-top: 0.2rem;
@@ -3515,19 +3587,56 @@ body#links-page.lang-en .links-masthead .links-lang #lang-en {
   border-left: 2px solid rgba(201, 168, 108, 0.72);
   box-shadow: 0 3px 16px rgba(44, 24, 16, 0.05);
 }
+/* Alinhado a .links-v2-card-body / preço em Contribuição */
 .links-experience-steps--embed .links-experience-when {
-  font-size: 0.72rem;
-  letter-spacing: 0.1em;
-  margin-bottom: 0.35rem;
+  display: block;
+  margin-bottom: 0.45rem;
+}
+.links-experience-steps--embed .links-experience-time {
+  font-family: 'DM Sans', system-ui, sans-serif;
+  font-size: 0.68rem;
+  font-weight: 600;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  font-variant-numeric: tabular-nums;
+  color: var(--hub-rust);
+}
+.links-experience-steps--embed .links-experience-when-sep {
+  font-family: 'DM Sans', system-ui, sans-serif;
+  font-size: 0.65rem;
+  font-weight: 400;
+  letter-spacing: 0.06em;
+  color: rgba(44, 24, 16, 0.38);
+}
+.links-experience-steps--embed .links-experience-slot-title {
+  font-family: 'DM Sans', system-ui, sans-serif;
+  /* Alinha à linha da hora (0.68rem); um pouco maior que o tempo, mais discreto que antes */
+  font-size: clamp(0.74rem, 2.35vw, 0.88rem);
+  font-weight: 500;
+  letter-spacing: 0.03em;
+  line-height: 1.35;
+  color: var(--hub-burgundy);
 }
 .links-experience-steps--embed .links-experience-step-surface p {
-  font-size: 0.97rem;
-  line-height: 1.58;
-  color: rgba(44, 24, 16, 0.74);
+  margin: 0;
+  font-family: 'DM Sans', system-ui, sans-serif;
+  font-size: 0.94rem;
+  line-height: 1.65;
+  color: rgba(44, 24, 16, 0.76);
+  font-weight: 400;
 }
 .links-experience-steps--embed .links-step-ig {
-  font-size: 0.95em;
+  font-family: 'DM Sans', system-ui, sans-serif;
+  font-size: 0.88rem;
   font-weight: 600;
+  letter-spacing: 0.02em;
+  color: var(--hub-rust);
+  opacity: 1;
+  text-underline-offset: 0.15em;
+}
+.links-experience-steps--embed .links-step-ig:hover,
+.links-experience-steps--embed .links-step-ig:focus-visible {
+  color: var(--hub-burgundy);
 }
 @media (prefers-reduced-motion: reduce) {
   .links-experience-steps--embed .links-experience-step:hover .links-experience-step-surface,
@@ -3547,7 +3656,7 @@ body#links-page.lang-en .links-masthead .links-lang #lang-en {
 }
 .links-pullquote p {
   margin: 0;
-  font-family: 'Cormorant Garamond', serif;
+  font-family: 'DM Sans', system-ui, sans-serif;
   font-size: clamp(1.15rem, 3.8vw, 1.4rem);
   font-weight: 400;
   font-style: italic;

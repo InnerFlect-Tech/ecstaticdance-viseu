@@ -8,6 +8,12 @@ const __dirname = dirname(fileURLToPath(import.meta.url))
 /** `npm run dev:local` escolhe 8080–8099 livre e exporta EDV_PHP_API_PORT. */
 const phpApiTarget = `http://127.0.0.1:${process.env.EDV_PHP_API_PORT ?? '8080'}`
 
+/** Proxy PHP (API + painel admin + comprovativos) para o mesmo servidor que `php -S … -t server`. */
+const phpBackendProxy = {
+  target: phpApiTarget,
+  changeOrigin: true,
+}
+
 /** Dev: GET /faq → ./faq.html (same idea as nginx try_files … $uri.html). */
 function extensionlessHtmlPages() {
   return {
@@ -24,6 +30,8 @@ function extensionlessHtmlPages() {
           || pathname.startsWith('/@vite/')
           || pathname.startsWith('/@fs/')
           || pathname.startsWith('/api')
+          || pathname.startsWith('/admin')
+          || pathname.startsWith('/uploads')
         )
           return next()
         const rel = pathname.startsWith('/') ? pathname.slice(1) : pathname
@@ -69,12 +77,11 @@ export default defineConfig({
   server: {
     port: 5173,
     open: true,
-    // `/api/*` → servidor PHP (`dev:local` define EDV_PHP_API_PORT; sem isso falha como 8080).
+    // API + admin PHP + ficheiros de comprovativo → servidor PHP (`npm run dev:local`).
     proxy: {
-      '/api': {
-        target: phpApiTarget,
-        changeOrigin: true,
-      },
+      '/api': phpBackendProxy,
+      '/admin': phpBackendProxy,
+      '/uploads': phpBackendProxy,
     },
   },
 
@@ -83,5 +90,10 @@ export default defineConfig({
       'ecstaticdanceviseu.pt',
       '.innerflect.tech',
     ],
+    proxy: {
+      '/api': phpBackendProxy,
+      '/admin': phpBackendProxy,
+      '/uploads': phpBackendProxy,
+    },
   },
 })

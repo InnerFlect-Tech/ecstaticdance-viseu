@@ -5,20 +5,95 @@
 
 require_once __DIR__ . '/config.php';
 
+/**
+ * Cria tabelas events/tickets em SQLite (dev sem extensão pdo_mysql).
+ */
+function main_db_sqlite_migrate(PDO $pdo): void {
+    $schemaFile = dirname(__DIR__) . '/setup/schema-main-sqlite.sql';
+    if (!is_readable($schemaFile)) {
+        throw new RuntimeException('schema-main-sqlite.sql em falta.');
+    }
+    $lines = file($schemaFile, FILE_IGNORE_NEW_LINES);
+    $buf   = '';
+    foreach ($lines as $line) {
+        if (preg_match('/^\s*--/', $line)) {
+            continue;
+        }
+        $buf .= $line . "\n";
+    }
+    foreach (explode(';', $buf) as $stmt) {
+        $stmt = trim($stmt);
+        if ($stmt !== '') {
+            $pdo->exec($stmt);
+        }
+    }
+}
+
+function main_db_sqlite_seed_if_empty(PDO $pdo): void {
+    $n = (int) $pdo->query('SELECT COUNT(*) FROM events')->fetchColumn();
+    if ($n > 0) {
+        return;
+    }
+    $ins = $pdo->prepare(
+        'INSERT INTO events (title, description, date, location, type, capacity, min_price, is_active)
+         VALUES (?, ?, ?, ?, ?, ?, ?, 1)'
+    );
+    $ins->execute([
+        'Ecstatic Dance Viseu #01 (local)',
+        'Evento de exemplo para desenvolvimento local.',
+        '2026-05-23',
+        'Nua e Crua, Viseu',
+        'paid',
+        60,
+        25.00,
+    ]);
+}
+
 // ── Database connection (singleton PDO) ──
 function db(): PDO {
     static $pdo = null;
     if ($pdo === null) {
-        $pdo = new PDO(
-            'mysql:host=' . DB_HOST . ';dbname=' . DB_NAME . ';charset=utf8mb4',
-            DB_USER,
-            DB_PASS,
-            [
+        $useSqlite = defined('USE_SQLITE_MAIN_DB') && USE_SQLITE_MAIN_DB === true;
+        if ($useSqlite) {
+            if (!in_array('sqlite', PDO::getAvailableDrivers(), true)) {
+                throw new RuntimeException(
+                    'PDO SQLite não está disponível. Instala php-sqlite3 (ex.: sudo apt install php8.3-sqlite3).'
+                );
+            }
+            $path = defined('MAIN_DB_SQLITE_PATH') && MAIN_DB_SQLITE_PATH !== ''
+                ? MAIN_DB_SQLITE_PATH
+                : __DIR__ . '/../data/events-tickets.sqlite';
+            $dir = dirname($path);
+            if (!is_dir($dir)) {
+                if (!mkdir($dir, 0755, true) && !is_dir($dir)) {
+                    throw new RuntimeException('Não foi possível criar o directório da base SQLite.');
+                }
+            }
+            $pdo = new PDO('sqlite:' . $path, null, null, [
                 PDO::ATTR_ERRMODE            => PDO::ERRMODE_EXCEPTION,
                 PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC,
-                PDO::ATTR_EMULATE_PREPARES   => false,
-            ]
-        );
+            ]);
+            $pdo->exec('PRAGMA foreign_keys = ON');
+            main_db_sqlite_migrate($pdo);
+            main_db_sqlite_seed_if_empty($pdo);
+        } else {
+            if (!in_array('mysql', PDO::getAvailableDrivers(), true)) {
+                throw new RuntimeException(
+                    'PDO MySQL não está disponível. Instala pdo_mysql (ex.: sudo apt install php8.3-mysql) '
+                    . 'ou define USE_SQLITE_MAIN_DB = true em server/api/config.php para desenvolvimento sem MySQL.'
+                );
+            }
+            $pdo = new PDO(
+                'mysql:host=' . DB_HOST . ';dbname=' . DB_NAME . ';charset=utf8mb4',
+                DB_USER,
+                DB_PASS,
+                [
+                    PDO::ATTR_ERRMODE            => PDO::ERRMODE_EXCEPTION,
+                    PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC,
+                    PDO::ATTR_EMULATE_PREPARES   => false,
+                ]
+            );
+        }
     }
     return $pdo;
 }
