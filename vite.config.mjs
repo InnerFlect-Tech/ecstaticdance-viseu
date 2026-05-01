@@ -23,6 +23,12 @@ function extensionlessHtmlPages() {
         if (req.method !== 'GET' && req.method !== 'HEAD') return next()
         const raw = req.url || '/'
         const pathname = raw.split('?')[0] || ''
+        // Mirror nginx “coming soon” for /buy (Docker deploy redirects these to /).
+        if (pathname === '/buy' || pathname === '/buy/' || pathname === '/buy.html') {
+          res.writeHead(302, { Location: '/' })
+          res.end()
+          return
+        }
         if (pathname.includes('.')) return next()
         if (pathname === '/' || pathname === '') return next()
         if (

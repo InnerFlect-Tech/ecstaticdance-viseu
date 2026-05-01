@@ -60,7 +60,7 @@ O sistema de bilhetes está implementado como camada PHP + MySQL no cPanel, sepa
 | Reserva de bilhetes | `/bilhetes.html` |
 | Confirmação / QR code | `/confirmacao.html` |
 | Pagamento cancelado | `/cancelamento.html` |
-| Painel de admin | `/admin/` (PHP, não no build Vite) |
+| Painel de admin | **`https://ecstaticdanceviseu.pt/admin/`** — faz login em **`/admin/login.php`** se não tiveres sessão ([docs/ADMIN.md](docs/ADMIN.md)). É PHP na hospedagem, não no contentor Nginx que só serve o estático. |
 
 ---
 
@@ -89,7 +89,7 @@ No Coolify, cria um novo recurso do tipo **Docker** e liga ao repositório Git.
 5. Grava as alterações e faz **Redeploy** uma vez (ou **Deploy**) para validar o build.
 6. Se o push não disparar deploy, no serviço Coolify procura **Webhook** / **Deploy hook** → copia o URL; em GitHub → *Settings* → *Webhooks* → *Add webhook* → cola o URL, content type `application/json`, eventos mínimos **Just the push event**. (Só necessário se a integração Git App não estiver a notificar.)
 
-Depois de um deploy bem-sucedido, `https://ecstaticdanceviseu.pt/links` e `/links.html` devem servir o HTML do hub (e os ficheiros em `/assets/` mudam de hash em cada build).
+Depois de um deploy bem-sucedido, `https://ecstaticdanceviseu.pt/links` e `/links.html` devem servir o HTML do hub (e os ficheiros em `/assets/` mudam de hash em cada build). O `nginx.conf` do Docker redirecciona o “brochure + checkout” para a splash (inclui **`/buy`** e `/buy.html`); repõe o deploy se esses URL ainda mostrarem a página completa.
 
 ### Opção B: Nixpacks (Node + PHP)
 
