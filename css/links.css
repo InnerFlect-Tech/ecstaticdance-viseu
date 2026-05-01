@@ -2974,6 +2974,18 @@ body.links-hub-booking-open #links-page .links-inline-booking-inner {
   color: var(--hub-rust);
 }
 
+/* Passo 2 concluído: títulos e notas ainda trazem --bone / rgba claros (pensados para o cartão
+   escuro). No cartão branco da reserva embutida, isso fica ilegível — forçar tinta do hub. */
+#links-page .links-inline-booking-content #reserva-manual .links-step2-complete-detail p[style*='--bone'] {
+  color: var(--hub-burgundy) !important;
+}
+#links-page .links-inline-booking-content #reserva-manual .links-step2-complete-detail strong[style*='--bone'] {
+  color: var(--hub-burgundy) !important;
+}
+#links-page .links-inline-booking-content #reserva-manual .links-step2-complete-detail p[style*='245,239,230'] {
+  color: rgba(44, 24, 16, 0.78) !important;
+}
+
 #links-page .links-inline-booking-content #reserva-manual .btn-links-secondary {
   border-color: rgba(74, 16, 16, 0.22);
   color: var(--hub-ink);
