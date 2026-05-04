@@ -1,6 +1,6 @@
 /**
  * Preços alinhados com server/api/ticket-pricing.php (PHP).
- * Early bird: piso 20€ até ao fim do dia 5 de maio de 2026 (Europe/Lisbon); depois 30€.
+ * Early bird: piso 20€ até ao fim do dia 9 de maio de 2026 (Europe/Lisbon); depois 30€.
  * Máx. 200€; de 5 em 5 no slider até 100€.
  */
 
@@ -12,12 +12,12 @@ export const STANDARD_MIN_EUR = 30
 export const EARLY_BIRD_MIN_EUR = 20
 
 /**
- * Early bird até ao fim do dia 5 de maio de 2026 (calendário em Europe/Lisbon; alinhado a ticket-pricing.php).
+ * Early bird até ao fim do dia 9 de maio de 2026 (calendário em Europe/Lisbon; alinhado a ticket-pricing.php).
  * @param {Date} [d]
  */
 export function isEarlyBirdPeriod(d = new Date()) {
   const ymd = d.toLocaleDateString('en-CA', { timeZone: 'Europe/Lisbon' })
-  return ymd <= '2026-05-05'
+  return ymd <= '2026-05-09'
 }
 
 /**

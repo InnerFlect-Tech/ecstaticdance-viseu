@@ -15,7 +15,7 @@ function paintLinksDynamicPricing() {
     ? `Sliding Scale deste ${min}€.`
     : `Sliding scale desde ${min}€`
   const en = early
-    ? `Sliding scale from €${min} · early bird through 5 May`
+    ? `Sliding scale from €${min} · early bird through 9 May`
     : `Sliding scale from €${min}`
   document.querySelectorAll('[data-links-price-pt]').forEach((el) => {
     el.textContent = pt
@@ -29,13 +29,13 @@ function paintLinksContributionEarly() {
   const early = isEarlyBirdPeriod()
   document.querySelectorAll('[data-links-contrib-early-pt]').forEach((el) => {
     el.textContent = early
-      ? 'Early bird: o bilhete é 20€ até 5 de maio.'
-      : 'Piso mínimo 30€ (early bird de 20€ até 5 de maio já terminou).'
+      ? 'Early bird: o bilhete é 20€ até 9 de maio.'
+      : 'Piso mínimo 30€ (early bird de 20€ até 9 de maio já terminou).'
   })
   document.querySelectorAll('[data-links-contrib-early-en]').forEach((el) => {
     el.textContent = early
-      ? 'Early bird: the ticket is €20 through 5 May.'
-      : 'Minimum €30 (early bird at €20 through 5 May has ended).'
+      ? 'Early bird: the ticket is €20 through 9 May.'
+      : 'Minimum €30 (early bird at €20 through 9 May has ended).'
   })
 }
 
@@ -165,10 +165,14 @@ function setBodyLang(lang) {
 
 function initStickyCta() {
   const page = document.getElementById('links-page')
-  const sentinel = document.getElementById('links-sticky-sentinel')
-  const fallbackSentinel = document.getElementById('links-primary-cta')
   const bar = document.getElementById('links-sticky-cta')
-  const target = sentinel || fallbackSentinel
+  // Observe the masthead element. With threshold:0, isIntersecting stays true while
+  // any pixel of the masthead is visible, so the sticky bar only appears once the
+  // entire masthead (including the CTA button) has scrolled completely out of view.
+  // Observing only the CTA button or the sentinel div fails on narrow screens because
+  // a tall masthead can push them below the fold even on page load.
+  const target =
+    document.querySelector('.links-masthead') || document.getElementById('links-primary-cta')
   if (!page || !target || !bar || typeof IntersectionObserver === 'undefined') return
 
   const mqWide = window.matchMedia('(min-width: 768px)')

@@ -1,9 +1,15 @@
 /** MB Way — número de telemóvel do destinatário (confere na app antes de pagar). */
 const MBWAY_PHONE = '+351 912 345 678' // TODO: substituir pelo número real MB Way da equipa
 
-/** IBAN para transferência SEPA (verifica carácter a carácter no homebanking). */
-const BANK_IBAN = 'PT50 0000 0000 0000 0000 0000 0' // TODO: substituir pelo IBAN real
-const BANK_NAME = 'Banco CTT / CGD' // TODO: banco correto
+/** IBAN para Multibanco (homebanking / caixa) ou transferência SEPA. */
+const BANK_IBAN = 'PT50 0035 0836 0069 4266 33047'
+
+/** SWIFT/BIC — Caixa Geral de Depósitos. */
+const BANK_BIC = 'CGDIPTPL'
+
+const BANK_NAME = 'Caixa Geral de Depósitos'
+
+const BANK_BENEFICIARY = 'CAROLINA ISABEL NOGUEIRA FERREIRA GOMES'
 
 /** Revolut — @username / tag (confirma na app antes de enviar). */
 const REVOLUT_HANDLE = '@carolina_gomes92' // TODO: tag Revolut real da equipa
@@ -133,14 +139,15 @@ export function renderPaymentInstructions(method, ctx, el, langPt = null) {
     if (isPt) {
       appendStepByStep(
         el,
-        'Transferência SEPA — confere IBAN e beneficiário letra a letra.',
+        'Multibanco ou transferência — confere IBAN, SWIFT/BIC e beneficiário letra a letra.',
         [
           {
             text: 'Dados do destino:',
             rows: [
               { label: 'Banco', value: BANK_NAME },
+              { label: 'SWIFT/BIC', value: BANK_BIC, mono: true },
               { label: 'IBAN', value: BANK_IBAN, mono: true },
-              { label: 'Beneficiário', value: 'Ecstatic Dance Viseu' },
+              { label: 'Beneficiário', value: BANK_BENEFICIARY },
             ],
           },
           {
@@ -157,14 +164,15 @@ export function renderPaymentInstructions(method, ctx, el, langPt = null) {
     } else {
       appendStepByStep(
         el,
-        'SEPA transfer — verify IBAN and beneficiary character by character.',
+        'Multibanco or bank transfer — verify IBAN, SWIFT/BIC, and beneficiary character by character.',
         [
           {
             text: 'Destination:',
             rows: [
               { label: 'Bank', value: BANK_NAME },
+              { label: 'SWIFT/BIC', value: BANK_BIC, mono: true },
               { label: 'IBAN', value: BANK_IBAN, mono: true },
-              { label: 'Beneficiary', value: 'Ecstatic Dance Viseu' },
+              { label: 'Beneficiary', value: BANK_BENEFICIARY },
             ],
           },
           {

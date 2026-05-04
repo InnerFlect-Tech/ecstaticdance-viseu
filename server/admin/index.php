@@ -90,27 +90,34 @@ foreach ($events as $ev) {
     --verde: #1E2E27; --verde-m: #2A3D35;
     --success: #2d6a4f; --success-l: #40916c;
   }
-  body { background: var(--dark); color: var(--bone); font-family: Arial, sans-serif; font-weight: 300; font-size: 14px; }
+  body { background: var(--dark); color: var(--bone); font-family: Arial, sans-serif; font-weight: 300; font-size: 14px; min-height: 100dvh; }
   a { color: inherit; text-decoration: none; }
 
-  /* ── TOP BAR ── */
-  .topbar { background: var(--dark-m); border-bottom: 1px solid rgba(245,239,230,.08);
-            padding: 1rem 2rem; display: flex; align-items: center; justify-content: space-between; gap: 1rem; flex-wrap: wrap; }
-  .topbar-brand { font-size: .7rem; letter-spacing: .2em; text-transform: uppercase; color: var(--gold); font-weight: 400; }
-  .topbar-actions { display: flex; gap: .75rem; align-items: center; }
+  /* ── BUTTONS (forms / table toolbar) ── */
   .btn { display: inline-block; padding: .55rem 1.2rem; font-size: .7rem; letter-spacing: .14em;
          text-transform: uppercase; cursor: pointer; font-family: inherit; font-weight: 400; border: none; transition: background .2s; }
-  .btn-primary { background: var(--terra); color: var(--bone); }
-  .btn-primary:hover { background: var(--terra-l); }
   .btn-outline { background: transparent; color: rgba(245,239,230,.5); border: 1px solid rgba(245,239,230,.15); }
   .btn-outline:hover { border-color: rgba(245,239,230,.4); color: var(--bone); }
-  .btn-scan { background: var(--verde); color: var(--bone); }
-  .btn-scan:hover { background: var(--verde-m); }
+  <?php require __DIR__ . '/_topbar-styles.php'; ?>
 
   /* ── LAYOUT ── */
-  .layout { display: flex; min-height: calc(100vh - 57px); }
-  .sidebar { width: 240px; flex-shrink: 0; background: var(--dark-m); border-right: 1px solid rgba(245,239,230,.07);
-             padding: 1.5rem 0; overflow-y: auto; }
+  /* ── LAYOUT ── */
+  .layout { display: flex; min-height: calc(100dvh - 52px); position: relative; }
+  @media (min-width: 768px) { .layout { min-height: calc(100dvh - 56px); } }
+
+  /* ── SIDEBAR ── */
+  /* Mobile: horizontal scrolling pill-list of events above main content */
+  .sidebar {
+    display: none; /* replaced by mobile-events-strip on small screens */
+    width: 220px;
+    flex-shrink: 0;
+    background: var(--dark-m);
+    border-right: 1px solid rgba(245,239,230,.07);
+    padding: 1.25rem 0;
+    overflow-y: auto;
+  }
+  @media (min-width: 768px) { .sidebar { display: block; } }
+
   .sidebar-label { font-size: .6rem; letter-spacing: .2em; text-transform: uppercase; color: rgba(245,239,230,.3);
                    padding: .5rem 1.5rem 1rem; display: block; font-weight: 400; }
   .sidebar-event { display: block; padding: .75rem 1.5rem; border-left: 2px solid transparent;
@@ -121,28 +128,74 @@ foreach ($events as $ev) {
   .sidebar-event-date  { font-size: .7rem; color: rgba(245,239,230,.35); margin-top: .2rem; }
   .sidebar-event-count { font-size: .7rem; color: var(--gold); margin-top: .3rem; }
 
+  /* Mobile event switcher strip */
+  .mobile-events-strip {
+    display: flex;
+    gap: 0.45rem;
+    overflow-x: auto;
+    overflow-y: hidden;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+    padding: 0.65rem 1rem;
+    border-bottom: 1px solid rgba(245,239,230,.06);
+    background: var(--dark-m);
+  }
+  .mobile-events-strip::-webkit-scrollbar { display: none; }
+  @media (min-width: 768px) { .mobile-events-strip { display: none; } }
+  .mes-pill {
+    display: inline-flex;
+    flex-direction: column;
+    align-items: flex-start;
+    flex-shrink: 0;
+    padding: 0.5rem 0.8rem;
+    border-radius: 10px;
+    border: 1px solid rgba(245,239,230,.1);
+    background: rgba(245,239,230,.03);
+    text-decoration: none;
+    max-width: 160px;
+  }
+  .mes-pill.active {
+    border-color: rgba(139,58,42,.5);
+    background: rgba(139,58,42,.12);
+  }
+  .mes-pill-title { font-size: .73rem; font-weight: 400; color: var(--bone); white-space: nowrap;
+                    overflow: hidden; text-overflow: ellipsis; max-width: 140px; }
+  .mes-pill-date  { font-size: .62rem; color: rgba(245,239,230,.4); margin-top: 1px; }
+  .mes-pill-count { font-size: .62rem; color: var(--gold); }
+
   /* ── MAIN ── */
-  .main { flex: 1; padding: 2rem; overflow-x: auto; }
-  .page-header { margin-bottom: 2rem; }
-  .page-header h1 { font-size: 1.5rem; font-weight: 300; color: var(--bone); margin-bottom: .3rem; }
+  .main { flex: 1; padding: 1rem; overflow-x: auto; min-width: 0; }
+  @media (min-width: 768px) { .main { padding: 2rem; } }
+  .page-header { margin-bottom: 1.25rem; }
+  @media (min-width: 768px) { .page-header { margin-bottom: 2rem; } }
+  .page-header h1 { font-size: 1.2rem; font-weight: 300; color: var(--bone); margin-bottom: .3rem; }
+  @media (min-width: 768px) { .page-header h1 { font-size: 1.5rem; } }
   .page-header p  { font-size: .82rem; color: rgba(245,239,230,.4); }
 
   /* ── STATS ── */
-  .stats-row { display: grid; grid-template-columns: repeat(4, 1fr); gap: 1rem; margin-bottom: 2rem; }
-  .stat-box { background: var(--dark-l); padding: 1.2rem 1.5rem; }
-  .stat-box .num { font-size: 2rem; font-weight: 300; color: var(--bone); line-height: 1; margin-bottom: .4rem; }
-  .stat-box .lbl { font-size: .65rem; letter-spacing: .16em; text-transform: uppercase; color: rgba(245,239,230,.35); font-weight: 400; }
+  .stats-row { display: grid; grid-template-columns: repeat(2, 1fr); gap: 0.6rem; margin-bottom: 1.25rem; }
+  @media (min-width: 540px) { .stats-row { grid-template-columns: repeat(4, 1fr); } }
+  @media (min-width: 768px) { .stats-row { gap: 1rem; margin-bottom: 2rem; } }
+  .stat-box { background: var(--dark-l); padding: 0.85rem 1rem; border-radius: 10px; }
+  @media (min-width: 768px) { .stat-box { padding: 1.2rem 1.5rem; border-radius: 0; } }
+  .stat-box .num { font-size: 1.6rem; font-weight: 300; color: var(--bone); line-height: 1; margin-bottom: .3rem; }
+  @media (min-width: 768px) { .stat-box .num { font-size: 2rem; margin-bottom: .4rem; } }
+  .stat-box .lbl { font-size: .6rem; letter-spacing: .14em; text-transform: uppercase; color: rgba(245,239,230,.35); font-weight: 400; }
   .stat-box.highlight .num { color: var(--gold-l); }
 
   /* ── TOOLBAR ── */
-  .toolbar { display: flex; gap: .75rem; align-items: center; flex-wrap: wrap; margin-bottom: 1.5rem; }
+  .toolbar { display: flex; gap: .55rem; align-items: center; flex-wrap: wrap; margin-bottom: 1.25rem; }
+  @media (min-width: 768px) { .toolbar { gap: .75rem; margin-bottom: 1.5rem; } }
   .search-input { background: rgba(245,239,230,.05); border: 1px solid rgba(245,239,230,.12); color: var(--bone);
-                  padding: .5rem 1rem; font-size: .82rem; font-family: inherit; outline: none;
-                  width: 220px; }
+                  padding: .5rem .85rem; font-size: .82rem; font-family: inherit; outline: none;
+                  flex: 1; min-width: 0; border-radius: 8px; height: 40px; }
+  @media (min-width: 768px) { .search-input { flex: none; width: 220px; border-radius: 0; } }
   .search-input:focus { border-color: rgba(245,239,230,.25); }
   .search-input::placeholder { color: rgba(245,239,230,.2); }
   .filter-select { background: rgba(245,239,230,.05); border: 1px solid rgba(245,239,230,.12); color: var(--bone);
-                   padding: .5rem .9rem; font-size: .82rem; font-family: inherit; outline: none; cursor: pointer; }
+                   padding: .5rem .75rem; font-size: .82rem; font-family: inherit; outline: none; cursor: pointer;
+                   border-radius: 8px; height: 40px; }
+  @media (min-width: 768px) { .filter-select { border-radius: 0; } }
   .filter-select option { background: var(--dark-m); }
   .spacer { flex: 1; }
 
@@ -165,43 +218,36 @@ foreach ($events as $ev) {
   .ticket-id-short { font-family: monospace; font-size: .7rem; color: rgba(245,239,230,.3); }
   .empty-state { text-align: center; padding: 4rem; color: rgba(245,239,230,.25); font-style: italic; }
 
-  /* ── QR SCANNER MODAL ── */
-  .modal-backdrop { display: none; position: fixed; inset: 0; background: rgba(14,11,9,.85);
-                    z-index: 100; align-items: center; justify-content: center; }
-  .modal-backdrop.open { display: flex; }
-  .modal { background: var(--dark-m); border: 1px solid rgba(245,239,230,.1);
-           width: 100%; max-width: 480px; padding: 2rem; position: relative; }
-  .modal-title { font-size: 1.2rem; font-weight: 300; color: var(--bone); margin-bottom: 1.5rem; }
-  .modal-close { position: absolute; top: 1rem; right: 1rem; background: none; border: none;
-                 color: rgba(245,239,230,.4); cursor: pointer; font-size: 1.2rem; line-height: 1; }
-  .modal-close:hover { color: var(--bone); }
-  #reader { width: 100%; background: #000; min-height: 280px; position: relative; }
-  .scan-result { margin-top: 1.5rem; padding: 1.2rem; text-align: center; font-size: .9rem;
-                 font-weight: 400; display: none; line-height: 1.5; }
-  .scan-result.ok  { background: rgba(45,106,79,.3); color: #40916c; border: 1px solid rgba(64,145,108,.4); }
-  .scan-result.err { background: rgba(196,89,63,.2); color: #e07050; border: 1px solid rgba(196,89,63,.4); }
-  .scan-result .scan-name { font-size: 1.1rem; display: block; margin-bottom: .3rem; }
+  <?php require __DIR__ . '/_scanner-styles.php'; ?>
 </style>
 </head>
-<body>
+<body class="has-bottom-tabs">
 
-<!-- TOP BAR -->
-<div class="topbar">
-  <span class="topbar-brand">Ecstatic Dance Viseu — Admin</span>
-  <div class="topbar-actions">
-    <a href="/admin/link-bookings.php" class="btn btn-outline">Reservas /links</a>
-    <button class="btn btn-scan" id="openScannerBtn">Scan QR</button>
-    <?php if ($selected_event): ?>
-      <a href="/admin/export.php?event_id=<?= $selected_event ?>" class="btn btn-outline">Exportar CSV</a>
-    <?php endif; ?>
-    <a href="/admin/logout.php" class="btn btn-outline">Sair</a>
-  </div>
+<?php
+$__adminNav = 'tickets';
+$__exportEventId = $selected_event ?: null;
+require __DIR__ . '/_topbar.php';
+?>
+
+<!-- Mobile event switcher strip -->
+<div class="mobile-events-strip" role="navigation" aria-label="Eventos">
+  <?php foreach ($events as $ev): ?>
+    <a href="?event_id=<?= $ev['id'] ?>"
+       class="mes-pill <?= (int)$ev['id'] === $selected_event ? 'active' : '' ?>">
+      <span class="mes-pill-title"><?= htmlspecialchars($ev['title']) ?></span>
+      <span class="mes-pill-date"><?= date('d/m/Y', strtotime($ev['date'])) ?></span>
+      <span class="mes-pill-count"><?= (int)$ev['checked_in'] ?>/<?= (int)$ev['total'] ?></span>
+    </a>
+  <?php endforeach; ?>
+  <?php if (empty($events)): ?>
+    <span style="font-size:.78rem;color:rgba(245,239,230,.3);padding:.5rem 0;">Sem eventos ainda.</span>
+  <?php endif; ?>
 </div>
 
 <!-- LAYOUT -->
 <div class="layout">
 
-  <!-- SIDEBAR: events list -->
+  <!-- SIDEBAR: events list (tablet/desktop) -->
   <nav class="sidebar">
     <span class="sidebar-label">Eventos</span>
     <?php foreach ($events as $ev): ?>
@@ -327,16 +373,7 @@ foreach ($events as $ev) {
 </div>
 
 
-<!-- QR SCANNER MODAL -->
-<div class="modal-backdrop" id="scannerModal" role="dialog" aria-modal="true" aria-label="Scanner QR">
-  <div class="modal">
-    <button class="modal-close" id="closeScannerBtn" aria-label="Fechar">&times;</button>
-    <p class="modal-title">Scan QR code</p>
-    <div id="reader"></div>
-    <div class="scan-result" id="scanResult"></div>
-  </div>
-</div>
-
+<?php require __DIR__ . '/_scanner-modal.php'; ?>
 
 <script>
 // ── Manual check-in toggle ──
@@ -363,110 +400,9 @@ async function toggleCheckin(btn, ticketId, currentState) {
   }
   btn.disabled = false;
 }
-
-// ── QR Scanner (qr-scanner via CDN) ──
-const openBtn    = document.getElementById('openScannerBtn');
-const closeBtn   = document.getElementById('closeScannerBtn');
-const modal      = document.getElementById('scannerModal');
-const scanResult = document.getElementById('scanResult');
-
-let scanner = null;
-let scanCooldown = false;
-
-openBtn.addEventListener('click', startScanner);
-closeBtn.addEventListener('click', stopScanner);
-modal.addEventListener('click', e => { if (e.target === modal) stopScanner(); });
-
-async function startScanner() {
-  modal.classList.add('open');
-  scanResult.style.display = 'none';
-  scanResult.className = 'scan-result';
-
-  // Lazy-load qr-scanner from CDN
-  if (!window.QrScanner) {
-    const script = document.createElement('script');
-    script.src = 'https://unpkg.com/qr-scanner@1/qr-scanner.umd.min.js';
-    document.head.appendChild(script);
-    await new Promise((res, rej) => { script.onload = res; script.onerror = rej; });
-  }
-
-  const videoEl = document.createElement('video');
-  document.getElementById('reader').innerHTML = '';
-  document.getElementById('reader').appendChild(videoEl);
-
-  scanner = new QrScanner(
-    videoEl,
-    result => handleScan(result.data),
-    {
-      highlightScanRegion: true,
-      highlightCodeOutline: true,
-      preferredCamera: 'environment',
-    }
-  );
-  await scanner.start();
-}
-
-function stopScanner() {
-  if (scanner) {
-    scanner.stop();
-    scanner.destroy();
-    scanner = null;
-  }
-  document.getElementById('reader').innerHTML = '';
-  modal.classList.remove('open');
-}
-
-async function handleScan(code) {
-  if (scanCooldown || !code) return;
-  scanCooldown = true;
-
-  // Vibrate on supported devices
-  if (navigator.vibrate) navigator.vibrate(100);
-
-  try {
-    const res  = await fetch('/api/verify-ticket.php', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ code }),
-    });
-    const data = await res.json();
-
-    if (data.ok) {
-      showScanResult('ok',
-        `<span class="scan-name">${escHtml(data.ticket.name)}</span>
-         Entrada válida &nbsp;✓<br>
-         <small style="opacity:.7">${escHtml(data.ticket.event_title)}</small>`
-      );
-      if (navigator.vibrate) navigator.vibrate([100, 50, 100]);
-    } else {
-      showScanResult('err',
-        `<span class="scan-name">Inválido</span>${escHtml(data.error)}`
-      );
-      if (navigator.vibrate) navigator.vibrate([300]);
-    }
-  } catch {
-    showScanResult('err', 'Erro de rede. Verifica a ligação.');
-  }
-
-  setTimeout(() => { scanCooldown = false; }, 3000);
-}
-
-function showScanResult(type, html) {
-  scanResult.className = `scan-result ${type}`;
-  scanResult.innerHTML = html;
-  scanResult.style.display = '';
-  setTimeout(() => { scanResult.style.display = 'none'; }, 5000);
-}
-
-function escHtml(s) {
-  return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
-}
-
-// Keyboard shortcut: Escape closes modal
-document.addEventListener('keydown', e => {
-  if (e.key === 'Escape' && modal.classList.contains('open')) stopScanner();
-});
 </script>
+
+<?php require __DIR__ . '/_scanner-script.php'; ?>
 
 </body>
 </html>

@@ -31,7 +31,7 @@ function admin_link_heard_label(array $row): string {
 function admin_link_payment_label(string $m): string {
     return match ($m) {
         'mbway'    => 'MB Way',
-        'transfer' => 'Transferência',
+        'transfer' => 'Multibanco / transferência',
         'revolut'  => 'Revolut',
         default    => $m,
     };
@@ -138,18 +138,7 @@ $n = count($rows);
   body { background: var(--dark); color: var(--bone); font-family: Arial, sans-serif; font-weight: 300; font-size: 14px; }
   a { color: inherit; text-decoration: none; }
 
-  .topbar { background: var(--dark-m); border-bottom: 1px solid rgba(245,239,230,.08);
-            padding: 1rem 2rem; display: flex; align-items: center; justify-content: space-between; gap: 1rem; flex-wrap: wrap; }
-  .topbar-brand { font-size: .7rem; letter-spacing: .2em; text-transform: uppercase; color: var(--gold); font-weight: 400; }
-  .topbar-actions { display: flex; gap: .75rem; align-items: center; flex-wrap: wrap; }
-  .btn { display: inline-block; padding: .55rem 1.2rem; font-size: .7rem; letter-spacing: .14em;
-         text-transform: uppercase; cursor: pointer; font-family: inherit; font-weight: 400; border: none; transition: background .2s; }
-  .btn-primary { background: var(--terra); color: var(--bone); }
-  .btn-primary:hover { background: var(--terra-l); }
-  .btn-outline { background: transparent; color: rgba(245,239,230,.5); border: 1px solid rgba(245,239,230,.15); }
-  .btn-outline:hover { border-color: rgba(245,239,230,.4); color: var(--bone); }
-  .btn-csv { background: var(--verde); color: var(--bone); }
-  .btn-csv:hover { background: var(--verde-m); }
+  <?php require __DIR__ . '/_topbar-styles.php'; ?>
 
   .main { padding: 2rem; max-width: 1400px; margin: 0 auto; }
   .page-header { margin-bottom: 2rem; }
@@ -175,20 +164,18 @@ $n = count($rows);
   .proof-link { color: var(--gold-l); text-decoration: underline; font-size: .78rem; }
   .proof-link:hover { color: var(--bone); }
   .empty { text-align: center; padding: 3rem; color: rgba(245,239,230,.25); font-style: italic; }
+
+  <?php require __DIR__ . '/_scanner-styles.php'; ?>
 </style>
 </head>
-<body>
+<body class="has-bottom-tabs">
 
-<div class="topbar">
-  <span class="topbar-brand">Ecstatic Dance Viseu — Admin</span>
-  <div class="topbar-actions">
-    <a href="/admin/" class="btn btn-outline">Check-in bilhetes</a>
-    <?php if ($n > 0): ?>
-      <a href="?export=csv" class="btn btn-csv">Exportar CSV</a>
-    <?php endif; ?>
-    <a href="/admin/logout.php" class="btn btn-outline">Sair</a>
-  </div>
-</div>
+<?php
+$__adminNav = 'links';
+$__exportEventId = null;
+$__secondaryCsvHref = $n > 0 ? '/admin/link-bookings.php?export=csv' : null;
+require __DIR__ . '/_topbar.php';
+?>
 
 <div class="main">
   <div class="page-header">
@@ -285,5 +272,9 @@ $n = count($rows);
     </div>
   <?php endif; ?>
 </div>
+
+<?php require __DIR__ . '/_scanner-modal.php'; ?>
+<?php require __DIR__ . '/_scanner-script.php'; ?>
+
 </body>
 </html>
