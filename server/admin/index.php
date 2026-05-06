@@ -172,6 +172,19 @@ foreach ($events as $ev) {
   @media (min-width: 768px) { .page-header h1 { font-size: 1.5rem; } }
   .page-header p  { font-size: .82rem; color: rgba(245,239,230,.4); }
 
+  .banner-hint-links {
+    background: rgba(184,146,74,.12);
+    border: 1px solid rgba(184,146,74,.28);
+    padding: .75rem 1rem;
+    margin-bottom: 1.15rem;
+    font-size: .78rem;
+    line-height: 1.55;
+    color: rgba(245,239,230,.82);
+    border-radius: 2px;
+  }
+  .banner-hint-links a { color: var(--gold-l); text-decoration: underline; }
+  .banner-hint-links code { font-size: .72rem; color: rgba(245,239,230,.42); }
+
   /* ── STATS ── */
   .stats-row { display: grid; grid-template-columns: repeat(2, 1fr); gap: 0.6rem; margin-bottom: 1.25rem; }
   @media (min-width: 540px) { .stats-row { grid-template-columns: repeat(4, 1fr); } }
@@ -273,6 +286,12 @@ require __DIR__ . '/_topbar.php';
           &nbsp;·&nbsp;
           <?= $sel_event_obj['type'] === 'paid' ? 'Pago' : 'Gratuito' ?>
         </p>
+      </div>
+
+      <div class="banner-hint-links" role="note">
+        Esta lista são bilhetes com QR (<strong>Check-in</strong>).
+        <strong>Inscrições manuais</strong> pela página <code>/links</code> (MB Way, transferência, comprovativo) estão em
+        <a href="/admin/link-bookings.php">Inscrições · /links</a>.
       </div>
 
       <!-- Stats -->

@@ -24,6 +24,11 @@ function main_db_sqlite_migrate(PDO $pdo): void {
     foreach (explode(';', $buf) as $stmt) {
         $stmt = trim($stmt);
         if ($stmt !== '') {
+            if (preg_match('/^(DROP|TRUNCATE)\b/i', ltrim($stmt))) {
+                throw new RuntimeException(
+                    'schema-main-sqlite.sql contém DROP/TRUNCATE, o que não é permitido (protecção de dados).'
+                );
+            }
             $pdo->exec($stmt);
         }
     }

@@ -265,6 +265,24 @@ function link_registrations_all(): array {
     return $stmt ? $stmt->fetchAll() : [];
 }
 
+/**
+ * Para o painel admin: onde estão a ser lidas as inscrições /links (deve coincidir com o que o API usa em produção).
+ *
+ * @return array{mode:'json'|'sqlite'|'mysql', detail:string}
+ */
+function link_registrations_storage_info(): array {
+    if (LINK_USE_JSON === true) {
+        return ['mode' => 'json', 'detail' => (string) LINK_JSON_PATH];
+    }
+    if (link_is_sqlite()) {
+        return ['mode' => 'sqlite', 'detail' => (string) LINK_SQLITE_PATH];
+    }
+    $db = defined('DB_NAME') && DB_NAME !== '' ? (string) DB_NAME : '?';
+    $host = defined('DB_HOST') ? (string) DB_HOST : '';
+
+    return ['mode' => 'mysql', 'detail' => $host !== '' ? $db . '@' . $host : $db];
+}
+
 function link_notify_team(string $subject_line, string $body): void {
     try {
         if (!function_exists('mail')) {

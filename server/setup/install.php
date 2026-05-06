@@ -20,6 +20,19 @@ $steps   = [];
 $errors  = [];
 $success = true;
 
+/** Recusa instruções que apagam dados ou estrutura — o instalador só deve executar CREATE seguro. */
+$install_sql_is_safe = static function (string $stmt): bool {
+    $s = ltrim($stmt);
+    if ($s === '' || str_starts_with($s, '--')) {
+        return true;
+    }
+    if (preg_match('/^(DROP|TRUNCATE)\b/i', $s)) {
+        return false;
+    }
+
+    return true;
+};
+
 // ── Step 1: Run schema.sql ──
 $sql_file = __DIR__ . '/schema.sql';
 if (!file_exists($sql_file)) {
@@ -36,9 +49,16 @@ if (!file_exists($sql_file)) {
     try {
         foreach ($statements as $stmt) {
             if (empty(trim($stmt))) continue;
+            if (!$install_sql_is_safe($stmt)) {
+                $errors[]  = 'Recusado: o schema contém DROP ou TRUNCATE (não executado por segurança).';
+                $success   = false;
+                break;
+            }
             db()->exec($stmt);
         }
-        $steps[] = '✓ Tabelas criadas (ou já existiam).';
+        if ($success) {
+            $steps[] = '✓ Tabelas criadas (ou já existiam).';
+        }
     } catch (PDOException $e) {
         $errors[]  = 'Erro ao criar tabelas: ' . htmlspecialchars($e->getMessage());
         $success   = false;

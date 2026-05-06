@@ -117,6 +117,15 @@ if (isset($_GET['export']) && (string)$_GET['export'] === 'csv') {
 }
 
 $n = count($rows);
+
+$linkStore = link_registrations_storage_info();
+$linkStoreHint = match ($linkStore['mode']) {
+    'json'   => 'Modo JSON (só desenvolvimento). Ficheiro: ' . htmlspecialchars($linkStore['detail'], ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'),
+    'sqlite' => 'SQLite — ficheiro: ' . htmlspecialchars($linkStore['detail'], ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8')
+        . ' (em contentores Docker, sem volume persistente em <code>server/data/</code> os dados podem desaparecer entre deploys.)',
+    'mysql'  => 'MySQL — ' . htmlspecialchars($linkStore['detail'], ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8')
+        . ' (tabela <code>link_registrations</code>; em produção mantém <code>LINK_USE_SQLITE</code> e <code>LINK_USE_JSON</code> a <strong>false</strong>.)',
+};
 ?>
 <!DOCTYPE html>
 <html lang="pt">
@@ -124,7 +133,7 @@ $n = count($rows);
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 <meta name="robots" content="noindex,nofollow" />
-<title>Reservas /links — Admin</title>
+<title>Inscrições · /links — Admin</title>
 <style>
   *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
   :root {
@@ -163,7 +172,15 @@ $n = count($rows);
   .badge-mail { background: rgba(184,146,74,.15); color: var(--gold-l); }
   .proof-link { color: var(--gold-l); text-decoration: underline; font-size: .78rem; }
   .proof-link:hover { color: var(--bone); }
-  .empty { text-align: center; padding: 3rem; color: rgba(245,239,230,.25); font-style: italic; }
+  .empty { text-align: center; padding: 3rem; color: rgba(245,239,230,.35); }
+  .empty-hints { max-width: 36rem; margin: 1rem auto 0; text-align: left; font-style: normal;
+    font-size: .8rem; line-height: 1.55; color: rgba(245,239,230,.45); list-style: disc; padding-left: 1.25rem; }
+  .empty-hints li { margin-bottom: .65rem; }
+  .empty-hints a { color: var(--gold-l); text-decoration: underline; }
+  .empty-hints code { font-size: .72rem; color: rgba(245,239,230,.4); }
+  .banner-info { background: rgba(45,106,79,.12); border: 1px solid rgba(45,106,79,.28);
+    padding: .85rem 1.1rem; margin-bottom: 1.25rem; font-size: .78rem; line-height: 1.55; color: rgba(245,239,230,.82); }
+  .banner-info code { font-size: .72rem; color: rgba(245,239,230,.45); }
 
   <?php require __DIR__ . '/_scanner-styles.php'; ?>
 </style>
@@ -179,12 +196,19 @@ require __DIR__ . '/_topbar.php';
 
 <div class="main">
   <div class="page-header">
-    <h1>Reservas (formulário /links)</h1>
+    <h1>Inscrições · reservas manuais (/links)</h1>
     <p>
-      Pedidos guardados na base configurada em <code style="font-size:.78rem;color:rgba(245,239,230,.35)">server/api/config.php</code>
-      (SQLite, MySQL ou JSON em desenvolvimento). Total: <strong><?= (int)$n ?></strong>.
+      Pedidos do formulário «Pedir bilhete» na página pública <code style="font-size:.78rem;color:rgba(245,239,230,.35)">/links</code>
+      — guardados via <code style="font-size:.78rem;color:rgba(245,239,230,.35)">server/api/config.php</code>.
+      Total nesta origem: <strong><?= (int)$n ?></strong>.
     </p>
   </div>
+
+  <?php if ($loadError === ''): ?>
+    <div class="banner-info" role="status">
+      <?= $linkStoreHint ?>
+    </div>
+  <?php endif; ?>
 
   <?php if ($loadError !== ''): ?>
     <div class="banner-err">
@@ -193,7 +217,18 @@ require __DIR__ . '/_topbar.php';
   <?php endif; ?>
 
   <?php if ($n === 0 && $loadError === ''): ?>
-    <p class="empty">Ainda não há pedidos — ou a base está vazia.</p>
+    <div class="empty">
+      <p>Nenhum registo nesta origem de dados.</p>
+      <ul class="empty-hints">
+        <li>
+          Se já recebeste pedidos em produção (<code>ecstaticdanceviseu.pt</code>), o painel tem de usar o <strong>mesmo</strong> modo
+          de armazenamento que o servidor onde o formulário gravou (em cPanel típico: MySQL com
+          <code>LINK_USE_SQLITE=false</code> e <code>LINK_USE_JSON=false</code>). Se o exemplo Docker copiou config com SQLite,
+          o site pode estar noutra base do que esta instância do admin.
+        </li>
+        <li>Bilhetes Stripe e QR de check-in listam-se em <a href="/admin/">Check-in</a> (tabela <code>tickets</code>), não aqui.</li>
+      </ul>
+    </div>
   <?php elseif ($n > 0): ?>
     <div class="table-wrap">
       <table>
