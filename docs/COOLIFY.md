@@ -1,0 +1,71 @@
+# Deploy no Coolify — referência rápida
+
+Este repositório suporta a imagem **Dockerfile oficial** (`/var/www/edv-server`). Se estiveres a usar **Nixpacks**, os caminhos dentro do contentor são outros (muitas vezes sob `/app`); usa o mesmo prefixo que o painel admin mostra na página **Inscrições** (faixa técnica com o caminho do SQLite).
+
+Persistência recomendada pela documentação **[Coolify Persistent Storage](https://coolify.io/docs/knowledge-base/persistent-storage)** e padrões **[Docker volumes](https://docs.docker.com/get-started/docker-concepts/running-containers/persisting-container-data/)**: montar **volumes nomeados ou bind mounts** nos directórios onde a app guarda dados, para sobreviver a redeploy.
+
+---
+
+## 1. Imagem Dockerfile (este repo)
+
+Camada PHP + Nginx: dados e uploads ficam relativos a **`/var/www/edv-server`** (ou `EDV_SERVER_ROOT` se definires).
+
+Na UI Coolify → serviço → **Volumes / Persistent storage**, adiciona **dois** destinos:
+
+| Volume (nome livre) | Destination path dentro do contentor |
+|---------------------|--------------------------------------|
+| `edv-data` | `/var/www/edv-server/data` |
+| `edv-uploads` | `/var/www/edv-server/uploads` |
+
+- **`data`**: SQLite `events-tickets.sqlite` + `link-bookings.sqlite` (modo default do exemplo), ou ficheiros auxiliares.
+- **`uploads`**: comprovativos em `uploads/link-proofs/` (formulário /links).
+
+> **Importante:** a documentação Coolify menciona `/app` como base em alguns stacks genéricos. **Esta imagem não usa `/app`** para dados da app — usa **`/var/www/edv-server`**. O destination path deve bater exactamente com a árvore do contentor ou os volumes não persistem onde o código escreve.
+
+---
+
+## 2. Configuração (escolher um modo)
+
+### A) SQLite tudo na app (simples — default do `config.example.php`)
+
+Sem variáveis de ambiente opcionais, o exemplo usa SQLite em `server/data/` (dentro do volume acima).
+
+- Garante os volumes **`data`** + **`uploads`**.
+- Não cries config montado incompatible: no primeiro boot o **entrypoint** copia `config.example.php` → `config.php` se `config.php` não existir.
+
+### B) Só environment variables (`EDV_*`)
+
+Define no Coolify as variáveis documentadas em `server/api/config.example.php` (cabeçalho do ficheiro).
+
+- Para **forçar** recópia do template em cada arranque (útil só com secrets em env):
+
+  `EDV_REPLACE_CONFIG_FROM_EXAMPLE=1` (ou valor truthy compatível)
+
+- Produção só MySQL dentro do próprio Coolify: `EDV_USE_SQLITE_MAIN_DB=false`, `EDV_LINK_USE_SQLITE=false`, `EDV_DB_*`.
+
+---
+
+## 3. Health check
+
+Imagem Dockerfile: probes **PHP built-in** em `http://127.0.0.1:8080/api/health.php` (endpoint leve sem base de dados).
+
+No Coolify podes repetir esse path atrás do proxy público (**Health check**: `/api/health.php`), coerente com `nginx.conf` (`location ^~ /api`).
+
+---
+
+## 4. Deploy
+
+1. Repositório + branch (**main** típico).  
+2. Volumes configurados (**data** + **uploads**) com caminhos acima.  
+3. Secrets / env conforme modo A ou B.  
+4. **Deploy / Redeploy**.  
+5. Verificar: página pública `/links`, admin `/admin/link-bookings.php` (total e faixa técnica), e existe ficheiros no volume após uma inscrição de teste.
+
+---
+
+## Checklist rápido
+
+- [ ] Volumes montados nos caminhos **correctos para esta imagem** (`/var/www/edv-server/...`).  
+- [ ] Se usas apenas SQLite: dois volumes (`data` + `uploads`).  
+- [ ] Se alteraste `server/api/config.php` num volume antigo sem suporte `EDV_*`, actualiza-o ou usa `EDV_REPLACE_CONFIG_FROM_EXAMPLE=1` com só env vars.  
+- [ ] Um único sítio a servir o domínio (evita dois backends a concorrer pela mesma inscrição).

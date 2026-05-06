@@ -66,6 +66,8 @@ O sistema de bilhetes está implementado como camada PHP + MySQL no cPanel, sepa
 
 ## Deploy no Coolify (Hetzner)
 
+Referência única (**volumes SQLite, `/var/www/edv-server`, env `EDV_*`, healthcheck**): **[docs/COOLIFY.md](docs/COOLIFY.md)**
+
 ### Opção A (recomendada): Dockerfile (Nginx + PHP)
 
 O contentor faz **build Vite** → serve `dist/` com **Nginx** e sobe **PHP built-in** (`php -S … -t server`) em `127.0.0.1:8080`, com **Supervisor** a gerir os dois processos. O Nginx envia `/api`, `/admin` e `/uploads` para esse PHP (ver `nginx.conf`).
