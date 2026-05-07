@@ -68,12 +68,33 @@ No Coolify podes repetir esse path atrás do proxy público (**Health check**: `
 - [ ] Volumes montados nos caminhos **correctos para esta imagem** (`/var/www/edv-server/...`).  
 - [ ] Se usas apenas SQLite: dois volumes (`data` + `uploads`).  
 - [ ] Se alteraste `server/api/config.php` num volume antigo sem suporte `EDV_*`, actualiza-o ou usa `EDV_REPLACE_CONFIG_FROM_EXAMPLE=1` com só env vars.  
-- [ ] Um único sítio a servir o domínio (evita dois backends a concorrer pela mesma inscrição).
+- [ ] Um único sítio a servir o domínio (evita dois backends a concorrer pela mesma inscrição).  
+- [ ] **Ports Exposes = `80`**, **Port Mappings vazio** (ver secção **5**).
 
 ---
 
-## 5. **502 Bad Gateway** no domínio público
+## 5. **Ports Exposes** vs **Port Mappings** (crítico — evita falha de deploy e 502)
+
+No Coolify, o **Traefik** (ou outro proxy da instalação) já ocupa as portas **80** e **443** no **host** Hetzner. O tráfego público chega lá e é **encaminhado para a rede Docker** até ao teu contentor — **sem** precisares de publicar a app em `0.0.0.0:80`.
+
+| Campo | Valor correcto para esta imagem |
+|--------|--------------------------------|
+| **Ports Exposes** | **`80`** — é a porta onde o **Nginx** escuta *dentro* do contentor (o proxy usa isto para saber para onde fazer forward). |
+| **Port Mappings** | **Vazio / apagar** — **não** uses `80:80` nem `3000:3000` no host. Se mapeares **`80:80`**, o Docker tenta ligar a `0.0.0.0:80` na máquina e falha com **`port is already allocated`** (a porta já está a ser usada pelo proxy do Coolify). |
+
+Mensagem típica quando está mal configurado:
+
+`Bind for 0.0.0.0:80 failed: port is already allocated`
+
+**O que fazer:** remove **Port Mappings** por completo; mantém só **Ports Exposes = 80**. Grava e faz **Redeploy**.
+
+O log *"Application has ports mapped to the host system, rolling update is not supported"* indica que há mapeamento para o host — para apps atrás do proxy Coolify, normalmente **não** queres isso.
+
+---
+
+## 6. **502 Bad Gateway** no domínio público
 
 1. **Porta do contentor** — A imagem **EXPOSE 80** (`nginx`). O proxy (Traefik/Coolify) deve enviar tráfego HTTP(S) para **`80` interno**, **não** para `8080` (isso é só o PHP built‑in para `/api`/`/admin`).
-2. **Nginx a escutar** — O healthcheck da imagem faz `wget` em `http://127.0.0.1/` **e** em `http://127.0.0.1:8080/api/health.php`. Se o deploy ficar *unhealthy*, o proxy devolve 502.
-3. **DNS** — `ecstaticdanceviseu.pt` tem de resolver para o mesmo destino onde corre **este** serviço (registo A/AAAA ou CNAME conforme Coolify/domínios custom). Um domínio ainda no cPanel e outro na Hetzner dá cenários onde um deles falha ou aponta para IP parado → 502 atrás do edge.
+2. **Sem host publish** — Segue a secção **5** acima: não forces `80:80` no host.
+3. **Nginx a escutar** — O healthcheck da imagem faz `wget` em `http://127.0.0.1/` **e** em `http://127.0.0.1:8080/api/health.php`. Se o deploy ficar *unhealthy*, o proxy devolve 502.
+4. **DNS** — `ecstaticdanceviseu.pt` tem de resolver para o mesmo destino onde corre **este** serviço (registo A/AAAA ou CNAME conforme Coolify/domínios custom).
