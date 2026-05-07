@@ -1,5 +1,5 @@
 #!/bin/sh
-# Coolify / Docker: ensure config + data dir, then supervisord (PHP + Nginx).
+# Coolify / Docker: config + dirs, depois PHP built-in + Nginx (sem Supervisor — evita bug pyexpat/expat no Alpine).
 set -eu
 
 SERVER_ROOT="${EDV_SERVER_ROOT:-/var/www/edv-server}"
@@ -15,4 +15,24 @@ elif [ ! -f "${SERVER_ROOT}/api/config.php" ]; then
   cp "${SERVER_ROOT}/api/config.example.php" "${SERVER_ROOT}/api/config.php"
 fi
 
-exec /usr/bin/supervisord -c /etc/supervisord.conf
+shutdown() {
+  if [ -n "${PHP_PID:-}" ]; then
+    kill -TERM "$PHP_PID" 2>/dev/null || true
+    wait "$PHP_PID" 2>/dev/null || true
+  fi
+  if [ -n "${NGINX_PID:-}" ]; then
+    kill -TERM "$NGINX_PID" 2>/dev/null || true
+    wait "$NGINX_PID" 2>/dev/null || true
+  fi
+  exit 0
+}
+trap shutdown TERM INT
+
+/usr/bin/php -S 127.0.0.1:8080 -t "${SERVER_ROOT}" &
+PHP_PID=$!
+
+/usr/sbin/nginx -g "daemon off;" &
+NGINX_PID=$!
+
+wait "$NGINX_PID"
+shutdown
