@@ -39,7 +39,10 @@ RUN chmod +x /entrypoint.sh
 
 EXPOSE 80
 
-ENTRYPOINT ["/sbin/tini", "--", "/entrypoint.sh"]
+# -g: repete sinais ao grupo de processos (mantém PID1 limpo quando há php em background).
+ENTRYPOINT ["/sbin/tini", "-g", "--", "/entrypoint.sh"]
 
 HEALTHCHECK --interval=30s --timeout=5s --start-period=25s --retries=3 \
-  CMD wget -q -O /dev/null http://127.0.0.1:8080/api/health.php || exit 1
+  CMD wget -q -O /dev/null http://127.0.0.1/ \
+  && wget -q -O /dev/null http://127.0.0.1:8080/api/health.php \
+  || exit 1

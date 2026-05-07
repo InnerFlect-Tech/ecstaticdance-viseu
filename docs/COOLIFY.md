@@ -69,3 +69,11 @@ No Coolify podes repetir esse path atrás do proxy público (**Health check**: `
 - [ ] Se usas apenas SQLite: dois volumes (`data` + `uploads`).  
 - [ ] Se alteraste `server/api/config.php` num volume antigo sem suporte `EDV_*`, actualiza-o ou usa `EDV_REPLACE_CONFIG_FROM_EXAMPLE=1` com só env vars.  
 - [ ] Um único sítio a servir o domínio (evita dois backends a concorrer pela mesma inscrição).
+
+---
+
+## 5. **502 Bad Gateway** no domínio público
+
+1. **Porta do contentor** — A imagem **EXPOSE 80** (`nginx`). O proxy (Traefik/Coolify) deve enviar tráfego HTTP(S) para **`80` interno**, **não** para `8080` (isso é só o PHP built‑in para `/api`/`/admin`).
+2. **Nginx a escutar** — O healthcheck da imagem faz `wget` em `http://127.0.0.1/` **e** em `http://127.0.0.1:8080/api/health.php`. Se o deploy ficar *unhealthy*, o proxy devolve 502.
+3. **DNS** — `ecstaticdanceviseu.pt` tem de resolver para o mesmo destino onde corre **este** serviço (registo A/AAAA ou CNAME conforme Coolify/domínios custom). Um domínio ainda no cPanel e outro na Hetzner dá cenários onde um deles falha ou aponta para IP parado → 502 atrás do edge.

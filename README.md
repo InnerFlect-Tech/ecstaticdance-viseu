@@ -70,7 +70,7 @@ Referência única (**volumes SQLite, `/var/www/edv-server`, env `EDV_*`, health
 
 ### Opção A (recomendada): Dockerfile (Nginx + PHP)
 
-O contentor faz **build Vite** → serve `dist/` com **Nginx** e sobe **PHP built-in** (`php -S … -t server`) em `127.0.0.1:8080`, com **tini** como init e um script a arrancar os dois processos (sem Supervisor/Python, mais estável em Alpine). O Nginx envia `/api`, `/admin` e `/uploads` para esse PHP (ver `nginx.conf`).
+O contentor faz **build Vite** → serve `dist/` com **Nginx** (`exec` em primeiro plano na **porta 80**) e **PHP built-in** (`php -S … -t server`) em `127.0.0.1:8080` em background — **tini -g** como init. O proxy Coolify deve mapear para a **porta 80** do contentor, não 8080 (ver `nginx.conf` e `docs/COOLIFY.md` → 502).
 
 Na **primeira arranque**, se não existir `config.php` no contentor, o `entrypoint` copia `server/api/config.example.php` → `config.php`. O exemplo inclui **`ADMIN_PASSWORD_HASH` para a palavra-passe `admin123`** e **`USE_SQLITE_MAIN_DB = true`** (eventos/bilhetes em ficheiro SQLite em `server/data/`, sem MySQL no contentor). O painel em **`/admin/`** deixa de rebentar com *No such file or directory* no MySQL.
 
