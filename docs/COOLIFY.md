@@ -69,7 +69,9 @@ No Coolify podes repetir esse path atrás do proxy público (**Health check**: `
 - [ ] Se usas apenas SQLite: dois volumes (`data` + `uploads`).  
 - [ ] Se alteraste `server/api/config.php` num volume antigo sem suporte `EDV_*`, actualiza-o ou usa `EDV_REPLACE_CONFIG_FROM_EXAMPLE=1` com só env vars.  
 - [ ] Um único sítio a servir o domínio (evita dois backends a concorrer pela mesma inscrição).  
-- [ ] **Ports Exposes = `80`**, **Port Mappings vazio** (ver secção **5**).
+- [ ] **Ports Exposes = `80`**, **Port Mappings vazio** (ver secção **5**).  
+- [ ] **Build Pack = Dockerfile** (não Nixpacks — ver secção **7**).  
+- [ ] Domínios / URLs válidos (`https://...`, sem `https//`).  
 
 ---
 
@@ -98,3 +100,28 @@ O log *"Application has ports mapped to the host system, rolling update is not s
 2. **Sem host publish** — Segue a secção **5** acima: não forces `80:80` no host.
 3. **Nginx a escutar** — O healthcheck da imagem faz `wget` em `http://127.0.0.1/` **e** em `http://127.0.0.1:8080/api/health.php`. Se o deploy ficar *unhealthy*, o proxy devolve 502.
 4. **DNS** — `ecstaticdanceviseu.pt` tem de resolver para o mesmo destino onde corre **este** serviço (registo A/AAAA ou CNAME conforme Coolify/domínios custom).
+
+---
+
+## 7. Deploy com **Nixpacks** por engano · **no available server** · URLs partidas nos logs
+
+### Sintomas no log (build errado para produção nginx+PHP)
+
+Se vires **`deploy_nixpacks_buildpack`**, **`COPY .nixpacks/`**, **`nix-env`**, ou **`vite build`** numa pilha tipo **stage-0**/Nix, o Coolify está a usar **Nixpacks**, **não** o **Dockerfile** deste repo.
+
+- Stack de produção: **Docker** com `Dockerfile` na raiz (Nginx + PHP em `/var/www/edv-server`).
+- O ficheiro `nixpacks.toml` só serve **preview/stack alternativo** (Node `npm run start`). Não deve ser o modo do serviço público Coolify para este site.
+
+**O que fazer:** Serviço → **Build** → **Build Pack = Dockerfile** (não *Nixpacks* nem *automatic* se isso voltar ao Nixpacks). Dockerfile path típico: `Dockerfile`, base **`/`**. Guardar e **Redeploy**.
+
+### **Port is already allocated** (continua igual à secção 5)
+
+Mantém **`Ports Exposes = 80`** e **Port Mappings vazio**. Enquanto o log disser *"Application has ports mapped to the host system"*, ainda há **`ports:` para o host** em algures — remove na UI ou no compose gerado até desaparecer essa linha.
+
+### **`no available server`** / router sem backend
+
+Um deploy falhado pode **apanhar e remover** a nova versão; se nenhum contentor ficou a correr atrás das labels Traefik/Coolify, o browser pode mostrar erro de servidor indisponível. Corrigir **Build Pack + rede** como acima e **Redeploy** até o compose subir sem erros.
+
+### URLs nos logs Coolify (`https//`, `COOLIFY_FQDN` estranho)
+
+Exemplo típico: `https//host...` (**falta `:`** após `https`) ou vírgulas a juntar domínios sem URL completa. Em **domains / URLs** usa sempre **`https://` + nome de host** por entrada (ex.: `https://ecstaticdanceviseu.pt`), vírgulas só entre URLs válidas — senão variáveis `COOLIFY_URL` / `COOLIFY_FQDN` ficam mal formadas e o router pode comportar‑se mal.
