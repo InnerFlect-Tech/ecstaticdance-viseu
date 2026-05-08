@@ -41,3 +41,21 @@ CREATE INDEX IF NOT EXISTS idx_event_status ON tickets (event_id, payment_status
 CREATE INDEX IF NOT EXISTS idx_email ON tickets (email);
 CREATE INDEX IF NOT EXISTS idx_stripe_session ON tickets (stripe_session_id);
 CREATE INDEX IF NOT EXISTS idx_checked_in ON tickets (checked_in);
+
+CREATE TABLE IF NOT EXISTS event_costs (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  event_id INTEGER NOT NULL,
+  label TEXT NOT NULL,
+  category TEXT NOT NULL DEFAULT '',
+  amount_eur REAL NOT NULL,
+  paid_by TEXT DEFAULT NULL,
+  notes TEXT DEFAULT NULL,
+  incurred_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  reimbursed INTEGER NOT NULL DEFAULT 0,
+  reimbursed_at TEXT DEFAULT NULL,
+  created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  FOREIGN KEY (event_id) REFERENCES events(id) ON DELETE RESTRICT ON UPDATE CASCADE
+);
+
+CREATE INDEX IF NOT EXISTS idx_event_costs_event ON event_costs (event_id);
+CREATE INDEX IF NOT EXISTS idx_event_costs_incurred ON event_costs (incurred_at);

@@ -78,6 +78,27 @@ CREATE TABLE IF NOT EXISTS `link_registrations` (
   KEY `idx_step1` (`step1_at`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
+-- ── Event costs / reimbursements (admin/costs.php) ──
+CREATE TABLE IF NOT EXISTS `event_costs` (
+  `id`            BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
+  `event_id`      INT UNSIGNED    NOT NULL,
+  `label`         VARCHAR(255)    NOT NULL,
+  `category`      VARCHAR(80)     NOT NULL DEFAULT '',
+  `amount_eur`    DECIMAL(10,2)   NOT NULL,
+  `paid_by`       VARCHAR(120)    DEFAULT NULL,
+  `notes`         TEXT            DEFAULT NULL,
+  `incurred_at`   DATETIME        NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `reimbursed`    TINYINT(1)      NOT NULL DEFAULT 0,
+  `reimbursed_at` DATETIME        DEFAULT NULL,
+  `created_at`    DATETIME        NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (`id`),
+  KEY `idx_event` (`event_id`),
+  KEY `idx_incurred_at` (`incurred_at`),
+  CONSTRAINT `fk_event_costs_event`
+    FOREIGN KEY (`event_id`) REFERENCES `events` (`id`)
+    ON DELETE RESTRICT ON UPDATE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
 
 -- ── First event — uncomment to seed after install ──
 -- INSERT INTO `events`
