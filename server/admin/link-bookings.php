@@ -54,6 +54,69 @@ function admin_link_step2_label(array $row): string {
     return '—';
 }
 
+/**
+ * @param string $proofRelpath
+ */
+function admin_link_delete_proof_file(string $proofRelpath): void {
+    $clean = str_replace(['../', '..\\'], '', $proofRelpath);
+    $clean = str_replace('\\', '/', $clean);
+    if ($clean === '') {
+        return;
+    }
+    $baseUploads = realpath(dirname(__DIR__) . '/uploads');
+    if (!is_string($baseUploads) || $baseUploads === '') {
+        return;
+    }
+    $target = realpath($baseUploads . '/' . $clean);
+    if (!is_string($target) || $target === '') {
+        return;
+    }
+    if (!str_starts_with($target, $baseUploads . DIRECTORY_SEPARATOR)) {
+        return;
+    }
+    if (is_file($target)) {
+        @unlink($target);
+    }
+}
+
+$flashMessage = '';
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && (string)($_POST['action'] ?? '') === 'delete_registration') {
+    $deleteId = link_sanitise((string)($_POST['registration_id'] ?? ''), 36);
+    if (strlen($deleteId) < 32) {
+        $flashMessage = 'ID de registo inválido.';
+    } else {
+        try {
+            $backend = link_registration_backend();
+            $proofRelpath = null;
+            $deleted = false;
+            if ($backend === 'json') {
+                $res = link_json_delete_registration($deleteId);
+                $deleted = !empty($res['deleted']);
+                $proofRelpath = isset($res['proof_relpath']) ? (string)$res['proof_relpath'] : null;
+            } else {
+                $pdo = link_api_db();
+                $q = $pdo->prepare('SELECT proof_relpath FROM link_registrations WHERE id = ?');
+                $q->execute([$deleteId]);
+                $row = $q->fetch(PDO::FETCH_ASSOC);
+                $proofRelpath = is_array($row) && isset($row['proof_relpath']) ? (string)$row['proof_relpath'] : null;
+                $d = $pdo->prepare('DELETE FROM link_registrations WHERE id = ?');
+                $d->execute([$deleteId]);
+                $deleted = $d->rowCount() > 0;
+            }
+            if ($deleted) {
+                if (is_string($proofRelpath) && $proofRelpath !== '') {
+                    admin_link_delete_proof_file($proofRelpath);
+                }
+                $flashMessage = 'Inscrição apagada com sucesso.';
+            } else {
+                $flashMessage = 'Registo não encontrado (já removido).';
+            }
+        } catch (Throwable $e) {
+            $flashMessage = 'Erro a apagar registo: ' . $e->getMessage();
+        }
+    }
+}
+
 $loadError = '';
 try {
     $rows = link_registrations_all();
@@ -119,10 +182,15 @@ if (isset($_GET['export']) && (string)$_GET['export'] === 'csv') {
 $n = count($rows);
 
 $linkStore = link_registrations_storage_info();
+$isDockerDataPath = $linkStore['mode'] === 'sqlite'
+    && str_starts_with((string)$linkStore['detail'], '/var/www/edv-server/data/');
+$sqlitePersistenceHint = $isDockerDataPath
+    ? 'SQLite em caminho Docker. Com volume persistente montado em <code>/var/www/edv-server/data</code>, os dados mantêm-se após deploy; sem volume, podem desaparecer.'
+    : 'SQLite local. Garante que o diretório da base está em armazenamento persistente; sem persistência, os dados podem desaparecer entre deploys.';
 $linkStoreHint = match ($linkStore['mode']) {
     'json'   => 'Modo JSON (só desenvolvimento). Ficheiro: ' . htmlspecialchars($linkStore['detail'], ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'),
     'sqlite' => 'SQLite — ficheiro: ' . htmlspecialchars($linkStore['detail'], ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8')
-        . ' (em contentores Docker, sem volume persistente em <code>server/data/</code> os dados podem desaparecer entre deploys.)',
+        . ' (' . $sqlitePersistenceHint . ')',
     'mysql'  => 'MySQL — ' . htmlspecialchars($linkStore['detail'], ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8')
         . ' (tabela <code>link_registrations</code>; em produção mantém <code>LINK_USE_SQLITE</code> e <code>LINK_USE_JSON</code> a <strong>false</strong>.)',
 };
@@ -181,6 +249,12 @@ $linkStoreHint = match ($linkStore['mode']) {
   .banner-info { background: rgba(45,106,79,.12); border: 1px solid rgba(45,106,79,.28);
     padding: .85rem 1.1rem; margin-bottom: 1.25rem; font-size: .78rem; line-height: 1.55; color: rgba(245,239,230,.82); }
   .banner-info code { font-size: .72rem; color: rgba(245,239,230,.45); }
+  .banner-ok { background: rgba(45,106,79,.2); border: 1px solid rgba(45,106,79,.35);
+    padding: .75rem 1rem; margin-bottom: 1rem; font-size: .82rem; color: rgba(245,239,230,.9); }
+  .btn-delete { appearance:none; border:1px solid rgba(196,89,63,.35); background:rgba(196,89,63,.12);
+    color:#f1d5cf; padding:.34rem .55rem; font-size:.68rem; letter-spacing:.04em; text-transform:uppercase;
+    border-radius:3px; cursor:pointer; }
+  .btn-delete:hover { background: rgba(196,89,63,.2); border-color: rgba(196,89,63,.55); }
 
   <?php require __DIR__ . '/_scanner-styles.php'; ?>
 </style>
@@ -207,6 +281,12 @@ require __DIR__ . '/_topbar.php';
   <?php if ($loadError === ''): ?>
     <div class="banner-info" role="status">
       <?= $linkStoreHint ?>
+    </div>
+  <?php endif; ?>
+
+  <?php if ($flashMessage !== ''): ?>
+    <div class="banner-ok" role="status">
+      <?= htmlspecialchars($flashMessage, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8') ?>
     </div>
   <?php endif; ?>
 
@@ -241,6 +321,7 @@ require __DIR__ . '/_topbar.php';
             <th>Pagamento</th>
             <th>Origem</th>
             <th>Passo 2</th>
+            <th>Ações</th>
           </tr>
         </thead>
         <tbody>
@@ -299,6 +380,13 @@ require __DIR__ . '/_topbar.php';
               <?php if (!empty($r['step2_at'])): ?>
                 <div class="mono" style="margin-top:.45rem;font-size:.68rem"><?= htmlspecialchars((string)$r['step2_at'], ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8') ?></div>
               <?php endif; ?>
+            </td>
+            <td>
+              <form method="post" onsubmit="return confirm('Apagar esta inscrição? Esta ação não pode ser desfeita.');">
+                <input type="hidden" name="action" value="delete_registration" />
+                <input type="hidden" name="registration_id" value="<?= htmlspecialchars((string)($r['id'] ?? ''), ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8') ?>" />
+                <button type="submit" class="btn-delete">Apagar</button>
+              </form>
             </td>
           </tr>
         <?php endforeach; ?>

@@ -102,6 +102,50 @@ function link_json_patch_registration(string $id, array $patch): bool {
 }
 
 /**
+ * @return ?array<string,mixed>
+ */
+function link_json_find_open_registration(string $email, string $eventSlug): ?array {
+    return link_json_store_mutate(static function (array &$data) use ($email, $eventSlug): ?array {
+        $best = null;
+        foreach ($data['registrations'] as $r) {
+            if (!is_array($r)) {
+                continue;
+            }
+            if ((string)($r['email'] ?? '') !== $email) {
+                continue;
+            }
+            if ((string)($r['event_slug'] ?? '') !== $eventSlug) {
+                continue;
+            }
+            if (!empty($r['step2_at'])) {
+                continue;
+            }
+            if ($best === null || strcmp((string)($r['step1_at'] ?? ''), (string)($best['step1_at'] ?? '')) > 0) {
+                $best = $r;
+            }
+        }
+        return $best;
+    });
+}
+
+/**
+ * @return array{deleted:bool, proof_relpath:?string}
+ */
+function link_json_delete_registration(string $id): array {
+    return link_json_store_mutate(static function (array &$data) use ($id): array {
+        foreach ($data['registrations'] as $i => $r) {
+            if (!is_array($r) || (string)($r['id'] ?? '') !== $id) {
+                continue;
+            }
+            $proof = isset($r['proof_relpath']) ? (string)$r['proof_relpath'] : null;
+            array_splice($data['registrations'], $i, 1);
+            return ['deleted' => true, 'proof_relpath' => $proof !== '' ? $proof : null];
+        }
+        return ['deleted' => false, 'proof_relpath' => null];
+    });
+}
+
+/**
  * Lista todas as reservas (modo JSON), mais recentes primeiro.
  *
  * @return list<array<string,mixed>>

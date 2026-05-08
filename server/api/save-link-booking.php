@@ -76,6 +76,84 @@ $done  = false;
 $lastE = null;
 $ref   = '';
 $id    = '';
+
+if ($backend === 'json') {
+    $existing = link_json_find_open_registration($email, $event_slug);
+    if (is_array($existing) && !empty($existing['id']) && !empty($existing['payment_ref'])) {
+        $id = (string)$existing['id'];
+        $ref = (string)$existing['payment_ref'];
+        $patch = [
+            'name'            => $name,
+            'email'           => $email,
+            'phone'           => $phone,
+            'ticket_euros'    => $ticket_euros,
+            'dinner_note'     => $dinner_note,
+            'total_euros'     => $total_euros,
+            'payment_method'  => $payment_method,
+            'heard_from'      => $heard_from,
+            'heard_other'     => $heard_other === '' ? null : $heard_other,
+            'step1_at'        => $now,
+            'step2_type'      => null,
+            'proof_relpath'   => null,
+            'proof_mime'      => null,
+            'step2_at'        => null,
+            'updated_at'      => $now,
+        ];
+        if (!link_json_patch_registration($id, $patch)) {
+            link_json_err('Não foi possível actualizar o registo em aberto.', 500);
+        }
+        $done = true;
+    }
+} elseif ($pdo instanceof PDO) {
+    $q = $pdo->prepare(
+        'SELECT id, payment_ref
+         FROM link_registrations
+         WHERE email = ? AND event_slug = ? AND step2_at IS NULL
+         ORDER BY step1_at DESC
+         LIMIT 1'
+    );
+    $q->execute([$email, $event_slug]);
+    $existing = $q->fetch(PDO::FETCH_ASSOC);
+    if (is_array($existing) && !empty($existing['id']) && !empty($existing['payment_ref'])) {
+        $id = (string)$existing['id'];
+        $ref = (string)$existing['payment_ref'];
+        $u = $pdo->prepare(
+            'UPDATE link_registrations SET
+                name = ?,
+                email = ?,
+                phone = ?,
+                ticket_euros = ?,
+                dinner_note = ?,
+                total_euros = ?,
+                payment_method = ?,
+                heard_from = ?,
+                heard_other = ?,
+                step1_at = ?,
+                step2_type = NULL,
+                proof_relpath = NULL,
+                proof_mime = NULL,
+                step2_at = NULL,
+                updated_at = ?
+             WHERE id = ?'
+        );
+        $u->execute([
+            $name,
+            $email,
+            $phone,
+            $ticket_euros,
+            $dinner_note,
+            $total_euros,
+            $payment_method,
+            $heard_from,
+            $heard_other === '' ? null : $heard_other,
+            $now,
+            $now,
+            $id,
+        ]);
+        $done = true;
+    }
+}
+
 for ($tries = 0; $tries < 6 && !$done; $tries++) {
     $id  = link_uuid_v4();
     $ref = link_generate_payment_ref();
