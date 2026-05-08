@@ -96,6 +96,7 @@ costs_ensure_table($pdo);
 
 $flash = '';
 $selectedEvent = (int)($_REQUEST['event_id'] ?? 0);
+$editCostId = (int)($_REQUEST['edit_id'] ?? 0);
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $action = (string)($_POST['action'] ?? '');
@@ -135,6 +136,47 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             ]);
             $flash = 'Custo registado.';
             $selectedEvent = $eventId;
+            $editCostId = 0;
+        }
+    } elseif ($action === 'update_cost') {
+        $id = (int)($_POST['id'] ?? 0);
+        $eventId = (int)($_POST['event_id'] ?? 0);
+        $label = trim((string)($_POST['label'] ?? ''));
+        $category = trim((string)($_POST['category'] ?? ''));
+        $amount = (float)($_POST['amount_eur'] ?? 0);
+        $paidBy = trim((string)($_POST['paid_by'] ?? ''));
+        $notes = trim((string)($_POST['notes'] ?? ''));
+        $incurredAt = trim((string)($_POST['incurred_at'] ?? ''));
+        $costStage = (string)($_POST['cost_stage'] ?? 'actual');
+        if (!in_array($costStage, ['actual', 'promised'], true)) {
+            $costStage = 'actual';
+        }
+        if ($id <= 0 || $eventId <= 0 || $label === '' || $amount <= 0) {
+            $flash = 'Preenche evento, descrição e valor (>0).';
+            $editCostId = $id;
+        } else {
+            if ($incurredAt === '') {
+                $incurredAt = costs_now_sql();
+            }
+            $stmt = $pdo->prepare(
+                'UPDATE event_costs
+                 SET label = ?, category = ?, amount_eur = ?, paid_by = ?, notes = ?, incurred_at = ?, cost_stage = ?
+                 WHERE id = ? AND event_id = ?'
+            );
+            $stmt->execute([
+                mb_substr($label, 0, 255),
+                mb_substr($category, 0, 80),
+                $amount,
+                $paidBy !== '' ? mb_substr($paidBy, 0, 120) : null,
+                $notes !== '' ? $notes : null,
+                $incurredAt,
+                $costStage,
+                $id,
+                $eventId,
+            ]);
+            $flash = 'Custo atualizado.';
+            $selectedEvent = $eventId;
+            $editCostId = 0;
         }
     } elseif ($action === 'delete_cost') {
         $id = (int)($_POST['id'] ?? 0);
@@ -145,6 +187,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $flash = 'Custo apagado.';
         }
         $selectedEvent = $eventId;
+        if ($editCostId === $id) {
+            $editCostId = 0;
+        }
     } elseif ($action === 'toggle_reimbursed') {
         $id = (int)($_POST['id'] ?? 0);
         $eventId = (int)($_POST['event_id'] ?? 0);
@@ -202,6 +247,16 @@ if ($selectedEvent > 0) {
     );
     $s->execute([$selectedEvent]);
     $summary = $s->fetch() ?: $summary;
+}
+
+$editCost = null;
+if ($editCostId > 0 && $selectedEvent > 0) {
+    $e = $pdo->prepare('SELECT * FROM event_costs WHERE id = ? AND event_id = ? LIMIT 1');
+    $e->execute([$editCostId, $selectedEvent]);
+    $editCost = $e->fetch() ?: null;
+    if (!is_array($editCost)) {
+        $editCostId = 0;
+    }
 }
 
 $revenuePaid = $selected ? (float)$selected['revenue_paid'] : 0.0;
@@ -348,6 +403,37 @@ require __DIR__ . '/_topbar.php';
     </form>
   </div>
 
+  <?php if ($editCostId > 0 && is_array($editCost)): ?>
+  <div class="panel">
+    <h2>Editar custo</h2>
+    <form method="post">
+      <input type="hidden" name="action" value="update_cost" />
+      <input type="hidden" name="event_id" value="<?= (int)$selectedEvent ?>" />
+      <input type="hidden" name="id" value="<?= (int)$editCost['id'] ?>" />
+      <div class="form-grid">
+        <input name="label" value="<?= costs_h((string)$editCost['label']) ?>" required />
+        <input name="category" value="<?= costs_h((string)($editCost['category'] ?? '')) ?>" />
+        <input name="amount_eur" type="number" step="0.01" min="0.01" value="<?= number_format((float)$editCost['amount_eur'], 2, '.', '') ?>" required />
+        <input name="paid_by" value="<?= costs_h((string)($editCost['paid_by'] ?? '')) ?>" />
+        <input name="incurred_at" type="datetime-local" value="<?= costs_h(str_replace(' ', 'T', substr((string)$editCost['incurred_at'], 0, 16))) ?>" />
+      </div>
+      <div style="margin-top:.6rem;max-width:280px;">
+        <select name="cost_stage">
+          <option value="actual" <?= ((string)($editCost['cost_stage'] ?? 'actual')) === 'actual' ? 'selected' : '' ?>>Custo real (já ocorreu)</option>
+          <option value="promised" <?= ((string)($editCost['cost_stage'] ?? 'actual')) === 'promised' ? 'selected' : '' ?>>Promessa de custo (previsto)</option>
+        </select>
+      </div>
+      <div style="margin-top:.6rem;">
+        <textarea name="notes"><?= costs_h((string)($editCost['notes'] ?? '')) ?></textarea>
+      </div>
+      <div style="margin-top:.6rem;display:flex;gap:.4rem;">
+        <button class="btn" type="submit">Guardar edição</button>
+        <a class="btn" href="/admin/costs.php?event_id=<?= (int)$selectedEvent ?>">Cancelar</a>
+      </div>
+    </form>
+  </div>
+  <?php endif; ?>
+
   <div class="panel">
     <h2>Custos registados</h2>
     <div class="table-wrap">
@@ -390,6 +476,7 @@ require __DIR__ . '/_topbar.php';
                   <?php endif; ?>
                 </td>
                 <td style="display:flex;gap:.35rem;">
+                  <a class="btn" href="/admin/costs.php?event_id=<?= (int)$selectedEvent ?>&edit_id=<?= (int)$row['id'] ?>">Editar</a>
                   <form method="post">
                     <input type="hidden" name="action" value="toggle_reimbursed" />
                     <input type="hidden" name="event_id" value="<?= (int)$selectedEvent ?>" />

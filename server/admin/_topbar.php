@@ -5,7 +5,7 @@ declare(strict_types=1);
  * Scan sempre ao centro (desktop + mobile).
  *
  * Opcional antes do include:
- *   $__adminNav          'tickets' | 'links' | 'analytics' | 'costs'
+ *   $__adminNav          'tickets' | 'links' | 'analytics' | 'costs' | 'events'
  *   $__exportEventId     int|null
  *   $__secondaryCsvHref  string|null
  *   $__hideDbBackup      bool (omit link to full SQL backup)
@@ -19,9 +19,11 @@ $isTickets   = $__adminNav === 'tickets';
 $isLinks     = $__adminNav === 'links';
 $isAnalytics = $__adminNav === 'analytics';
 $isCosts     = $__adminNav === 'costs';
+$isEvents    = $__adminNav === 'events';
 
 $iChart  = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 3v18h18"/><path d="M18 17V9"/><path d="M13 17V5"/><path d="M8 17v-3"/></svg>';
 $iCosts  = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 6h18"/><path d="M3 12h18"/><path d="M3 18h18"/><circle cx="8" cy="6" r="1.5"/><circle cx="16" cy="12" r="1.5"/><circle cx="11" cy="18" r="1.5"/></svg>';
+$iEvents = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4"/><path d="M8 2v4"/><path d="M3 10h18"/></svg>';
 $iTicket = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2 9a3 3 0 0 1 0 6v2a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-2a3 3 0 0 1 0-6V7a2 2 0 0 0-2-2H4a2 2 0 0 0-2 2z"/><path d="M13 5v2"/><path d="M13 17v2"/><path d="M13 11v2"/></svg>';
 $iLink   = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg>';
 $iScan   = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 7V5a2 2 0 0 1 2-2h2"/><path d="M17 3h2a2 2 0 0 1 2 2v2"/><path d="M21 17v2a2 2 0 0 1-2 2h-2"/><path d="M7 21H5a2 2 0 0 1-2-2v-2"/><line x1="7" y1="12" x2="17" y2="12"/></svg>';
@@ -46,6 +48,11 @@ $iLogout = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-li
        class="tb-btn tb-pill<?= $isCosts ? ' is-active' : '' ?>"
        <?= $isCosts ? 'aria-current="page"' : '' ?>>
       <?= $iCosts ?> Custos
+    </a>
+    <a href="/admin/events.php"
+       class="tb-btn tb-pill<?= $isEvents ? ' is-active' : '' ?>"
+       <?= $isEvents ? 'aria-current="page"' : '' ?>>
+      <?= $iEvents ?> Eventos
     </a>
     <a href="/admin/link-bookings.php"
        class="tb-btn tb-pill<?= $isLinks ? ' is-active' : '' ?>"
@@ -95,6 +102,13 @@ $iLogout = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-li
      <?= $isCosts ? 'aria-current="page"' : '' ?>>
     <?= $iCosts ?>
     <span class="btab-label">Custos</span>
+  </a>
+
+  <a href="/admin/events.php"
+     class="btab<?= $isEvents ? ' is-active' : '' ?>"
+     <?= $isEvents ? 'aria-current="page"' : '' ?>>
+    <?= $iEvents ?>
+    <span class="btab-label">Eventos</span>
   </a>
 
   <a href="/admin/link-bookings.php"
