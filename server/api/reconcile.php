@@ -37,10 +37,10 @@ $stmt = db()->prepare(
      WHERE payment_status = \'pending\'
        AND stripe_session_id IS NOT NULL
        AND stripe_session_id != \'\'
-       AND created_at < DATE_SUB(NOW(), INTERVAL 2 MINUTE)
+       AND created_at < ?
      LIMIT 50'
 );
-$stmt->execute();
+$stmt->execute([db_minutes_ago_string(2)]);
 $pending = $stmt->fetchAll();
 
 foreach ($pending as $ticket) {
@@ -66,11 +66,11 @@ foreach ($pending as $ticket) {
                 'UPDATE tickets
                  SET payment_status = \'paid\',
                      amount_paid    = ?,
-                     paid_at        = NOW()
+                     paid_at        = ?
                  WHERE id = ?
                    AND payment_status = \'pending\''
             );
-            $upd->execute([$amount, $ticket['id']]);
+            $upd->execute([$amount, db_now_string(), $ticket['id']]);
 
             if ($upd->rowCount() > 0) {
                 // Send confirmation email

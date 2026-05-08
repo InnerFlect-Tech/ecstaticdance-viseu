@@ -5,6 +5,44 @@
 
 require_once __DIR__ . '/config.php';
 
+function db_driver(): string {
+    if (defined('DB_DRIVER')) {
+        $driver = strtolower((string) DB_DRIVER);
+        if (in_array($driver, ['sqlite', 'mysql', 'pgsql'], true)) {
+            return $driver;
+        }
+    }
+
+    $useSqlite = defined('USE_SQLITE_MAIN_DB') && USE_SQLITE_MAIN_DB === true;
+    return $useSqlite ? 'sqlite' : 'mysql';
+}
+
+function db_timezone(): DateTimeZone {
+    $tz = defined('APP_TIMEZONE') && APP_TIMEZONE !== '' ? (string) APP_TIMEZONE : 'UTC';
+    try {
+        return new DateTimeZone($tz);
+    } catch (Throwable) {
+        return new DateTimeZone('UTC');
+    }
+}
+
+function db_now_string(): string {
+    return (new DateTime('now', db_timezone()))->format('Y-m-d H:i:s');
+}
+
+function db_today_string(): string {
+    return (new DateTime('now', db_timezone()))->format('Y-m-d');
+}
+
+function db_minutes_ago_string(int $minutes): string {
+    $safeMinutes = max(0, $minutes);
+    $dt = new DateTime('now', db_timezone());
+    if ($safeMinutes > 0) {
+        $dt->sub(new DateInterval('PT' . $safeMinutes . 'M'));
+    }
+    return $dt->format('Y-m-d H:i:s');
+}
+
 /**
  * Cria tabelas events/tickets em SQLite (dev sem extensão pdo_mysql).
  */
@@ -58,8 +96,8 @@ function main_db_sqlite_seed_if_empty(PDO $pdo): void {
 function db(): PDO {
     static $pdo = null;
     if ($pdo === null) {
-        $useSqlite = defined('USE_SQLITE_MAIN_DB') && USE_SQLITE_MAIN_DB === true;
-        if ($useSqlite) {
+        $driver = db_driver();
+        if ($driver === 'sqlite') {
             if (!in_array('sqlite', PDO::getAvailableDrivers(), true)) {
                 throw new RuntimeException(
                     'PDO SQLite não está disponível. Instala php-sqlite3 (ex.: sudo apt install php8.3-sqlite3).'
@@ -81,15 +119,21 @@ function db(): PDO {
             $pdo->exec('PRAGMA foreign_keys = ON');
             main_db_sqlite_migrate($pdo);
             main_db_sqlite_seed_if_empty($pdo);
-        } else {
+        } elseif ($driver === 'mysql') {
             if (!in_array('mysql', PDO::getAvailableDrivers(), true)) {
                 throw new RuntimeException(
                     'PDO MySQL não está disponível. Instala pdo_mysql (ex.: sudo apt install php8.3-mysql) '
                     . 'ou define USE_SQLITE_MAIN_DB = true em server/api/config.php para desenvolvimento sem MySQL.'
                 );
             }
+            $mysqlHost = DB_HOST;
+            $mysqlPort = defined('DB_PORT') ? trim((string) DB_PORT) : '';
+            $mysqlDsn = 'mysql:host=' . $mysqlHost . ';dbname=' . DB_NAME . ';charset=utf8mb4';
+            if ($mysqlPort !== '') {
+                $mysqlDsn = 'mysql:host=' . $mysqlHost . ';port=' . $mysqlPort . ';dbname=' . DB_NAME . ';charset=utf8mb4';
+            }
             $pdo = new PDO(
-                'mysql:host=' . DB_HOST . ';dbname=' . DB_NAME . ';charset=utf8mb4',
+                $mysqlDsn,
                 DB_USER,
                 DB_PASS,
                 [
@@ -98,6 +142,30 @@ function db(): PDO {
                     PDO::ATTR_EMULATE_PREPARES   => false,
                 ]
             );
+        } elseif ($driver === 'pgsql') {
+            if (!in_array('pgsql', PDO::getAvailableDrivers(), true)) {
+                throw new RuntimeException(
+                    'PDO PostgreSQL não está disponível. Instala pdo_pgsql (ex.: sudo apt install php8.3-pgsql).'
+                );
+            }
+            $host = defined('DB_HOST') ? (string) DB_HOST : 'localhost';
+            $port = defined('DB_PORT') ? (string) DB_PORT : '5432';
+            $name = defined('DB_NAME') ? (string) DB_NAME : 'postgres';
+            $sslmode = defined('DB_SSLMODE') ? (string) DB_SSLMODE : 'require';
+
+            $dsn = 'pgsql:host=' . $host . ';port=' . $port . ';dbname=' . $name . ';sslmode=' . $sslmode;
+            $pdo = new PDO(
+                $dsn,
+                DB_USER,
+                DB_PASS,
+                [
+                    PDO::ATTR_ERRMODE            => PDO::ERRMODE_EXCEPTION,
+                    PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC,
+                    PDO::ATTR_EMULATE_PREPARES   => false,
+                ]
+            );
+        } else {
+            throw new RuntimeException('Driver de base de dados não suportado: ' . $driver);
         }
     }
     return $pdo;

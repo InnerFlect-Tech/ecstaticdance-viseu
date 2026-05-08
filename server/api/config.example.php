@@ -7,8 +7,10 @@
    `config.php` a partir deste ficheiro. Variáveis suportadas (todas opcionais;
    omitir = usar o valor literal por omissão abaixo):
 
-   Base de dados MySQL:
-     EDV_DB_HOST, EDV_DB_NAME, EDV_DB_USER, EDV_DB_PASS
+   Base de dados (multi-driver via PDO):
+     EDV_DB_DRIVER   (sqlite | mysql | pgsql)
+     EDV_DB_HOST, EDV_DB_PORT, EDV_DB_NAME, EDV_DB_USER, EDV_DB_PASS
+     EDV_DB_SSLMODE  (sobretudo para pgsql/supabase; ex.: require)
 
    Booleans (`true` / `false` / `1` / `0`):
      EDV_USE_SQLITE_MAIN_DB  — principal eventos+tickets SQLite vs MySQL
@@ -27,11 +29,11 @@
      EDV_ADMIN_PASSWORD_HASH   ( bcrypt; ou omite e mantém hash de exemplo / admin123 )
      EDV_ORG_NOTIFY_EMAIL, EDV_ORG_INFO_EMAIL
 
-   Produção igual ao domínio oficial em MySQL → define pelo menos:
-     EDV_USE_SQLITE_MAIN_DB=false
-     EDV_LINK_USE_SQLITE=false
-     EDV_LINK_USE_JSON=false
-     EDV_DB_* = credenciais da mesma base onde corre o site.
+  Produção SQL (MySQL/MariaDB/PostgreSQL/Supabase) → define pelo menos:
+    EDV_DB_DRIVER=mysql|pgsql
+    EDV_LINK_USE_SQLITE=false
+    EDV_LINK_USE_JSON=false
+    EDV_DB_* = credenciais da base activa.
 
    ⚠️ O MySQL na hospedagem tem de aceitar conexões a partir do servidor Coolify,
    caso contrário mantém só o admin em cPanel ou usa rede/tunnel própria.
@@ -72,11 +74,14 @@ $edv_str = static function (string $name, string $default): string {
  */
 
 define('DB_HOST', $edv_str('EDV_DB_HOST', 'localhost'));
+define('DB_PORT', $edv_str('EDV_DB_PORT', ''));
 define('DB_NAME', $edv_str('EDV_DB_NAME', 'your_db'));
 define('DB_USER', $edv_str('EDV_DB_USER', 'your_user'));
 define('DB_PASS', $edv_str('EDV_DB_PASS', 'your_pass'));
+define('DB_SSLMODE', $edv_str('EDV_DB_SSLMODE', 'require'));
+define('DB_DRIVER', strtolower($edv_str('EDV_DB_DRIVER', '')));
 
-/** Sem MySQL (Docker/Coolify/dev): `true` — eventos/bilhetes em SQLite. Produção cPanel/MySQL: `false` + DB_* acima ou EDV_DB_*. */
+/** Compatibilidade antiga: se DB_DRIVER vazio, `true` força SQLite para eventos/bilhetes. */
 define('USE_SQLITE_MAIN_DB', $edv_bool('EDV_USE_SQLITE_MAIN_DB', true));
 define(
     'MAIN_DB_SQLITE_PATH',
@@ -109,6 +114,7 @@ define(
 );
 
 define('APP_URL', $edv_str('EDV_APP_URL', 'https://ecstaticdanceviseu.pt'));
+define('APP_TIMEZONE', $edv_str('EDV_APP_TIMEZONE', 'UTC'));
 define('FROM_EMAIL', $edv_str('EDV_FROM_EMAIL', 'bilhetes@ecstaticdanceviseu.pt'));
 define('FROM_NAME', $edv_str('EDV_FROM_NAME', 'Ecstatic Dance Viseu'));
 

@@ -62,9 +62,9 @@ $ticket_id = generate_uuid();
 $ins = db()->prepare(
     'INSERT INTO tickets
      (id, event_id, name, email, phone, amount_paid, payment_status, created_at)
-     VALUES (?, ?, ?, ?, ?, 0, \'free\', NOW())'
+     VALUES (?, ?, ?, ?, ?, 0, \'free\', ?)'
 );
-$ins->execute([$ticket_id, $event_id, $name, $email, $phone]);
+$ins->execute([$ticket_id, $event_id, $name, $email, $phone, db_now_string()]);
 
 // Send email with QR code
 send_ticket_email($email, $name, $ticket_id, $event['title'], $event['date'], 0);

@@ -1,12 +1,15 @@
 # Deployment Guide — Ecstatic Dance Viseu
 
-Deploy the Vite static site and PHP backend to cPanel shared hosting at **ecstaticdanceviseu.pt**.
+Deploy the Vite static site and PHP backend at **ecstaticdanceviseu.pt**.
 
 ---
 
 ## Prerequisites
 
-- cPanel hosting with PHP 8.1+ and MySQL 5.7+
+- PHP 8.1+ with required PDO driver(s):
+  - `pdo_sqlite` for SQLite
+  - `pdo_mysql` for MySQL / MariaDB
+  - `pdo_pgsql` for PostgreSQL / Supabase
 - SSH access (recommended) or FTP client
 - Node.js 18+ on your local machine
 - A Stripe account (see [STRIPE.md](./STRIPE.md))
@@ -15,7 +18,15 @@ Deploy the Vite static site and PHP backend to cPanel shared hosting at **ecstat
 
 ## First-time setup
 
-### 1. Create the MySQL database
+### 1. Prepare the database backend
+
+Choose one:
+
+- **SQLite** (local/dev): no server needed; use file path in `EDV_MAIN_DB_SQLITE_PATH`.
+- **MySQL/MariaDB** (common cPanel path): create database + user + privileges.
+- **PostgreSQL/Supabase**: collect host, port, db name, user, password, SSL mode.
+
+#### MySQL/MariaDB quick setup
 
 1. Log in to cPanel → **MySQL Databases**
 2. Create a database, e.g. `cpanelusername_edviseu`
@@ -30,12 +41,23 @@ cp server/api/config.example.php server/api/config.php
 ```
 
 Edit `server/api/config.php` and fill in:
-- `DB_HOST`, `DB_NAME`, `DB_USER`, `DB_PASS` (from step 1)
+- `DB_DRIVER` (`sqlite`, `mysql`, or `pgsql`)
+- `DB_HOST`, `DB_PORT`, `DB_NAME`, `DB_USER`, `DB_PASS`
+- `DB_SSLMODE` (recommended `require` for Supabase/PostgreSQL over network)
+- `APP_TIMEZONE` (recommended `UTC`)
 - `STRIPE_PUBLIC_KEY`, `STRIPE_SECRET_KEY` (from Stripe Dashboard)
 - `STRIPE_WEBHOOK_SECRET` (from step 4 below)
 - `RECONCILE_TOKEN` — run `openssl rand -hex 32` to generate
 - `INSTALL_TOKEN` — run `openssl rand -hex 32` to generate
 - `ADMIN_PASSWORD_HASH` — `config.example.php` is pre-filled for password **`admin123`**. To use a different password, run `php -r "echo password_hash('yourpassword', PASSWORD_DEFAULT);"` and replace the hash in `config.php`.
+
+#### Supabase/PostgreSQL notes
+
+- Use `DB_DRIVER=pgsql`.
+- For Supabase, use either:
+  - Session pooler connection host/port from the dashboard, or
+  - Direct DB host if your environment/network supports it.
+- Keep `DB_SSLMODE=require` unless your provider explicitly instructs otherwise.
 
 ### 3. Build the Vite site locally
 
@@ -76,6 +98,11 @@ rm -rf ~/public_html/setup/
 
 Or delete via cPanel File Manager.
 
+The installer now picks schema by active PDO driver:
+- `mysql` -> `server/setup/schema.sql`
+- `sqlite` -> `server/setup/schema-main-sqlite.sql`
+- `pgsql` -> `server/setup/schema-pgsql.sql`
+
 ### 6. Configure the Stripe webhook
 
 See [STRIPE.md](./STRIPE.md) — set the webhook URL to:
@@ -114,17 +141,19 @@ O fluxo público usa:
 - **`/api/save-link-booking.php`** — passo 1  
 - **`/api/complete-link-booking.php`** — passo 2 (multipart ou JSON)
 
-Os dados vão sempre para **MySQL** através da tabela **`link_registrations`**.
+Os dados vão para o backend SQL activo (`mysql`/`pgsql`) ou SQLite quando configurado.
 
-1. **Criar a tabela na base já existente** (executar **uma vez** no phpMyAdmin → SQL):
+1. **Criar a tabela na base já existente** (executar **uma vez** no teu cliente SQL):
 
-   - Copia `server/setup/migration_2026_04_link_registrations.sql`.
+   - MySQL/MariaDB: `server/setup/migration_2026_04_link_registrations.sql`
+   - PostgreSQL/Supabase: `server/setup/migration_2026_04_link_registrations.pgsql.sql`
 
    *(Instalações novas criadas apenas com `server/setup/schema.sql` já trazem a tabela.)*
 
 2. **Produção: `public_html/api/config.php`**
 
-   - `LINK_USE_SQLITE` → **`false`**
+   - `DB_DRIVER` conforme o backend escolhido (`mysql` ou `pgsql`)
+   - `LINK_USE_SQLITE` → **`false`** para armazenamento SQL centralizado
    - `LINK_USE_JSON` → **`false`** (JSON é só desenvolvimento local; **nunca** em cPanel.)
 
 3. **Upload** destes ficheiros para `public_html/api/` ao actualizares código:
@@ -212,6 +241,7 @@ public_html/
 | Problem | Solution |
 |---|---|
 | API returns 500 | Check PHP error log in cPanel → Error Log |
+| `Driver não suportado` / `PDO ... não está disponível` | Confirm `DB_DRIVER` and install matching PDO extension (`pdo_sqlite`, `pdo_mysql`, or `pdo_pgsql`). |
 | Links page: erro ao gravar / comprovativo | Confirma tabela `link_registrations`, `LINK_USE_SQLITE`/`LINK_USE_JSON` falsos em produção, pasta `uploads/link-proofs` gravável (`docs/DEPLOYMENT.md` → Link hub). |
 | Emails not sending | Verify `FROM_EMAIL` in config.php matches a cPanel email account |
 | Stripe webhook fails | Check Stripe Dashboard → Webhooks → Recent events for error details |

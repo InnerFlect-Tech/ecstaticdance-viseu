@@ -62,6 +62,25 @@ function admin_backup_mysql_tables(PDO $pdo): array {
 /**
  * @return list<string>
  */
+function admin_backup_pgsql_tables(PDO $pdo): array {
+    $stmt = $pdo->query(
+        "SELECT tablename FROM pg_catalog.pg_tables WHERE schemaname = current_schema() ORDER BY tablename"
+    );
+    /** @var list<string|false>|false */
+    $raw = $stmt ? $stmt->fetchAll(PDO::FETCH_COLUMN) : [];
+    $names = [];
+    foreach ($raw as $n) {
+        if (is_string($n) && $n !== '') {
+            $names[] = $n;
+        }
+    }
+
+    return admin_backup_sort_tables($names);
+}
+
+/**
+ * @return list<string>
+ */
 function admin_backup_sqlite_tables(PDO $pdo): array {
     $stmt = $pdo->query(
         "SELECT name FROM sqlite_master WHERE type = 'table' AND name NOT LIKE 'sqlite_%' ORDER BY name"
@@ -93,6 +112,21 @@ function admin_backup_column_names(PDO $pdo, string $driver, string $table): arr
 
         return $cols;
     }
+    if ($driver === 'pgsql') {
+        $stmt = $pdo->prepare(
+            "SELECT column_name FROM information_schema.columns WHERE table_schema = current_schema() AND table_name = ? ORDER BY ordinal_position"
+        );
+        $stmt->execute([$table]);
+        /** @var list<string|false>|false */
+        $raw = $stmt->fetchAll(PDO::FETCH_COLUMN);
+        $cols = [];
+        foreach ($raw as $col) {
+            if (is_string($col) && $col !== '') {
+                $cols[] = $col;
+            }
+        }
+        return $cols;
+    }
     $tq  = '"' . str_replace('"', '""', $table) . '"';
     $stmt = $pdo->query('PRAGMA table_info(' . $tq . ')');
     $cols = [];
@@ -108,6 +142,10 @@ function admin_backup_quote_table_mysql(string $table): string {
 }
 
 function admin_backup_quote_table_sqlite(string $table): string {
+    return '"' . str_replace('"', '""', $table) . '"';
+}
+
+function admin_backup_quote_table_pgsql(string $table): string {
     return '"' . str_replace('"', '""', $table) . '"';
 }
 
@@ -192,6 +230,65 @@ function admin_backup_stream_table_sqlite(PDO $pdo, string $table): void {
     echo "\n";
 }
 
+function admin_backup_stream_table_pgsql(PDO $pdo, string $table): void {
+    $qTable = admin_backup_quote_table_pgsql($table);
+    $colStmt = $pdo->prepare(
+        "SELECT column_name, data_type, is_nullable, column_default
+         FROM information_schema.columns
+         WHERE table_schema = current_schema()
+           AND table_name = ?
+         ORDER BY ordinal_position"
+    );
+    $colStmt->execute([$table]);
+    $colDefs = [];
+    while ($row = $colStmt->fetch(PDO::FETCH_ASSOC)) {
+        $colName = admin_backup_quote_table_pgsql((string) ($row['column_name'] ?? ''));
+        $dataType = (string) ($row['data_type'] ?? 'text');
+        $nullable = ((string) ($row['is_nullable'] ?? 'YES')) === 'YES' ? '' : ' NOT NULL';
+        $default = $row['column_default'];
+        $defaultSql = '';
+        if ($default !== null && $default !== '') {
+            $defaultSql = ' DEFAULT ' . (string) $default;
+        }
+        $colDefs[] = '  ' . $colName . ' ' . $dataType . $defaultSql . $nullable;
+    }
+    if ($colDefs === []) {
+        return;
+    }
+    $ddl = "CREATE TABLE {$qTable} (\n" . implode(",\n", $colDefs) . "\n)";
+    echo "\n-- ── Table {$table} ──\n";
+    echo 'DROP TABLE IF EXISTS ' . $qTable . " CASCADE;\n";
+    echo $ddl . ";\n\n";
+
+    $cols = admin_backup_column_names($pdo, 'pgsql', $table);
+    if ($cols === []) {
+        return;
+    }
+    $colList = implode(', ', array_map(
+        static fn (string $c): string => admin_backup_quote_table_pgsql($c),
+        $cols
+    ));
+    $batch = 400;
+    $off   = 0;
+    while (true) {
+        $sql  = 'SELECT * FROM ' . $qTable . ' LIMIT ' . (int) $batch . ' OFFSET ' . (int) $off;
+        $stmt = $pdo->query($sql);
+        $rows = $stmt->fetchAll(PDO::FETCH_ASSOC);
+        if ($rows === []) {
+            break;
+        }
+        foreach ($rows as $row) {
+            $vals = [];
+            foreach ($cols as $c) {
+                $vals[] = admin_backup_sql_value($row[$c] ?? null);
+            }
+            echo 'INSERT INTO ' . $qTable . ' (' . $colList . ') VALUES (' . implode(', ', $vals) . ");\n";
+        }
+        $off += $batch;
+    }
+    echo "\n";
+}
+
 function admin_backup_stream_pdo(PDO $pdo, string $sectionLabel): void {
     $driver = $pdo->getAttribute(PDO::ATTR_DRIVER_NAME);
     echo "\n-- ═══════════════════════════════════════════════════════\n";
@@ -218,6 +315,14 @@ function admin_backup_stream_pdo(PDO $pdo, string $sectionLabel): void {
 
         return;
     }
+    if ($driver === 'pgsql') {
+        echo "SET search_path = public;\n";
+        foreach (admin_backup_pgsql_tables($pdo) as $t) {
+            admin_backup_stream_table_pgsql($pdo, $t);
+        }
+
+        return;
+    }
 
     echo '-- Driver não suportado: ' . htmlspecialchars($driver, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8') . "\n";
 }
@@ -228,7 +333,8 @@ function admin_realpath_or_empty(string $path): string {
     return is_string($rp) ? $rp : '';
 }
 
-$useSqliteMain = defined('USE_SQLITE_MAIN_DB') && USE_SQLITE_MAIN_DB === true;
+$mainDriver = db_driver();
+$useSqliteMain = $mainDriver === 'sqlite';
 
 $mainSqliteResolved = '';
 if ($useSqliteMain) {
@@ -253,7 +359,10 @@ echo "-- Importação: phpMyAdmin → Importar, ou `mysql ... < backup.sql`\n\n"
 if ($useSqliteMain) {
     admin_backup_stream_pdo(db(), 'Eventos e bilhetes (ficheiro SQLite principal)');
 } else {
-    admin_backup_stream_pdo(db(), 'Base MySQL (eventos, bilhetes e reservas /links se na mesma base)');
+    $label = $mainDriver === 'pgsql'
+        ? 'Base PostgreSQL/Supabase (eventos, bilhetes e reservas /links se na mesma base)'
+        : 'Base MySQL/MariaDB (eventos, bilhetes e reservas /links se na mesma base)';
+    admin_backup_stream_pdo(db(), $label);
 }
 
 $linkBackend = link_registration_backend();
@@ -272,7 +381,7 @@ if (link_is_sqlite()) {
         }
     }
 } elseif ($useSqliteMain && !LINK_USE_JSON) {
-    admin_backup_stream_pdo(link_api_db(), 'Reservas /links (MySQL — cópia quando a base principal é SQLite)');
+    admin_backup_stream_pdo(link_api_db(), 'Reservas /links (SQL externo — cópia quando a base principal é SQLite)');
 }
 
 exit;

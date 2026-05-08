@@ -60,7 +60,7 @@ if (!defined('LINK_JSON_PATH')) {
     define('LINK_JSON_PATH', __DIR__ . '/../data/link-registrations-dev.json');
 }
 
-/** Modo de gravação do fluxo links.html: mysql (produção) | sqlite (local típico) | json (local sem PDO sqlite). */
+/** Modo de gravação do fluxo links.html: mysql | pgsql | sqlite | json. */
 function link_registration_backend(): string {
     static $resolved = false;
     static $backend = '';
@@ -75,12 +75,23 @@ function link_registration_backend(): string {
     if (link_is_sqlite()) {
         return $backend = 'sqlite';
     }
+    if (link_is_pgsql()) {
+        return $backend = 'pgsql';
+    }
 
     return $backend = 'mysql';
 }
 
 function link_is_sqlite(): bool {
+    if (defined('DB_DRIVER') && is_string(DB_DRIVER) && strtolower(DB_DRIVER) === 'sqlite') {
+        return true;
+    }
+
     return LINK_USE_SQLITE === true;
+}
+
+function link_is_pgsql(): bool {
+    return defined('DB_DRIVER') && is_string(DB_DRIVER) && strtolower(DB_DRIVER) === 'pgsql';
 }
 
 /** Timestamp for DATETIME / TEXT (Europe/Lisbon), portável (MySQL + SQLite). */
@@ -155,8 +166,34 @@ function link_api_db(): PDO {
         link_sqlite_migrate($pdo);
         return $pdo;
     }
+    if (link_is_pgsql()) {
+        if (!in_array('pgsql', PDO::getAvailableDrivers(), true)) {
+            throw new RuntimeException('Extensão PDO pgsql não carregada no PHP.');
+        }
+        $host = defined('DB_HOST') ? (string) DB_HOST : 'localhost';
+        $port = defined('DB_PORT') && DB_PORT !== '' ? (string) DB_PORT : '5432';
+        $name = defined('DB_NAME') ? (string) DB_NAME : 'postgres';
+        $sslmode = defined('DB_SSLMODE') && DB_SSLMODE !== '' ? (string) DB_SSLMODE : 'require';
+        $pdo = new PDO(
+            'pgsql:host=' . $host . ';port=' . $port . ';dbname=' . $name . ';sslmode=' . $sslmode,
+            DB_USER,
+            DB_PASS,
+            [
+                PDO::ATTR_ERRMODE            => PDO::ERRMODE_EXCEPTION,
+                PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC,
+                PDO::ATTR_EMULATE_PREPARES   => false,
+            ]
+        );
+        return $pdo;
+    }
+    $mysqlHost = DB_HOST;
+    $mysqlPort = defined('DB_PORT') ? trim((string) DB_PORT) : '';
+    $mysqlDsn = 'mysql:host=' . $mysqlHost . ';dbname=' . DB_NAME . ';charset=utf8mb4';
+    if ($mysqlPort !== '') {
+        $mysqlDsn = 'mysql:host=' . $mysqlHost . ';port=' . $mysqlPort . ';dbname=' . DB_NAME . ';charset=utf8mb4';
+    }
     $pdo = new PDO(
-        'mysql:host=' . DB_HOST . ';dbname=' . DB_NAME . ';charset=utf8mb4',
+        $mysqlDsn,
         DB_USER,
         DB_PASS,
         [
@@ -268,7 +305,7 @@ function link_registrations_all(): array {
 /**
  * Para o painel admin: onde estão a ser lidas as inscrições /links (deve coincidir com o que o API usa em produção).
  *
- * @return array{mode:'json'|'sqlite'|'mysql', detail:string}
+ * @return array{mode:'json'|'sqlite'|'mysql'|'pgsql', detail:string}
  */
 function link_registrations_storage_info(): array {
     if (LINK_USE_JSON === true) {
@@ -276,6 +313,11 @@ function link_registrations_storage_info(): array {
     }
     if (link_is_sqlite()) {
         return ['mode' => 'sqlite', 'detail' => (string) LINK_SQLITE_PATH];
+    }
+    if (link_is_pgsql()) {
+        $db = defined('DB_NAME') && DB_NAME !== '' ? (string) DB_NAME : '?';
+        $host = defined('DB_HOST') ? (string) DB_HOST : '';
+        return ['mode' => 'pgsql', 'detail' => $host !== '' ? $db . '@' . $host : $db];
     }
     $db = defined('DB_NAME') && DB_NAME !== '' ? (string) DB_NAME : '?';
     $host = defined('DB_HOST') ? (string) DB_HOST : '';

@@ -20,11 +20,11 @@ $stmt = db()->prepare(
                AND t.payment_status IN (\'paid\', \'free\')) AS tickets_sold
      FROM events e
      WHERE e.is_active = 1
-       AND e.date >= CURDATE()
+       AND e.date >= ?
      ORDER BY e.date ASC
      LIMIT 1'
 );
-$stmt->execute();
+$stmt->execute([db_today_string()]);
 $event = $stmt->fetch();
 
 if (!$event) {

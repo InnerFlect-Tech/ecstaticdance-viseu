@@ -94,9 +94,9 @@ $ticket_id = generate_uuid();
 $ins = db()->prepare(
     'INSERT INTO tickets
      (id, event_id, name, email, phone, amount_paid, payment_status, created_at)
-     VALUES (?, ?, ?, ?, ?, ?, \'pending\', NOW())'
+     VALUES (?, ?, ?, ?, ?, ?, \'pending\', ?)'
 );
-$ins->execute([$ticket_id, $event_id, $name, $email, $phone, $amount]);
+$ins->execute([$ticket_id, $event_id, $name, $email, $phone, $amount, db_now_string()]);
 
 // Create Stripe Checkout session
 $app_url = APP_URL;

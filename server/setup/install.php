@@ -33,10 +33,35 @@ $install_sql_is_safe = static function (string $stmt): bool {
     return true;
 };
 
+$driver = db()->getAttribute(PDO::ATTR_DRIVER_NAME);
+$schema_file = match ($driver) {
+    'sqlite' => __DIR__ . '/schema-main-sqlite.sql',
+    'pgsql' => __DIR__ . '/schema-pgsql.sql',
+    default => __DIR__ . '/schema.sql',
+};
+
+$table_exists = static function (PDO $pdo, string $drv, string $table): bool {
+    if ($drv === 'sqlite') {
+        $stmt = $pdo->prepare("SELECT 1 FROM sqlite_master WHERE type = 'table' AND name = ? LIMIT 1");
+        $stmt->execute([$table]);
+        return (bool) $stmt->fetchColumn();
+    }
+    if ($drv === 'pgsql') {
+        $stmt = $pdo->prepare(
+            "SELECT 1 FROM information_schema.tables WHERE table_schema = current_schema() AND table_name = ? LIMIT 1"
+        );
+        $stmt->execute([$table]);
+        return (bool) $stmt->fetchColumn();
+    }
+    $stmt = $pdo->prepare('SHOW TABLES LIKE ?');
+    $stmt->execute([$table]);
+    return (bool) $stmt->fetchColumn();
+};
+
 // ── Step 1: Run schema.sql ──
-$sql_file = __DIR__ . '/schema.sql';
+$sql_file = $schema_file;
 if (!file_exists($sql_file)) {
-    $errors[] = 'schema.sql não encontrado.';
+    $errors[] = basename($sql_file) . ' não encontrado.';
     $success  = false;
 } else {
     $sql = file_get_contents($sql_file);
@@ -68,16 +93,14 @@ if (!file_exists($sql_file)) {
 // ── Step 2: Verify tables ──
 if ($success) {
     try {
-        $tables = db()->query("SHOW TABLES LIKE 'events'")->fetchColumn();
-        if ($tables) {
+        if ($table_exists(db(), $driver, 'events')) {
             $steps[] = '✓ Tabela <code>events</code> verificada.';
         } else {
             $errors[] = 'Tabela <code>events</code> não foi criada.';
             $success  = false;
         }
 
-        $tables2 = db()->query("SHOW TABLES LIKE 'tickets'")->fetchColumn();
-        if ($tables2) {
+        if ($table_exists(db(), $driver, 'tickets')) {
             $steps[] = '✓ Tabela <code>tickets</code> verificada.';
         } else {
             $errors[] = 'Tabela <code>tickets</code> não foi criada.';

@@ -78,12 +78,12 @@ function handle_checkout_completed(array $session): void {
         'UPDATE tickets
          SET payment_status = \'paid\',
              amount_paid    = ?,
-             paid_at        = NOW()
+             paid_at        = ?
          WHERE id = ?
            AND stripe_session_id = ?
            AND payment_status = \'pending\''
     );
-    $stmt->execute([$amount, $ticket_id, $session_id]);
+    $stmt->execute([$amount, db_now_string(), $ticket_id, $session_id]);
 
     if ($stmt->rowCount() === 0) {
         // Already processed or session mismatch — safe to ignore

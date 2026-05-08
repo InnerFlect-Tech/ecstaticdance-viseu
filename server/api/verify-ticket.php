@@ -84,8 +84,8 @@ if ($ticket['checked_in']) {
 
 // Mark checked in
 db()->prepare(
-    'UPDATE tickets SET checked_in = 1, checked_in_at = NOW() WHERE id = ?'
-)->execute([$code]);
+    'UPDATE tickets SET checked_in = 1, checked_in_at = ? WHERE id = ?'
+)->execute([db_now_string(), $code]);
 
 $ticket['checked_in']    = 1;
 $ticket['checked_in_at'] = date('Y-m-d H:i:s');
