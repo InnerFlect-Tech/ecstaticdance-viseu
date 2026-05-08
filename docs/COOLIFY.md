@@ -35,7 +35,9 @@ Sem variáveis de ambiente opcionais, o exemplo usa SQLite em `server/data/` (de
 
 ### B) Só environment variables (`EDV_*`)
 
-Define no Coolify as variáveis documentadas em `server/api/config.example.php` (cabeçalho do ficheiro).
+Lista completa **copiável** (formato `.env`): `environment.example.env` na raiz do repo. Referência técnica: cabeçalho de `server/api/config.example.php`.
+
+Define no Coolify as mesmas variáveis (painel ou ficheiro de env).
 
 - Para **forçar** recópia do template em cada arranque (útil só com secrets em env):
 

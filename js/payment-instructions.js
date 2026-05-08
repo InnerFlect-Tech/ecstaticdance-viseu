@@ -1,5 +1,5 @@
 /** MB Way — número de telemóvel do destinatário (confere na app antes de pagar). */
-const MBWAY_PHONE = '+351 912 345 678' // TODO: substituir pelo número real MB Way da equipa
+const MBWAY_PHONE = '+351 910 458 858'
 
 /** IBAN para Multibanco (homebanking / caixa) ou transferência SEPA. */
 const BANK_IBAN = 'PT50 0035 0836 0069 4266 33047'
