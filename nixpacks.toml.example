@@ -1,5 +1,6 @@
-# Produção Coolify DESTE repo: usa Build Pack Dockerfile (nginx+PHP), não Nixpacks.
-# Isto é só preview / stacks alternativos (Node `npm run start`). Ver docs/COOLIFY.md secção 7.
+# Preview local / stack alternativo (Node `npm run start`).
+# NÃO renomear para nixpacks.toml na raiz do repo: Coolify auto-detecta Nixpacks e ignora o Dockerfile.
+# Produção: Coolify → Build Pack = Dockerfile. Ver docs/COOLIFY.md secção 7.
 
 [phases.setup]
 # Node + PHP 8.3 (Nix) para o proxy /api → 127.0.0.1:8080 — ver scripts/start-preview-with-php.sh.

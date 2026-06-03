@@ -105,7 +105,7 @@ O `vite preview` faz **proxy** de `/api`, `/admin` e `/uploads` para `http://127
 
 Este repo inclui:
 
-- `nixpacks.toml` — Node **e** `php83` (Nix), build `npm run build`, arranque `npm run start`.
+- `nixpacks.toml.example` — Node **e** `php83` (Nix), build `npm run build`, arranque `npm run start` (só preview; **não** renomear para `nixpacks.toml` no repo se usas Dockerfile no Coolify).
 - `scripts/start-preview-with-php.sh` — sobe **PHP built-in** (`php -S … -t server`) na primeira porta livre **8080–8099**, exporta `EDV_PHP_API_PORT`, e corre `vite preview` em `0.0.0.0:$PORT`.
 - `BROWSER=none` / `CI=true` por omissão no script para evitar `xdg-open ENOENT` em contentores.
 

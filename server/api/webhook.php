@@ -8,6 +8,7 @@
    ============================================================ */
 
 require_once __DIR__ . '/helpers.php';
+require_once __DIR__ . '/discount-codes.php';
 
 // Read raw body BEFORE any other processing
 $payload    = file_get_contents('php://input');
@@ -88,6 +89,18 @@ function handle_checkout_completed(array $session): void {
     if ($stmt->rowCount() === 0) {
         // Already processed or session mismatch — safe to ignore
         return;
+    }
+
+    $ticketRow = db()->prepare('SELECT promo_code, email FROM tickets WHERE id = ?');
+    $ticketRow->execute([$ticket_id]);
+    $ticketMeta = $ticketRow->fetch(PDO::FETCH_ASSOC);
+    if (is_array($ticketMeta) && !empty($ticketMeta['promo_code'])) {
+        edv_record_discount_code_use(
+            (string) $ticketMeta['promo_code'],
+            (string) $ticket_id,
+            (string) ($ticketMeta['email'] ?? ''),
+            $amount
+        );
     }
 
     // Load event details for email

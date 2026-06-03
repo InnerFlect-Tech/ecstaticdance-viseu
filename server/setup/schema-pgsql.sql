@@ -15,6 +15,9 @@ CREATE TABLE IF NOT EXISTS events (
   type        VARCHAR(16) NOT NULL DEFAULT 'paid' CHECK (type IN ('free', 'paid')),
   capacity    INTEGER NOT NULL DEFAULT 60 CHECK (capacity >= 0),
   min_price   NUMERIC(8,2) NOT NULL DEFAULT 25.00,
+  returning_min_eur NUMERIC(8,2) DEFAULT NULL,
+  early_bird_min_eur NUMERIC(8,2) DEFAULT NULL,
+  early_bird_until DATE DEFAULT NULL,
   is_active   BOOLEAN NOT NULL DEFAULT TRUE,
   created_at  TIMESTAMP WITHOUT TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP
 );

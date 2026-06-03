@@ -18,6 +18,8 @@ CREATE TABLE IF NOT EXISTS events (
   capacity INTEGER NOT NULL DEFAULT 60,
   min_price REAL NOT NULL DEFAULT 25.00,
   returning_min_eur REAL,
+  early_bird_min_eur REAL,
+  early_bird_until TEXT,
   is_active INTEGER NOT NULL DEFAULT 1,
   created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
 );

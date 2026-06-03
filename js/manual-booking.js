@@ -11,6 +11,8 @@ import {
   refreshTicketPricing,
   snapTicketSliderEur,
   ticketMinEur,
+  loadActiveEventPricing,
+  setEventPricingFromEvent,
 } from './pricing.js'
 
 const DEFAULT_EVENT_SLUG = 'edv-2026-06-27'
@@ -706,6 +708,7 @@ async function onSubmitStep1(e) {
         heard_from: heard,
         heard_other: heard === 'other' ? heardOther : '',
         event_slug: getEl('lb_event_slug').value || DEFAULT_EVENT_SLUG,
+        promo_code: getEl('lb_promo_code')?.value?.trim() || '',
       }),
     })
     const data = await parseLinkApiJson(res)
@@ -821,7 +824,13 @@ function wireLinkPricingByEmail() {
     debounce = window.setTimeout(async () => {
       const slug = slugInput?.value || DEFAULT_EVENT_SLUG
       const phoneInput = getEl('lb_phone')
-      await refreshTicketPricing(emailInput.value.trim(), 0, slug, phoneInput?.value?.trim() || '')
+      await refreshTicketPricing(
+        emailInput.value.trim(),
+        0,
+        slug,
+        phoneInput?.value?.trim() || '',
+        getEl('lb_promo_code')?.value?.trim() || ''
+      )
       applyTicketPricingToDom()
       window.dispatchEvent(new CustomEvent('edv:pricing-updated'))
       lastTicketTierForAnim = null
@@ -833,12 +842,16 @@ function wireLinkPricingByEmail() {
   const phoneInput = getEl('lb_phone')
   phoneInput?.addEventListener('input', run)
   phoneInput?.addEventListener('blur', run)
+  getEl('lb_promo_code')?.addEventListener('input', run)
+  getEl('lb_promo_code')?.addEventListener('blur', run)
 }
 
 function init() {
   if (!document.getElementById('lb_booking_form')) return
   initManualLang()
-  applyTicketPricingToDom()
+  loadActiveEventPricing().then(() => {
+    applyTicketPricingToDom()
+  })
   applyHubPrefTicket()
   wireStep1InlineErrorClearing()
   getEl('lb_booking_form').addEventListener('submit', onSubmitStep1)

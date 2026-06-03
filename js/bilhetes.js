@@ -3,7 +3,7 @@
    Handles: booking form (bilhetes.html) + ticket display (confirmacao.html)
    ============================================================ */
 
-import { applyBilhetesAmountRange, refreshTicketPricing } from './pricing.js'
+import { applyBilhetesAmountRange, refreshTicketPricing, setEventPricingFromEvent, getPricingState } from './pricing.js'
 
 const API_BASE = '/api';
 
@@ -55,14 +55,17 @@ async function initBookingPage() {
     }
 
     currentEvent = data.event;
+    setEventPricingFromEvent(currentEvent);
     renderEventInfo(eventInfo, currentEvent);
 
     // Configure form based on event type
     if (currentEvent.type === 'paid') {
       amountGroup.style.display = '';
       paidNote.style.display = '';
+      await refreshTicketPricing('', currentEvent.id);
       applyBilhetesAmountRange();
       wirePricingByEmail(currentEvent.id);
+      wirePricingByPromoCode(currentEvent.id);
     } else {
       freeBadge.style.display = '';
       freeNote.style.display = '';
@@ -95,12 +98,49 @@ async function initBookingPage() {
     const run = () => {
       window.clearTimeout(debounce);
       debounce = window.setTimeout(async () => {
-        await refreshTicketPricing(emailInput.value.trim(), eventId);
+        const promo = document.getElementById('promoCode')?.value?.trim() || '';
+        await refreshTicketPricing(emailInput.value.trim(), eventId, '', '', promo);
         applyBilhetesAmountRange();
+        updatePromoHint();
       }, 400);
     };
     emailInput.addEventListener('input', run);
     emailInput.addEventListener('blur', run);
+  }
+
+  function wirePricingByPromoCode(eventId) {
+    const promoInput = document.getElementById('promoCode');
+    if (!promoInput) return;
+    let debounce = 0;
+    const run = () => {
+      window.clearTimeout(debounce);
+      debounce = window.setTimeout(async () => {
+        const email = document.getElementById('email')?.value?.trim() || '';
+        await refreshTicketPricing(email, eventId, '', '', promoInput.value.trim());
+        applyBilhetesAmountRange();
+        updatePromoHint();
+      }, 400);
+    };
+    promoInput.addEventListener('input', run);
+    promoInput.addEventListener('blur', run);
+  }
+
+  function updatePromoHint() {
+    const hint = document.getElementById('promoCodeHint');
+    const promo = document.getElementById('promoCode')?.value?.trim() || '';
+    if (!hint) return;
+    if (!promo) {
+      hint.textContent = '';
+      return;
+    }
+    const state = getPricingState();
+    if (state.tier === 'discount_code') {
+      hint.textContent = `Código válido — piso ${state.minEur}€`;
+      hint.style.color = 'rgba(107,207,154,.9)';
+    } else {
+      hint.textContent = 'Código inválido ou não aplicável a este email.';
+      hint.style.color = 'rgba(232,120,90,.95)';
+    }
   }
 
   // ── Form submit ──
@@ -156,11 +196,12 @@ async function initBookingPage() {
 
 async function handlePaidBooking(name, email, phone, eventId) {
   const amount = parseInt(document.getElementById('amountRange').value, 10) || 30;
+  const promo = document.getElementById('promoCode')?.value?.trim() || '';
 
   const res = await fetch(`${API_BASE}/create-checkout.php`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ event_id: eventId, name, email, phone, amount }),
+    body: JSON.stringify({ event_id: eventId, name, email, phone, amount, promo_code: promo }),
   });
 
   const data = await res.json();

@@ -1,5 +1,5 @@
 import { syncManualBookingLang } from './manual-booking.js'
-import { getPricingState, isEarlyBirdPeriod, ticketMinEur } from './pricing.js'
+import { getPricingState, getEventPricingConfig, isEarlyBirdPeriod, ticketMinEur, formatEarlyBirdUntil, loadActiveEventPricing } from './pricing.js'
 
 /**
  * links.html — language toggle, sticky mobile CTA, inline booking panel (same page).
@@ -12,6 +12,8 @@ function paintLinksDynamicPricing() {
   const min = ticketMinEur()
   const early = isEarlyBirdPeriod()
   const returning = getPricingState().isReturning
+  const cfg = getEventPricingConfig()
+  const untilEn = formatEarlyBirdUntil(cfg.earlyBirdUntil, 'en')
   const pt = returning
     ? `Sliding scale deste ${min}€ — dançarino·a de regresso.`
     : early
@@ -20,7 +22,7 @@ function paintLinksDynamicPricing() {
   const en = returning
     ? `Sliding scale from €${min} — returning dancer`
     : early
-      ? `Sliding scale from €${min} · early bird through 13 June`
+      ? `Sliding scale from €${min}${untilEn ? ` · early bird through ${untilEn}` : ' · early bird'}`
       : `Sliding scale from €${min}`
   document.querySelectorAll('[data-links-price-pt]').forEach((el) => {
     el.textContent = pt
@@ -33,14 +35,19 @@ function paintLinksDynamicPricing() {
 function paintLinksContributionEarly() {
   const early = isEarlyBirdPeriod()
   const returning = getPricingState().isReturning
+  const cfg = getEventPricingConfig()
+  const untilPt = formatEarlyBirdUntil(cfg.earlyBirdUntil, 'pt')
+  const untilEn = formatEarlyBirdUntil(cfg.earlyBirdUntil, 'en')
   document.querySelectorAll('[data-links-contrib-early-pt]').forEach((el) => {
     if (returning) {
       el.textContent = 'Já dançaste connosco? Com o mesmo email o piso é o preço de regresso (desde 15€).'
       return
     }
     el.textContent = early
-      ? 'Early bird: o bilhete é 20€ até 13 de junho.'
-      : 'Piso mínimo 30€ (early bird de 20€ até 13 de junho já terminou).'
+      ? `Early bird: o bilhete é ${cfg.earlyBirdMinEur}€${untilPt ? ` até ${untilPt}` : ''}.`
+      : cfg.earlyBirdUntil
+        ? `Piso mínimo ${cfg.standardMinEur}€ (early bird de ${cfg.earlyBirdMinEur}€ até ${untilPt} já terminou).`
+        : `Piso mínimo ${cfg.standardMinEur}€.`
   })
   document.querySelectorAll('[data-links-contrib-early-en]').forEach((el) => {
     if (returning) {
@@ -48,8 +55,10 @@ function paintLinksContributionEarly() {
       return
     }
     el.textContent = early
-      ? 'Early bird: the ticket is €20 through 13 June.'
-      : 'Minimum €30 (early bird at €20 through 13 June has ended).'
+      ? `Early bird: the ticket is €${cfg.earlyBirdMinEur}${untilEn ? ` through ${untilEn}` : ''}.`
+      : cfg.earlyBirdUntil
+        ? `Minimum €${cfg.standardMinEur} (early bird at €${cfg.earlyBirdMinEur}${untilEn ? ` through ${untilEn}` : ''} has ended).`
+        : `Minimum €${cfg.standardMinEur}.`
   })
 }
 
@@ -234,6 +243,10 @@ function init() {
     // ignore
   }
   setBodyLang(stored)
+  loadActiveEventPricing().then(() => {
+    paintLinksDynamicPricing()
+    paintLinksContributionEarly()
+  })
   document.getElementById('lang-pt')?.addEventListener('click', () => setBodyLang('pt'))
   document.getElementById('lang-en')?.addEventListener('click', () => setBodyLang('en'))
   initHeroVisualFallback()

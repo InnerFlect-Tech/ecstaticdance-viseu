@@ -5,7 +5,7 @@ declare(strict_types=1);
  * Scan sempre ao centro (desktop + mobile).
  *
  * Opcional antes do include:
- *   $__adminNav          'tickets' | 'links' | 'analytics' | 'costs' | 'events' | 'attendance' | 'scan'
+ *   $__adminNav          'tickets' | 'links' | 'analytics' | 'costs' | 'events' | 'attendance' | 'codes' | 'scan'
  *   $__exportEventId     int|null
  *   $__secondaryCsvHref  string|null
  *   $__hideDbBackup      bool (omit link to full SQL backup)
@@ -22,6 +22,7 @@ $isAnalytics = $__adminNav === 'analytics';
 $isCosts     = $__adminNav === 'costs';
 $isEvents     = $__adminNav === 'events';
 $isAttendance = $__adminNav === 'attendance';
+$isCodes      = $__adminNav === 'codes';
 $isScan       = $__adminNav === 'scan';
 
 $iChart  = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 3v18h18"/><path d="M18 17V9"/><path d="M13 17V5"/><path d="M8 17v-3"/></svg>';
@@ -31,6 +32,7 @@ $iTicket = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-li
 $iLink   = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg>';
 $iScan   = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 7V5a2 2 0 0 1 2-2h2"/><path d="M17 3h2a2 2 0 0 1 2 2v2"/><path d="M21 17v2a2 2 0 0 1-2 2h-2"/><path d="M7 21H5a2 2 0 0 1-2-2v-2"/><line x1="7" y1="12" x2="17" y2="12"/></svg>';
 $iPeople = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>';
+$iCodes  = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 12v6a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2v-6"/><path d="M12 12V4"/><path d="M8 8l4-4 4 4"/></svg>';
 $iBackup = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><ellipse cx="12" cy="5" rx="8" ry="3"/><path d="M4 5v6c0 1.7 3.6 3 8 3s8-1.3 8-3V5"/><path d="M4 11v6c0 1.7 3.6 3 8 3s8-1.3 8-3v-6"/></svg>';
 $iImport = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3v12"/><path d="m7 10 5 5 5-5"/><path d="M5 21h14"/></svg>';
 $iLogout = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>';
@@ -66,6 +68,11 @@ $iLogout = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-li
        <?= $isAttendance ? 'aria-current="page"' : '' ?>>
       <?= $iPeople ?> Presenças
     </a>
+    <a href="/admin/discount-codes.php"
+       class="tb-btn tb-pill<?= $isCodes ? ' is-active' : '' ?>"
+       <?= $isCodes ? 'aria-current="page"' : '' ?>>
+      <?= $iCodes ?> Códigos
+    </a>
     <a href="/admin/link-bookings.php"
        class="tb-btn tb-pill<?= $isLinks ? ' is-active' : '' ?>"
        <?= $isLinks ? 'aria-current="page"' : '' ?>>
@@ -88,14 +95,22 @@ $iLogout = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-li
   <div class="topbar-ctx">
 
     <?php if (!$__hideDbBackup): ?>
-      <a href="/admin/export-database.php"
-         class="tb-btn tb-icon-btn" aria-label="Descarregar backup SQL da base de dados" title="Exportar backup SQL">
-        <?= $iBackup ?>
-      </a>
-      <a href="/admin/import-database.php"
-         class="tb-btn tb-icon-btn" aria-label="Importar backup SQL ou SQLite" title="Importar backup">
-        <?= $iImport ?>
-      </a>
+      <div class="tb-backup-actions" aria-label="Backup da base de dados">
+        <a href="/admin/export-database.php"
+           class="tb-btn tb-backup-btn"
+           aria-label="Exportar backup SQL da base de dados"
+           title="Descarregar backup SQL">
+          <?= $iBackup ?>
+          <span class="tb-backup-label">Exportar</span>
+        </a>
+        <a href="/admin/import-database.php"
+           class="tb-btn tb-backup-btn"
+           aria-label="Importar backup SQL ou SQLite"
+           title="Restaurar backup SQL ou SQLite">
+          <?= $iImport ?>
+          <span class="tb-backup-label">Importar</span>
+        </a>
+      </div>
     <?php endif; ?>
 
     <a href="/admin/logout.php" class="tb-btn tb-icon-btn tb-logout" aria-label="Terminar sessão" title="Sair">
@@ -137,6 +152,13 @@ $iLogout = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-li
      <?= $isAttendance ? 'aria-current="page"' : '' ?>>
     <?= $iPeople ?>
     <span class="btab-label">Presenças</span>
+  </a>
+
+  <a href="/admin/discount-codes.php"
+     class="btab<?= $isCodes ? ' is-active' : '' ?>"
+     <?= $isCodes ? 'aria-current="page"' : '' ?>>
+    <?= $iCodes ?>
+    <span class="btab-label">Códigos</span>
   </a>
 
   <a href="/admin/link-bookings.php"

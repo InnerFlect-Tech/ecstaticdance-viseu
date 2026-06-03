@@ -58,8 +58,36 @@ declare(strict_types=1);
   .topbar-ctx {
     display: flex;
     align-items: center;
-    gap: 0.35rem;
+    gap: 0.5rem;
     flex-shrink: 0;
+    margin-left: auto;
+  }
+
+  /* Backup import / export — top-right, always labelled */
+  .tb-backup-actions {
+    display: flex;
+    align-items: center;
+    gap: 0.35rem;
+    padding: 0 0.15rem;
+  }
+  .tb-backup-btn {
+    width: auto;
+    padding: 0 0.75rem;
+    background: rgba(245,239,230,0.05);
+    border-color: rgba(245,239,230,0.14);
+    color: rgba(245,239,230,0.78);
+    font-size: 0.62rem;
+  }
+  .tb-backup-btn:hover {
+    background: rgba(184,146,74,0.12);
+    border-color: rgba(184,146,74,0.32);
+    color: var(--gold-l);
+  }
+  .tb-backup-label {
+    line-height: 1;
+  }
+  @media (max-width: 420px) {
+    .tb-backup-btn { padding: 0 0.55rem; font-size: 0.58rem; }
   }
 
   /* ── shared button base ── */

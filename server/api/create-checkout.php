@@ -7,6 +7,7 @@
 
 require_once __DIR__ . '/helpers.php';
 require_once __DIR__ . '/attendance.php';
+require_once __DIR__ . '/discount-codes.php';
 
 cors();
 header('Cache-Control: no-store');
@@ -55,6 +56,7 @@ $name     = sanitise($body['name']  ?? '');
 $email    = sanitise($body['email'] ?? '');
 $phone    = sanitise($body['phone'] ?? '');
 $amount   = (int)($body['amount']   ?? 30);
+$promo    = edv_normalize_promo_code((string)($body['promo_code'] ?? ''));
 
 if (!$event_id || !$name || !$email || !$phone) {
     json_err('Campos obrigatórios em falta.');
@@ -62,8 +64,13 @@ if (!$event_id || !$name || !$email || !$phone) {
 if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
     json_err('Email inválido.');
 }
-$min_allowed = (int) edv_ticket_min_eur($email, $event_id);
-$price_tier  = edv_ticket_price_tier($email, $event_id);
+$promoArg = $promo !== '' ? $promo : null;
+$min_allowed = (int) edv_ticket_min_eur($email, $event_id, null, null, $promoArg);
+$price_tier  = edv_ticket_price_tier($email, $event_id, null, null, $promoArg);
+
+if ($promoArg !== null && $price_tier !== 'discount_code') {
+    json_err('Código de desconto inválido ou expirado.');
+}
 
 if ($amount < $min_allowed || $amount > 200) {
     json_err('Valor fora do intervalo permitido (€' . $min_allowed . '–€200).');
@@ -93,13 +100,24 @@ if ((int)$event['capacity'] > 0 && $sold >= (int)$event['capacity']) {
 // Create pending ticket
 $ticket_id = generate_uuid();
 edv_attendance_ensure_schema(db());
+edv_discount_codes_ensure_schema(db());
 
 $ins = db()->prepare(
     'INSERT INTO tickets
-     (id, event_id, name, email, phone, amount_paid, price_tier, payment_status, created_at)
-     VALUES (?, ?, ?, ?, ?, ?, ?, \'pending\', ?)'
+     (id, event_id, name, email, phone, amount_paid, price_tier, promo_code, payment_status, created_at)
+     VALUES (?, ?, ?, ?, ?, ?, ?, ?, \'pending\', ?)'
 );
-$ins->execute([$ticket_id, $event_id, $name, $email, $phone, $amount, $price_tier, db_now_string()]);
+$ins->execute([
+    $ticket_id,
+    $event_id,
+    $name,
+    $email,
+    $phone,
+    $amount,
+    $price_tier,
+    $promoArg,
+    db_now_string(),
+]);
 
 // Create Stripe Checkout session
 $app_url = APP_URL;

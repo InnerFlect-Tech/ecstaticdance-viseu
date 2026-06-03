@@ -18,6 +18,13 @@ if [[ ! -f "$ROOT/server/api/config.php" ]]; then
   echo "Aviso: criado server/api/config.php a partir do exemplo — define credenciais MySQL em produção." >&2
 fi
 
+COMMIT="${SOURCE_COMMIT:-${COOLIFY_COMMIT_SHA:-unknown}}"
+STAMP=$(printf '{"commit":"%s","built_at":"%s","stack":"nixpacks-preview"}\n' "$COMMIT" "$(date -u +%Y-%m-%dT%H:%M:%SZ)")
+printf '%s' "$STAMP" > "$ROOT/server/api/build-info.json"
+if [[ -d "$ROOT/dist" ]]; then
+  printf '%s' "$STAMP" > "$ROOT/dist/deploy-stamp.json"
+fi
+
 port_busy() {
   timeout 1 bash -c "</dev/tcp/127.0.0.1/$1" >/dev/null 2>&1
 }

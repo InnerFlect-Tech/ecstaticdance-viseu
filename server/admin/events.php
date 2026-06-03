@@ -2,6 +2,7 @@
 declare(strict_types=1);
 
 require_once __DIR__ . '/auth.php';
+require_once __DIR__ . '/../api/attendance.php';
 require_admin_session();
 
 function ev_h(string $value): string {
@@ -20,6 +21,7 @@ function ev_cut(string $value, int $max): string {
 }
 
 $pdo = db();
+edv_attendance_ensure_schema($pdo);
 $flash = '';
 $selectedEventId = (int)($_REQUEST['event_id'] ?? 0);
 
@@ -40,6 +42,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $minPrice = max(0.0, (float)($_POST['min_price'] ?? 0));
         $returningMinRaw = trim((string)($_POST['returning_min_eur'] ?? ''));
         $returningMin = $returningMinRaw === '' ? null : max(0.0, (float)$returningMinRaw);
+        $earlyBirdMinRaw = trim((string)($_POST['early_bird_min_eur'] ?? ''));
+        $earlyBirdMin = $earlyBirdMinRaw === '' ? null : max(0.0, (float)$earlyBirdMinRaw);
+        $earlyBirdUntilRaw = trim((string)($_POST['early_bird_until'] ?? ''));
+        $earlyBirdUntil = $earlyBirdUntilRaw !== '' ? $earlyBirdUntilRaw : null;
         $isActive = isset($_POST['is_active']) ? 1 : 0;
 
         if ($title === '' || $date === '') {
@@ -50,7 +56,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $stmt = $pdo->prepare(
                 "UPDATE events
                  SET title = ?, description = ?, date = ?, time_start = ?, time_end = ?, doors_open = ?,
-                     location = ?, type = ?, capacity = ?, min_price = ?, returning_min_eur = ?, is_active = ?
+                     location = ?, type = ?, capacity = ?, min_price = ?, returning_min_eur = ?,
+                     early_bird_min_eur = ?, early_bird_until = ?, is_active = ?
                  WHERE id = ?"
             );
             $stmt->execute([
@@ -65,6 +72,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 $capacity,
                 $minPrice,
                 $returningMin,
+                $earlyBirdMin,
+                $earlyBirdUntil,
                 $isActive,
                 $eventId,
             ]);
@@ -269,7 +278,7 @@ require __DIR__ . '/_topbar.php';
 
           <div class="form-grid cols2" style="margin-top:.62rem;">
             <div class="field">
-              <label>Preço mínimo (€)</label>
+              <label>Preço standard (€)</label>
               <input type="number" min="0" step="0.01" name="min_price" value="<?= number_format((float)$selected['min_price'], 2, '.', '') ?>" />
             </div>
             <div class="field">
@@ -278,6 +287,21 @@ require __DIR__ . '/_topbar.php';
                      value="<?= isset($selected['returning_min_eur']) && $selected['returning_min_eur'] !== null && $selected['returning_min_eur'] !== ''
                        ? number_format((float)$selected['returning_min_eur'], 2, '.', '') : '' ?>"
                      placeholder="15 (predefinição)" />
+            </div>
+          </div>
+
+          <div class="form-grid cols2" style="margin-top:.62rem;">
+            <div class="field">
+              <label>Early bird (€)</label>
+              <input type="number" min="0" step="0.01" name="early_bird_min_eur"
+                     value="<?= isset($selected['early_bird_min_eur']) && $selected['early_bird_min_eur'] !== null && $selected['early_bird_min_eur'] !== ''
+                       ? number_format((float)$selected['early_bird_min_eur'], 2, '.', '') : '' ?>"
+                     placeholder="20 (predefinição)" />
+            </div>
+            <div class="field">
+              <label>Early bird até (inclusivo)</label>
+              <input type="date" name="early_bird_until"
+                     value="<?= ev_h((string)($selected['early_bird_until'] ?? '')) ?>" />
             </div>
           </div>
 
@@ -296,6 +320,7 @@ require __DIR__ . '/_topbar.php';
           </div>
         </form>
         <p class="help">A capacidade usada nos painéis e no checkout vem de <code>events.capacity</code>. Esta página grava diretamente nessa tabela.</p>
+        <p class="help" style="margin-top:.45rem"><strong>Preço standard</strong> é o piso após o early bird. <strong>Early bird</strong> aplica-se até ao fim do dia indicado (hora de Lisboa). Deixa a data vazia para desactivar early bird.</p>
         <p class="help" style="margin-top:.45rem">Quem fez check-in numa edição anterior (lista em <a href="/admin/attendance.php" style="color:#D4A85A">Presenças</a>) paga o piso de <strong>regresso</strong> ao usar o mesmo email. Vazio = 15€.</p>
         <p class="help" style="margin-top:.65rem">Reservas manuais em <code>/links</code> usam o slug <code>edv-2026-06-27</code> (deve coincidir com a data do evento activo). Só um evento deve estar activo de cada vez — ao activar este, os restantes são desactivados automaticamente.</p>
       <?php endif; ?>

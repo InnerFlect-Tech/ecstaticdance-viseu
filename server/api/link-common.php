@@ -100,9 +100,9 @@ function link_sql_now(): string {
     return $d->format('Y-m-d H:i:s');
 }
 
-/** Mínimo do bilhete (com desconto de regresso se aplicável). */
-function link_ticket_min_eur(?string $email = null, ?int $eventId = null): float {
-    return edv_ticket_min_eur($email, $eventId);
+/** Mínimo do bilhete (com desconto de regresso ou código se aplicável). */
+function link_ticket_min_eur(?string $email = null, ?int $eventId = null, ?string $promoCode = null): float {
+    return edv_ticket_min_eur($email, $eventId, null, null, $promoCode);
 }
 
 /** Resolve evento principal a partir do slug edv-YYYY-MM-DD. */
@@ -177,6 +177,7 @@ function link_registrations_ensure_columns(PDO $pdo): void
         $add('ticket_id', 'ticket_id TEXT');
         $add('confirmed_at', 'confirmed_at TEXT');
         $add('receipt_email_sent_at', 'receipt_email_sent_at TEXT');
+        $add('promo_code', 'promo_code TEXT');
         return;
     }
     $driver = $pdo->getAttribute(PDO::ATTR_DRIVER_NAME);
@@ -185,6 +186,7 @@ function link_registrations_ensure_columns(PDO $pdo): void
             'ticket_id' => 'ADD COLUMN `ticket_id` CHAR(36) NULL DEFAULT NULL AFTER `step2_at`',
             'confirmed_at' => 'ADD COLUMN `confirmed_at` DATETIME NULL DEFAULT NULL AFTER `ticket_id`',
             'receipt_email_sent_at' => 'ADD COLUMN `receipt_email_sent_at` DATETIME NULL DEFAULT NULL AFTER `confirmed_at`',
+            'promo_code' => 'ADD COLUMN `promo_code` VARCHAR(32) NULL DEFAULT NULL AFTER `heard_other`',
         ];
         foreach ($alters as $col => $sql) {
             try {
@@ -209,6 +211,7 @@ function link_registrations_ensure_columns(PDO $pdo): void
         $pdo->exec('ALTER TABLE link_registrations ADD COLUMN IF NOT EXISTS ticket_id CHAR(36)');
         $pdo->exec('ALTER TABLE link_registrations ADD COLUMN IF NOT EXISTS confirmed_at TIMESTAMPTZ');
         $pdo->exec('ALTER TABLE link_registrations ADD COLUMN IF NOT EXISTS receipt_email_sent_at TIMESTAMPTZ');
+        $pdo->exec('ALTER TABLE link_registrations ADD COLUMN IF NOT EXISTS promo_code VARCHAR(32)');
     }
 }
 

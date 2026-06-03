@@ -5,6 +5,7 @@
 declare(strict_types=1);
 
 require_once __DIR__ . '/link-common.php';
+require_once __DIR__ . '/discount-codes.php';
 
 link_api_cors();
 header('Cache-Control: no-store');
@@ -29,6 +30,7 @@ $payment_method = link_sanitise((string)($body['payment_method'] ?? ''), 20);
 $heard_from    = link_sanitise((string)($body['heard_from'] ?? ''), 32);
 $heard_other   = link_sanitise((string)($body['heard_other'] ?? ''), 255);
 $event_slug    = link_sanitise((string)($body['event_slug'] ?? 'edv-2026-06-27'), 64);
+$promo_code    = edv_normalize_promo_code((string)($body['promo_code'] ?? ''));
 
 $allowed_m = ['mbway', 'transfer', 'revolut'];
 $allowed_h = ['instagram', 'facebook', 'friends', 'mailing', 'whatsapp', 'telegram', 'other'];
@@ -52,8 +54,15 @@ if ($ticket_euros < 0 || $total_euros < 0) {
     link_json_err('Valores inválidos.');
 }
 $eventIdForPricing = link_resolve_event_id_from_slug($event_slug) ?? 0;
-$tmin = link_ticket_min_eur($email, $eventIdForPricing > 0 ? $eventIdForPricing : null);
+$promoArg = $promo_code !== '' ? $promo_code : null;
+$tmin = link_ticket_min_eur($email, $eventIdForPricing > 0 ? $eventIdForPricing : null, $promoArg);
 $tmax = link_ticket_max_eur();
+if ($promoArg !== null) {
+    $tier = edv_ticket_price_tier($email, $eventIdForPricing > 0 ? $eventIdForPricing : null, null, null, $promoArg);
+    if ($tier !== 'discount_code') {
+        link_json_err('Código de desconto inválido ou expirado.', 400);
+    }
+}
 if ($ticket_euros < $tmin - 0.001 || $ticket_euros > $tmax + 0.001) {
     link_json_err(
         sprintf('Valor do bilhete fora do intervalo (€%d–€%d).', (int) $tmin, (int) $tmax),
@@ -99,6 +108,7 @@ if ($backend === 'json') {
             'proof_mime'      => null,
             'step2_at'        => null,
             'updated_at'      => $now,
+            'promo_code'      => $promoArg,
         ];
         if (!link_json_patch_registration($id, $patch)) {
             link_json_err('Não foi possível actualizar o registo em aberto.', 500);
@@ -134,7 +144,8 @@ if ($backend === 'json') {
                 proof_relpath = NULL,
                 proof_mime = NULL,
                 step2_at = NULL,
-                updated_at = ?
+                updated_at = ?,
+                promo_code = ?
              WHERE id = ?'
         );
         $u->execute([
@@ -149,6 +160,7 @@ if ($backend === 'json') {
             $heard_other === '' ? null : $heard_other,
             $now,
             $now,
+            $promoArg,
             $id,
         ]);
         $done = true;
@@ -179,6 +191,7 @@ for ($tries = 0; $tries < 6 && !$done; $tries++) {
             'step2_at'        => null,
             'created_at'      => $now,
             'updated_at'      => $now,
+            'promo_code'      => $promoArg,
         ];
         try {
             link_json_insert_registration($payload);
@@ -196,8 +209,8 @@ for ($tries = 0; $tries < 6 && !$done; $tries++) {
         try {
             $st = $pdo->prepare(
                 'INSERT INTO link_registrations
-                 (id, payment_ref, event_slug, name, email, phone, ticket_euros, dinner_note, total_euros, payment_method, heard_from, heard_other, step1_at, created_at, updated_at)
-                 VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)'
+                 (id, payment_ref, event_slug, name, email, phone, ticket_euros, dinner_note, total_euros, payment_method, heard_from, heard_other, promo_code, step1_at, created_at, updated_at)
+                 VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)'
             );
             $st->execute([
                 $id,
@@ -212,6 +225,7 @@ for ($tries = 0; $tries < 6 && !$done; $tries++) {
                 $payment_method,
                 $heard_from,
                 $heard_other === '' ? null : $heard_other,
+                $promoArg,
                 $now,
                 $now,
                 $now,

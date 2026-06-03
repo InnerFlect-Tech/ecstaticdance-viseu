@@ -10,30 +10,74 @@ export const STANDARD_MIN_EUR = 30
 export const EARLY_BIRD_MIN_EUR = 20
 export const RETURNING_MIN_EUR_DEFAULT = 15
 
-/** @type {{ minEur: number, tier: string, isReturning: boolean, eventId: number, email: string }} */
+/** @type {{ minEur: number, tier: string, isReturning: boolean, isDiscountCode: boolean, eventId: number, email: string, promoCode: string }} */
 let pricingState = {
   minEur: STANDARD_MIN_EUR,
   tier: 'standard',
   isReturning: false,
+  isDiscountCode: false,
   eventId: 0,
   email: '',
+  promoCode: '',
+}
+
+/** @type {{ standardMinEur: number, earlyBirdMinEur: number, earlyBirdUntil: string | null }} */
+let eventPricingConfig = {
+  standardMinEur: STANDARD_MIN_EUR,
+  earlyBirdMinEur: EARLY_BIRD_MIN_EUR,
+  earlyBirdUntil: null,
 }
 
 export function getPricingState() {
   return pricingState
 }
 
+export function getEventPricingConfig() {
+  return eventPricingConfig
+}
+
+function parsePrice(value, fallback) {
+  const n = Number(value)
+  return Number.isFinite(n) && n >= 0 ? n : fallback
+}
+
+/**
+ * @param {{ min_price?: unknown, early_bird_min_eur?: unknown, early_bird_until?: unknown } | null | undefined} event
+ */
+export function setEventPricingFromEvent(event) {
+  if (!event) return
+  eventPricingConfig = {
+    standardMinEur: parsePrice(event.min_price, STANDARD_MIN_EUR),
+    earlyBirdMinEur: parsePrice(event.early_bird_min_eur, EARLY_BIRD_MIN_EUR),
+    earlyBirdUntil: event.early_bird_until ? String(event.early_bird_until) : null,
+  }
+}
+
+/**
+ * @param {{ standard_min_eur?: unknown, early_bird_min_eur?: unknown, early_bird_until?: unknown } | null | undefined} data
+ */
+export function setEventPricingFromApi(data) {
+  if (!data) return
+  eventPricingConfig = {
+    standardMinEur: parsePrice(data.standard_min_eur, eventPricingConfig.standardMinEur),
+    earlyBirdMinEur: parsePrice(data.early_bird_min_eur, eventPricingConfig.earlyBirdMinEur),
+    earlyBirdUntil: data.early_bird_until ? String(data.early_bird_until) : null,
+  }
+}
+
 /**
  * @param {Date} [d]
  */
 export function isEarlyBirdPeriod(d = new Date()) {
+  const until = eventPricingConfig.earlyBirdUntil
+  if (!until) return false
   const ymd = d.toLocaleDateString('en-CA', { timeZone: 'Europe/Lisbon' })
-  return ymd <= '2026-06-13'
+  return ymd <= until
 }
 
 /** Piso local (sem API) — early bird vs standard. */
 export function defaultTicketMinEur(d = new Date()) {
-  return isEarlyBirdPeriod(d) ? EARLY_BIRD_MIN_EUR : STANDARD_MIN_EUR
+  return isEarlyBirdPeriod(d) ? eventPricingConfig.earlyBirdMinEur : eventPricingConfig.standardMinEur
 }
 
 /**
@@ -41,46 +85,103 @@ export function defaultTicketMinEur(d = new Date()) {
  * @param {Date} [d]
  */
 export function ticketMinEur(d = new Date()) {
-  if (pricingState.email && pricingState.minEur > 0) {
+  if (pricingState.minEur > 0) {
     return pricingState.minEur
   }
   return defaultTicketMinEur(d)
 }
 
+export function getPromoCode() {
+  return pricingState.promoCode
+}
+
+/**
+ * @param {string} code
+ */
+export function setPromoCode(code) {
+  pricingState.promoCode = String(code || '').trim().toUpperCase()
+}
+
+/**
+ * @param {string | null | undefined} until YYYY-MM-DD
+ * @param {'pt' | 'en'} [lang]
+ */
+export function formatEarlyBirdUntil(until, lang = 'pt') {
+  if (!until) return ''
+  const [y, m, d] = until.split('-').map(Number)
+  if (!y || !m || !d) return until
+  const date = new Date(Date.UTC(y, m - 1, d, 12, 0, 0))
+  if (lang === 'en') {
+    return date.toLocaleDateString('en-GB', { day: 'numeric', month: 'long', timeZone: 'UTC' })
+  }
+  return date.toLocaleDateString('pt-PT', { day: 'numeric', month: 'long', timeZone: 'UTC' })
+}
+
 /**
  * @param {string} email
  * @param {number} [eventId]
+ * @param {string} [eventSlug]
+ * @param {string} [phone]
+ * @param {string} [promoCode]
  */
-export async function refreshTicketPricing(email, eventId = 0, eventSlug = '', phone = '') {
+export async function refreshTicketPricing(email, eventId = 0, eventSlug = '', phone = '', promoCode = '') {
   const trimmed = String(email || '').trim()
   const phoneTrim = String(phone || '').trim()
+  const code = String(promoCode || pricingState.promoCode || '').trim().toUpperCase()
+  pricingState.promoCode = code
+  const q = new URLSearchParams()
+  if (eventId > 0) q.set('event_id', String(eventId))
+  if (eventSlug) q.set('event_slug', eventSlug)
+  if (code) q.set('code', code)
+
   if ((!trimmed || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(trimmed)) && !phoneTrim) {
+    try {
+      const res = await fetch(`/api/get-ticket-pricing.php?${q}`)
+      const data = await res.json()
+      if (data.ok) {
+        setEventPricingFromApi(data)
+        pricingState = {
+          minEur: Number(data.min_eur) || defaultTicketMinEur(),
+          tier: String(data.tier || (isEarlyBirdPeriod() ? 'early_bird' : 'standard')),
+          isReturning: false,
+          isDiscountCode: Boolean(data.is_discount_code),
+          eventId: eventId || 0,
+          email: '',
+          promoCode: code,
+        }
+        return pricingState
+      }
+    } catch {
+      // fallback local config
+    }
     pricingState = {
       minEur: defaultTicketMinEur(),
       tier: isEarlyBirdPeriod() ? 'early_bird' : 'standard',
       isReturning: false,
+      isDiscountCode: false,
       eventId: eventId || 0,
       email: '',
+      promoCode: code,
     }
     return pricingState
   }
 
-  const q = new URLSearchParams()
   if (trimmed && /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(trimmed)) q.set('email', trimmed)
   if (phoneTrim) q.set('phone', phoneTrim)
-  if (eventId > 0) q.set('event_id', String(eventId))
-  if (eventSlug) q.set('event_slug', eventSlug)
 
   try {
     const res = await fetch(`/api/get-ticket-pricing.php?${q}`)
     const data = await res.json()
     if (data.ok) {
+      setEventPricingFromApi(data)
       pricingState = {
         minEur: Number(data.min_eur) || defaultTicketMinEur(),
         tier: String(data.tier || 'standard'),
         isReturning: Boolean(data.is_returning),
+        isDiscountCode: Boolean(data.is_discount_code),
         eventId: eventId || 0,
         email: trimmed,
+        promoCode: code,
       }
       return pricingState
     }
@@ -92,14 +193,36 @@ export async function refreshTicketPricing(email, eventId = 0, eventSlug = '', p
     minEur: defaultTicketMinEur(),
     tier: isEarlyBirdPeriod() ? 'early_bird' : 'standard',
     isReturning: false,
+    isDiscountCode: false,
     eventId: eventId || 0,
     email: trimmed,
+    promoCode: code,
   }
   return pricingState
 }
 
+/**
+ * Carrega configuração de preços do evento activo (sem email).
+ */
+export async function loadActiveEventPricing() {
+  try {
+    const res = await fetch('/api/get-events.php')
+    const data = await res.json()
+    if (data.ok && data.event) {
+      setEventPricingFromEvent(data.event)
+      return data.event
+    }
+  } catch {
+    // ignore
+  }
+  return null
+}
+
 export function minPriceLabelPt() {
   const min = ticketMinEur()
+  if (pricingState.tier === 'discount_code') {
+    return `${min}€ — código de desconto`
+  }
   if (pricingState.tier === 'returning') {
     return `${min}€ — dançarino·a de regresso`
   }
@@ -111,6 +234,9 @@ export function minPriceLabelPt() {
 
 export function minPriceLabelEn() {
   const min = ticketMinEur()
+  if (pricingState.tier === 'discount_code') {
+    return `€${min} — discount code`
+  }
   if (pricingState.tier === 'returning') {
     return `€${min} — returning dancer`
   }

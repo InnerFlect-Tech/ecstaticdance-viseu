@@ -20,6 +20,8 @@ CREATE TABLE IF NOT EXISTS `events` (
   `capacity`    SMALLINT UNSIGNED NOT NULL DEFAULT 60,
   `min_price`   DECIMAL(8,2)     NOT NULL DEFAULT 25.00,
   `returning_min_eur` DECIMAL(8,2) DEFAULT NULL,
+  `early_bird_min_eur` DECIMAL(8,2) DEFAULT NULL,
+  `early_bird_until` DATE DEFAULT NULL,
   `is_active`   TINYINT(1)       NOT NULL DEFAULT 1,
   `created_at`  DATETIME         NOT NULL DEFAULT CURRENT_TIMESTAMP,
   PRIMARY KEY (`id`),

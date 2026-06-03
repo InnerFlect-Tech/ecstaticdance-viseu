@@ -8,6 +8,7 @@ dist/
 
 # Server credentials — NEVER commit this file
 server/api/config.php
+server/api/build-info.json
 server/data/*.sqlite
 server/data/*.sqlite-journal
 server/data/*.sqlite-wal

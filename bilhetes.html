@@ -166,6 +166,18 @@
 
             <!-- Amount picker — shown only for paid events -->
             <div class="form-group" id="amountGroup" style="display:none">
+              <div class="form-group" style="margin-bottom:.75rem;">
+                <label for="promoCode">Código de desconto <span class="form-hint">(opcional)</span></label>
+                <input
+                  type="text"
+                  id="promoCode"
+                  name="promo_code"
+                  autocomplete="off"
+                  placeholder="EDV-XXXXXX"
+                  spellcheck="false"
+                />
+                <p id="promoCodeHint" class="form-hint" style="margin-top:.35rem;"></p>
+              </div>
               <label>Valor que escolhes — Sliding scale (até 200€)</label>
               <div class="amount-picker">
                 <div class="amount-number">

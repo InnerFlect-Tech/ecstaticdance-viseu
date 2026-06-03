@@ -365,6 +365,43 @@ function edv_is_returning_dancer(string $email, ?int $forEventId = null, ?string
     return (bool) $stmt->fetchColumn();
 }
 
+function edv_resolve_event_id_for_pricing(?int $eventId): ?int
+{
+    if ($eventId !== null && $eventId > 0) {
+        return $eventId;
+    }
+
+    $pdo = db();
+    $stmt = $pdo->prepare(
+        'SELECT id FROM events WHERE is_active = 1 AND date >= ? ORDER BY date ASC LIMIT 1'
+    );
+    $stmt->execute([db_today_string()]);
+    $id = $stmt->fetchColumn();
+
+    return $id !== false ? (int) $id : null;
+}
+
+/**
+ * @return array{min_price: mixed, early_bird_min_eur: mixed, early_bird_until: mixed}|null
+ */
+function edv_event_pricing_row(?int $eventId): ?array
+{
+    $resolvedId = edv_resolve_event_id_for_pricing($eventId);
+    if ($resolvedId === null) {
+        return null;
+    }
+
+    $pdo = db();
+    edv_attendance_ensure_schema($pdo);
+    $q = $pdo->prepare(
+        'SELECT min_price, early_bird_min_eur, early_bird_until FROM events WHERE id = ?'
+    );
+    $q->execute([$resolvedId]);
+    $row = $q->fetch(PDO::FETCH_ASSOC);
+
+    return is_array($row) ? $row : null;
+}
+
 function edv_returning_min_for_event(?int $eventId): float
 {
     if ($eventId === null || $eventId <= 0) {
@@ -382,24 +419,74 @@ function edv_returning_min_for_event(?int $eventId): float
     return EDV_RETURNING_MIN_EUR_DEFAULT;
 }
 
-function edv_is_early_bird_period(?DateTime $at = null): bool
+function edv_standard_min_for_event(?int $eventId): float
 {
+    $row = edv_event_pricing_row($eventId);
+    if ($row !== null && $row['min_price'] !== null && $row['min_price'] !== '') {
+        return max(0.0, (float) $row['min_price']);
+    }
+
+    return EDV_STANDARD_MIN_EUR_DEFAULT;
+}
+
+function edv_early_bird_min_for_event(?int $eventId): float
+{
+    $row = edv_event_pricing_row($eventId);
+    if ($row !== null && $row['early_bird_min_eur'] !== null && $row['early_bird_min_eur'] !== '') {
+        return max(0.0, (float) $row['early_bird_min_eur']);
+    }
+
+    return EDV_EARLY_BIRD_MIN_EUR_DEFAULT;
+}
+
+function edv_early_bird_until_for_event(?int $eventId): ?string
+{
+    $row = edv_event_pricing_row($eventId);
+    if ($row === null || $row['early_bird_until'] === null || $row['early_bird_until'] === '') {
+        return null;
+    }
+
+    return (string) $row['early_bird_until'];
+}
+
+function edv_is_early_bird_period(?DateTime $at = null, ?int $eventId = null): bool
+{
+    $until = edv_early_bird_until_for_event($eventId);
+    if ($until === null) {
+        return false;
+    }
+
     $tz = new DateTimeZone('Europe/Lisbon');
     $now = $at ?? new DateTime('now', $tz);
-    $earlyBirdEnds = new DateTime('2026-06-14 00:00:00', $tz);
+    $end = DateTime::createFromFormat('Y-m-d H:i:s', $until . ' 23:59:59', $tz);
+    if ($end === false) {
+        return false;
+    }
 
-    return $now < $earlyBirdEnds;
+    return $now <= $end;
 }
 
 /**
- * @return 'returning'|'early_bird'|'standard'
+ * @return 'discount_code'|'returning'|'early_bird'|'standard'
  */
-function edv_ticket_price_tier(string $email, ?int $eventId = null, ?DateTime $at = null, ?string $phone = null): string
-{
+function edv_ticket_price_tier(
+    string $email,
+    ?int $eventId = null,
+    ?DateTime $at = null,
+    ?string $phone = null,
+    ?string $promoCode = null
+): string {
+    if ($promoCode !== null && trim($promoCode) !== '') {
+        require_once __DIR__ . '/discount-codes.php';
+        $codeRow = edv_lookup_discount_code($promoCode, $eventId, $email !== '' ? $email : null);
+        if ($codeRow !== null) {
+            return 'discount_code';
+        }
+    }
     if (edv_is_returning_dancer($email, $eventId, $phone)) {
         return 'returning';
     }
-    if (edv_is_early_bird_period($at)) {
+    if (edv_is_early_bird_period($at, $eventId)) {
         return 'early_bird';
     }
 
@@ -409,8 +496,21 @@ function edv_ticket_price_tier(string $email, ?int $eventId = null, ?DateTime $a
 /**
  * Piso em euros para compra (sliding scale mínimo).
  */
-function edv_ticket_min_eur(?string $email = null, ?int $eventId = null, ?DateTime $at = null, ?string $phone = null): float
-{
+function edv_ticket_min_eur(
+    ?string $email = null,
+    ?int $eventId = null,
+    ?DateTime $at = null,
+    ?string $phone = null,
+    ?string $promoCode = null
+): float {
+    if ($promoCode !== null && trim($promoCode) !== '') {
+        require_once __DIR__ . '/discount-codes.php';
+        $codeRow = edv_lookup_discount_code($promoCode, $eventId, $email);
+        if ($codeRow !== null) {
+            return max(0.0, (float) $codeRow['min_eur']);
+        }
+    }
+
     if (($email !== null && $email !== '') || ($phone !== null && edv_normalize_phone_digits($phone) !== '')) {
         $tier = edv_ticket_price_tier($email ?? '', $eventId, $at, $phone);
         if ($tier === 'returning') {
@@ -418,7 +518,24 @@ function edv_ticket_min_eur(?string $email = null, ?int $eventId = null, ?DateTi
         }
     }
 
-    return edv_is_early_bird_period($at) ? 20.0 : 30.0;
+    return edv_is_early_bird_period($at, $eventId)
+        ? edv_early_bird_min_for_event($eventId)
+        : edv_standard_min_for_event($eventId);
+}
+
+/**
+ * Escalão efectivo para exibição (sem email — early bird vs standard).
+ */
+function edv_public_price_tier(?int $eventId = null, ?DateTime $at = null, ?string $promoCode = null): string
+{
+    if ($promoCode !== null && trim($promoCode) !== '') {
+        require_once __DIR__ . '/discount-codes.php';
+        if (edv_lookup_discount_code($promoCode, $eventId) !== null) {
+            return 'discount_code';
+        }
+    }
+
+    return edv_is_early_bird_period($at, $eventId) ? 'early_bird' : 'standard';
 }
 
 /**

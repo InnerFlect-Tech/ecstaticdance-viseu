@@ -70,8 +70,8 @@ No log, se aparecer **`Build step skipped`** com imagem já etiquetada com o mes
 **Verificação rápida (browser ou curl):**
 
 - `https://ecstaticdanceviseu.pt/api/health.php` → deve incluir `"commit":"<sha do main>"` (não `unknown`).
-- `https://ecstaticdanceviseu.pt/build-info.json` → mesmo commit.
-- `https://ecstaticdanceviseu.pt/links.html` → no código-fonte, o JS deve ser `manual-booking-BcDjgn_k.js` (o hash muda quando o front muda).
+- `https://ecstaticdanceviseu.pt/deploy-stamp.json` → mesmo commit + `built_at` recente.
+- `https://ecstaticdanceviseu.pt/links.html` → ver código-fonte: o JS **não** deve ser `manual-booking-DebSsfR_.js` (hash de Maio); após deploy recente será outro sufixo (ex. `BcDjgn_k.js`).
 
 **Correcção:**
 
@@ -126,7 +126,9 @@ O log *"Application has ports mapped to the host system, rolling update is not s
 
 ### Sintomas no log (build errado para produção nginx+PHP)
 
-Se vires **`deploy_nixpacks_buildpack`**, **`COPY .nixpacks/`**, **`nix-env`**, ou **`vite build`** numa pilha tipo **stage-0**/Nix, o Coolify está a usar **Nixpacks**, **não** o **Dockerfile** deste repo.
+Se vires **`nixpacks plan`**, **`nixpacks build`**, **`COPY .nixpacks/`**, **`nix-env`**, ou **`npm run start`** / **`vite preview`** no log de deploy, o Coolify está a usar **Nixpacks**, **não** o **Dockerfile** deste repo.
+
+O ficheiro `nixpacks.toml` na raiz faz o Coolify **auto-detectar Node/Nixpacks** mesmo que aches que escolheste Dockerfile. Este repo mantém só `nixpacks.toml.example` (preview local); **não** voltes a pôr `nixpacks.toml` na raiz em produção.
 
 - Stack de produção: **Docker** com `Dockerfile` na raiz (Nginx + PHP em `/var/www/edv-server`).
 - O ficheiro `nixpacks.toml` só serve **preview/stack alternativo** (Node `npm run start`). Não deve ser o modo do serviço público Coolify para este site.

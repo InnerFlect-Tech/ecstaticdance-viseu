@@ -6,6 +6,7 @@ declare(strict_types=1);
 
 require_once __DIR__ . '/link-common.php';
 require_once __DIR__ . '/helpers.php';
+require_once __DIR__ . '/discount-codes.php';
 
 /**
  * @return array{ok:bool, error?:string, ticket_id?:string, already?:bool}
@@ -50,6 +51,8 @@ function link_confirm_registration(string $registrationId): array
     $slug       = trim((string) ($row['event_slug'] ?? ''));
     $total      = (float) ($row['total_euros'] ?? 0);
     $ticketEuro = (float) ($row['ticket_euros'] ?? $total);
+    $promoCode  = edv_normalize_promo_code((string) ($row['promo_code'] ?? ''));
+    $promoArg   = $promoCode !== '' ? $promoCode : null;
 
     if ($email === '' || $name === '' || $phone === '') {
         return ['ok' => false, 'error' => 'Dados do participante incompletos.'];
@@ -89,14 +92,19 @@ function link_confirm_registration(string $registrationId): array
     $ticketId = generate_uuid();
     $now      = db_now_string();
 
-    $priceTier = edv_ticket_price_tier($email, $eventId);
+    $priceTier = edv_ticket_price_tier($email, $eventId, null, null, $promoArg);
     edv_attendance_ensure_schema(db());
+    edv_discount_codes_ensure_schema(db());
 
     db()->prepare(
         'INSERT INTO tickets
-         (id, event_id, name, email, phone, amount_paid, price_tier, payment_status, paid_at, created_at)
-         VALUES (?, ?, ?, ?, ?, ?, ?, \'paid\', ?, ?)'
-    )->execute([$ticketId, $eventId, $name, $email, $phone, $ticketEuro, $priceTier, $now, $now]);
+         (id, event_id, name, email, phone, amount_paid, price_tier, promo_code, payment_status, paid_at, created_at)
+         VALUES (?, ?, ?, ?, ?, ?, ?, ?, \'paid\', ?, ?)'
+    )->execute([$ticketId, $eventId, $name, $email, $phone, $ticketEuro, $priceTier, $promoArg, $now, $now]);
+
+    if ($promoArg !== null) {
+        edv_record_discount_code_use($promoArg, $ticketId, $email, $ticketEuro);
+    }
 
     $patch = [
         'ticket_id'    => $ticketId,

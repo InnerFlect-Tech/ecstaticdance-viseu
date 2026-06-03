@@ -1,5 +1,5 @@
 import { resolve, dirname } from 'node:path'
-import { existsSync } from 'node:fs'
+import { existsSync, writeFileSync, mkdirSync } from 'node:fs'
 import { fileURLToPath } from 'node:url'
 import { defineConfig } from 'vite'
 
@@ -56,7 +56,24 @@ export default defineConfig({
   root: __dirname,
   base: '/',
 
-  plugins: [extensionlessHtmlPages()],
+  plugins: [
+    extensionlessHtmlPages(),
+    {
+      name: 'deploy-stamp',
+      closeBundle() {
+        const stamp = {
+          commit: process.env.SOURCE_COMMIT || process.env.COOLIFY_COMMIT_SHA || 'unknown',
+          built_at: new Date().toISOString(),
+          stack: 'vite',
+        }
+        const outDir = resolve(__dirname, 'dist')
+        mkdirSync(outDir, { recursive: true })
+        const json = JSON.stringify(stamp)
+        writeFileSync(resolve(outDir, 'deploy-stamp.json'), json)
+        writeFileSync(resolve(__dirname, 'server/api/build-info.json'), json)
+      },
+    },
+  ],
 
   build: {
     outDir: 'dist',
