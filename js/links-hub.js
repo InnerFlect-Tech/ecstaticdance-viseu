@@ -1,4 +1,5 @@
 import { syncManualBookingLang } from './manual-booking.js'
+import { paintLinksPageFromEvent } from './event-display.js'
 import {
   getPricingState,
   getEventPricingConfig,
@@ -272,9 +273,10 @@ function init() {
     // ignore
   }
   setBodyLang(stored)
-  loadActiveEventPricing().then(() => {
+  loadActiveEventPricing().then((ev) => {
     paintLinksDynamicPricing()
     paintLinksContributionEarly()
+    paintLinksPageFromEvent(ev)
   })
   document.getElementById('lang-pt')?.addEventListener('click', () => setBodyLang('pt'))
   document.getElementById('lang-en')?.addEventListener('click', () => setBodyLang('en'))

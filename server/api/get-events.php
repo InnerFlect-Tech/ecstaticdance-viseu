@@ -5,9 +5,12 @@
    ============================================================ */
 
 require_once __DIR__ . '/helpers.php';
+require_once __DIR__ . '/event-display.php';
 
 cors();
 header('Cache-Control: no-store');
+
+edv_events_ensure_display_columns(db());
 
 if ($_SERVER['REQUEST_METHOD'] !== 'GET') {
     json_err('Method not allowed', 405);
@@ -31,4 +34,4 @@ if (!$event) {
     json_ok(['event' => null]);
 }
 
-json_ok(['event' => $event]);
+json_ok(['event' => edv_event_public_payload($event)]);

@@ -46,6 +46,17 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $earlyBirdMin = $earlyBirdMinRaw === '' ? null : max(0.0, (float)$earlyBirdMinRaw);
         $earlyBirdUntilRaw = trim((string)($_POST['early_bird_until'] ?? ''));
         $earlyBirdUntil = $earlyBirdUntilRaw !== '' ? $earlyBirdUntilRaw : null;
+        $doorsClose = trim((string)($_POST['doors_close'] ?? ''));
+        $danceStart = trim((string)($_POST['dance_start'] ?? ''));
+        $danceEnd = trim((string)($_POST['dance_end'] ?? ''));
+        $integrationTime = trim((string)($_POST['integration_time'] ?? ''));
+        $djName = trim((string)($_POST['dj_name'] ?? ''));
+        $djInstagram = trim((string)($_POST['dj_instagram'] ?? ''));
+        $warmupName = trim((string)($_POST['warmup_name'] ?? ''));
+        $warmupInstagram = trim((string)($_POST['warmup_instagram'] ?? ''));
+        $integrationName = trim((string)($_POST['integration_name'] ?? ''));
+        $integrationInstagram = trim((string)($_POST['integration_instagram'] ?? ''));
+        $locationUrl = trim((string)($_POST['location_url'] ?? ''));
         $isActive = isset($_POST['is_active']) ? 1 : 0;
 
         if ($title === '' || $date === '') {
@@ -56,8 +67,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $stmt = $pdo->prepare(
                 "UPDATE events
                  SET title = ?, description = ?, date = ?, time_start = ?, time_end = ?, doors_open = ?,
-                     location = ?, type = ?, capacity = ?, min_price = ?, returning_min_eur = ?,
-                     early_bird_min_eur = ?, early_bird_until = ?, is_active = ?
+                     doors_close = ?, dance_start = ?, dance_end = ?, integration_time = ?,
+                     location = ?, location_url = ?, type = ?, capacity = ?, min_price = ?, returning_min_eur = ?,
+                     early_bird_min_eur = ?, early_bird_until = ?,
+                     dj_name = ?, dj_instagram = ?, warmup_name = ?, warmup_instagram = ?,
+                     integration_name = ?, integration_instagram = ?,
+                     is_active = ?
                  WHERE id = ?"
             );
             $stmt->execute([
@@ -67,13 +82,24 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 $timeStart !== '' ? $timeStart : null,
                 $timeEnd !== '' ? $timeEnd : null,
                 $doorsOpen !== '' ? $doorsOpen : null,
+                $doorsClose !== '' ? $doorsClose : null,
+                $danceStart !== '' ? $danceStart : null,
+                $danceEnd !== '' ? $danceEnd : null,
+                $integrationTime !== '' ? $integrationTime : null,
                 $location !== '' ? ev_cut($location, 255) : null,
+                $locationUrl !== '' ? ev_cut($locationUrl, 512) : null,
                 $type,
                 $capacity,
                 $minPrice,
                 $returningMin,
                 $earlyBirdMin,
                 $earlyBirdUntil,
+                $djName !== '' ? ev_cut($djName, 255) : null,
+                $djInstagram !== '' ? ev_cut(ltrim($djInstagram, '@'), 64) : null,
+                $warmupName !== '' ? ev_cut($warmupName, 255) : null,
+                $warmupInstagram !== '' ? ev_cut(ltrim($warmupInstagram, '@'), 64) : null,
+                $integrationName !== '' ? ev_cut($integrationName, 255) : null,
+                $integrationInstagram !== '' ? ev_cut(ltrim($integrationInstagram, '@'), 64) : null,
                 $isActive,
                 $eventId,
             ]);
@@ -236,6 +262,10 @@ require __DIR__ . '/_topbar.php';
               <label>Localização</label>
               <input type="text" name="location" value="<?= ev_h((string)($selected['location'] ?? '')) ?>" placeholder="Nua e Crua, Viseu" />
             </div>
+            <div class="field">
+              <label>Link do local (opcional)</label>
+              <input type="url" name="location_url" value="<?= ev_h((string)($selected['location_url'] ?? '')) ?>" placeholder="https://www.instagram.com/_nua_e_crua_/" />
+            </div>
           </div>
 
           <div class="field" style="margin-top:.62rem;">
@@ -253,15 +283,34 @@ require __DIR__ . '/_topbar.php';
               <input type="time" name="doors_open" value="<?= ev_h((string)($selected['doors_open'] ?? '15:30')) ?>" />
             </div>
             <div class="field">
-              <label>Hora início</label>
+              <label>Hora início (warm-up)</label>
               <input type="time" name="time_start" value="<?= ev_h((string)($selected['time_start'] ?? '16:00')) ?>" />
             </div>
           </div>
 
           <div class="form-grid cols3" style="margin-top:.62rem;">
             <div class="field">
-              <label>Hora fim</label>
+              <label>Dança — início</label>
+              <input type="time" name="dance_start" value="<?= ev_h((string)($selected['dance_start'] ?? '')) ?>" placeholder="16:30" />
+            </div>
+            <div class="field">
+              <label>Dança — fim</label>
+              <input type="time" name="dance_end" value="<?= ev_h((string)($selected['dance_end'] ?? '')) ?>" placeholder="18:30" />
+            </div>
+            <div class="field">
+              <label>Integração</label>
+              <input type="time" name="integration_time" value="<?= ev_h((string)($selected['integration_time'] ?? '')) ?>" placeholder="18:30" />
+            </div>
+          </div>
+
+          <div class="form-grid cols3" style="margin-top:.62rem;">
+            <div class="field">
+              <label>Hora fim (chá e convívio)</label>
               <input type="time" name="time_end" value="<?= ev_h((string)($selected['time_end'] ?? '19:00')) ?>" />
+            </div>
+            <div class="field">
+              <label>Fecho de portas</label>
+              <input type="time" name="doors_close" value="<?= ev_h((string)($selected['doors_close'] ?? '')) ?>" placeholder="20:30" />
             </div>
             <div class="field">
               <label>Tipo</label>
@@ -270,9 +319,45 @@ require __DIR__ . '/_topbar.php';
                 <option value="free" <?= (string)$selected['type'] === 'free' ? 'selected' : '' ?>>Gratuito</option>
               </select>
             </div>
+          </div>
+
+          <div class="form-grid cols3" style="margin-top:.62rem;">
             <div class="field">
               <label>Capacidade</label>
               <input type="number" min="0" name="capacity" value="<?= (int)$selected['capacity'] ?>" />
+            </div>
+          </div>
+
+          <div class="form-grid cols2" style="margin-top:.62rem;">
+            <div class="field">
+              <label>DJ</label>
+              <input type="text" name="dj_name" value="<?= ev_h((string)($selected['dj_name'] ?? '')) ?>" placeholder="Bernardo B-file" />
+            </div>
+            <div class="field">
+              <label>Instagram DJ (sem @)</label>
+              <input type="text" name="dj_instagram" value="<?= ev_h((string)($selected['dj_instagram'] ?? '')) ?>" placeholder="b_filemusic" />
+            </div>
+          </div>
+
+          <div class="form-grid cols2" style="margin-top:.62rem;">
+            <div class="field">
+              <label>Facilitador·a warm-up</label>
+              <input type="text" name="warmup_name" value="<?= ev_h((string)($selected['warmup_name'] ?? '')) ?>" placeholder="Vazio = a anunciar" />
+            </div>
+            <div class="field">
+              <label>Instagram warm-up</label>
+              <input type="text" name="warmup_instagram" value="<?= ev_h((string)($selected['warmup_instagram'] ?? '')) ?>" />
+            </div>
+          </div>
+
+          <div class="form-grid cols2" style="margin-top:.62rem;">
+            <div class="field">
+              <label>Facilitador·a integração</label>
+              <input type="text" name="integration_name" value="<?= ev_h((string)($selected['integration_name'] ?? '')) ?>" placeholder="Vazio = a anunciar" />
+            </div>
+            <div class="field">
+              <label>Instagram integração</label>
+              <input type="text" name="integration_instagram" value="<?= ev_h((string)($selected['integration_instagram'] ?? '')) ?>" />
             </div>
           </div>
 
@@ -322,7 +407,8 @@ require __DIR__ . '/_topbar.php';
         <p class="help">A capacidade usada nos painéis e no checkout vem de <code>events.capacity</code>. Esta página grava diretamente nessa tabela.</p>
         <p class="help" style="margin-top:.45rem"><strong>Preço standard</strong> é o piso após o early bird. <strong>Early bird</strong> aplica-se até ao fim do dia indicado (hora de Lisboa). Deixa a data vazia para desactivar early bird.</p>
         <p class="help" style="margin-top:.45rem">Quem fez check-in numa edição anterior (lista em <a href="/admin/attendance.php" style="color:#D4A85A">Presenças</a>) paga o piso de <strong>regresso</strong> ao usar o mesmo email. Vazio = 15€.</p>
-        <p class="help" style="margin-top:.65rem">Reservas manuais em <code>/links</code> usam o slug <code>edv-2026-06-27</code> (deve coincidir com a data do evento activo). Só um evento deve estar activo de cada vez — ao activar este, os restantes são desactivados automaticamente.</p>
+        <p class="help" style="margin-top:.45rem">Horários vazios (dança, integração) usam valores por defeito a partir do warm-up e do fim do evento. A página <code>/links</code> lê estes campos do evento <strong>activo para venda</strong>.</p>
+        <p class="help" style="margin-top:.65rem">A página <code>/links</code> mostra automaticamente o evento com <strong>activo para venda</strong> (título, horários, facilitadores, preços). O slug das reservas manuais é <code>edv-<?= ev_h((string)$selected['date']) ?></code>. Só um evento deve estar activo de cada vez.</p>
       <?php endif; ?>
     </section>
   </div>

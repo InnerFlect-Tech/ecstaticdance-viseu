@@ -3810,3 +3810,13 @@ body#links-page.lang-en .links-masthead .links-lang #lang-en {
     transform: none;
   }
 }
+
+#links-no-event {
+  max-width: 42rem;
+  margin: 1.5rem auto 0;
+  text-align: center;
+}
+
+.links-page--no-event .links-stack {
+  opacity: 0.55;
+}

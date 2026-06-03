@@ -849,8 +849,12 @@ function wireLinkPricingByEmail() {
 function init() {
   if (!document.getElementById('lb_booking_form')) return
   initManualLang()
-  loadActiveEventPricing().then(() => {
+  loadActiveEventPricing().then((ev) => {
     applyTicketPricingToDom()
+    if (ev?.slug) {
+      const slugInput = getEl('lb_event_slug')
+      if (slugInput) slugInput.value = String(ev.slug)
+    }
   })
   applyHubPrefTicket()
   wireStep1InlineErrorClearing()

@@ -49,6 +49,8 @@ SQL
         $pdo->exec('CREATE INDEX IF NOT EXISTS idx_attendance_email ON event_attendance (email);');
         edv_events_ensure_returning_column_sqlite($pdo);
         edv_events_ensure_early_bird_columns_sqlite($pdo);
+        require_once __DIR__ . '/event-display.php';
+        edv_events_ensure_display_columns($pdo);
 
         return;
     }
@@ -80,6 +82,8 @@ SQL
         );
         edv_events_ensure_returning_column_mysql($pdo);
         edv_events_ensure_early_bird_columns_mysql($pdo);
+        require_once __DIR__ . '/event-display.php';
+        edv_events_ensure_display_columns($pdo);
 
         return;
     }
@@ -106,6 +110,8 @@ SQL
         $pdo->exec('ALTER TABLE events ADD COLUMN IF NOT EXISTS returning_min_eur NUMERIC(8,2)');
         $pdo->exec('ALTER TABLE events ADD COLUMN IF NOT EXISTS early_bird_min_eur NUMERIC(8,2)');
         $pdo->exec('ALTER TABLE events ADD COLUMN IF NOT EXISTS early_bird_until DATE');
+        require_once __DIR__ . '/event-display.php';
+        edv_events_ensure_display_columns($pdo);
     }
 }
 
