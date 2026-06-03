@@ -11,6 +11,8 @@ require_once __DIR__ . '/helpers.php';
 
 /** Piso global para quem já dançou numa edição anterior (se o evento não definir outro). */
 const EDV_RETURNING_MIN_EUR_DEFAULT = 15.0;
+const EDV_EARLY_BIRD_MIN_EUR_DEFAULT = 20.0;
+const EDV_STANDARD_MIN_EUR_DEFAULT = 30.0;
 
 function edv_normalize_email(string $email): string
 {
@@ -46,6 +48,7 @@ SQL
         $pdo->exec('CREATE INDEX IF NOT EXISTS idx_attendance_event ON event_attendance (event_id);');
         $pdo->exec('CREATE INDEX IF NOT EXISTS idx_attendance_email ON event_attendance (email);');
         edv_events_ensure_returning_column_sqlite($pdo);
+        edv_events_ensure_early_bird_columns_sqlite($pdo);
 
         return;
     }
@@ -76,6 +79,7 @@ CREATE TABLE IF NOT EXISTS `event_attendance` (
 SQL
         );
         edv_events_ensure_returning_column_mysql($pdo);
+        edv_events_ensure_early_bird_columns_mysql($pdo);
 
         return;
     }
@@ -100,6 +104,8 @@ SQL
         $pdo->exec('CREATE INDEX IF NOT EXISTS idx_attendance_event ON event_attendance (event_id);');
         $pdo->exec('CREATE INDEX IF NOT EXISTS idx_attendance_email ON event_attendance (email);');
         $pdo->exec('ALTER TABLE events ADD COLUMN IF NOT EXISTS returning_min_eur NUMERIC(8,2)');
+        $pdo->exec('ALTER TABLE events ADD COLUMN IF NOT EXISTS early_bird_min_eur NUMERIC(8,2)');
+        $pdo->exec('ALTER TABLE events ADD COLUMN IF NOT EXISTS early_bird_until DATE');
     }
 }
 
@@ -138,6 +144,48 @@ function edv_events_ensure_returning_column_mysql(PDO $pdo): void
         );
     } catch (PDOException) {
         // já existe
+    }
+}
+
+function edv_events_ensure_early_bird_columns_sqlite(PDO $pdo): void
+{
+    $cols = $pdo->query('PRAGMA table_info(events)')->fetchAll(PDO::FETCH_ASSOC);
+    $names = array_column($cols, 'name');
+    if (!in_array('early_bird_min_eur', $names, true)) {
+        $pdo->exec('ALTER TABLE events ADD COLUMN early_bird_min_eur REAL');
+    }
+    if (!in_array('early_bird_until', $names, true)) {
+        $pdo->exec('ALTER TABLE events ADD COLUMN early_bird_until TEXT');
+    }
+}
+
+function edv_events_ensure_early_bird_columns_mysql(PDO $pdo): void
+{
+    try {
+        $chk = $pdo->query(
+            "SELECT 1 FROM information_schema.COLUMNS
+             WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'events' AND COLUMN_NAME = 'early_bird_min_eur'"
+        );
+        if ($chk && !$chk->fetchColumn()) {
+            $pdo->exec(
+                'ALTER TABLE `events` ADD COLUMN `early_bird_min_eur` DECIMAL(8,2) NULL DEFAULT NULL AFTER `returning_min_eur`'
+            );
+        }
+    } catch (PDOException) {
+        // coluna já existe
+    }
+    try {
+        $chk = $pdo->query(
+            "SELECT 1 FROM information_schema.COLUMNS
+             WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'events' AND COLUMN_NAME = 'early_bird_until'"
+        );
+        if ($chk && !$chk->fetchColumn()) {
+            $pdo->exec(
+                'ALTER TABLE `events` ADD COLUMN `early_bird_until` DATE NULL DEFAULT NULL AFTER `early_bird_min_eur`'
+            );
+        }
+    } catch (PDOException) {
+        // coluna já existe
     }
 }
 
@@ -423,18 +471,88 @@ const EDV_EVENT_01_DATE = '2026-05-23';
 function edv_event_01_door_roster(): array
 {
     return [
-        ['name' => 'Sofia Bernardo', 'amount_eur' => 30.0, 'present' => true],
-        ['name' => 'Joana Silva', 'amount_eur' => 20.0, 'present' => false],
-        ['name' => 'Catarina Cerineu', 'amount_eur' => 30.0, 'present' => true],
-        ['name' => 'Fernando Santos', 'amount_eur' => 20.0, 'present' => true],
-        ['name' => 'Joana Dias', 'amount_eur' => 20.0, 'present' => true],
-        ['name' => 'Cláudia Pina', 'amount_eur' => 20.0, 'present' => true],
-        ['name' => 'Alesia Matusevych', 'amount_eur' => 30.0, 'present' => true],
-        ['name' => 'Guilherme Rolo', 'amount_eur' => 20.0, 'present' => true],
-        ['name' => 'Ana Luísa Saraiva', 'amount_eur' => 20.0, 'present' => false],
-        ['name' => 'William', 'amount_eur' => 30.0, 'present' => true, 'phone' => '912775972'],
-        ['name' => 'Marco Moutinho', 'amount_eur' => 30.0, 'present' => true, 'phone' => '965142244'],
-        ['name' => 'Leonore Davim', 'amount_eur' => 30.0, 'present' => true, 'phone' => '919497711'],
+        [
+            'name'       => 'Sofia Bernardo',
+            'amount_eur' => 30.0,
+            'present'    => true,
+            'email'      => 'sofia_bernardo27@hotmail.com',
+            'phone'      => '+351919176698',
+        ],
+        [
+            'name'       => 'Joana Silva',
+            'amount_eur' => 20.0,
+            'present'    => false,
+            'email'      => 'jsb.joana@gmail.com',
+            'phone'      => '912949274',
+        ],
+        [
+            'name'       => 'Catarina Cerineu',
+            'amount_eur' => 30.0,
+            'present'    => true,
+            'email'      => 'catarinacerineu@gmail.com',
+            'phone'      => '915685431',
+        ],
+        [
+            'name'       => 'Fernando Santos',
+            'amount_eur' => 20.0,
+            'present'    => true,
+            'email'      => 'nandosantos1@gmail.com',
+            'phone'      => '916273452',
+        ],
+        [
+            'name'       => 'Joana Dias',
+            'amount_eur' => 20.0,
+            'present'    => true,
+            'email'      => 'joanapoliveiradias@gmail.com',
+            'phone'      => '926585887',
+        ],
+        [
+            'name'       => 'Cláudia Pina',
+            'amount_eur' => 20.0,
+            'present'    => true,
+            'email'      => 'cvitoria250392@gmail.com',
+            'phone'      => '927651255',
+        ],
+        [
+            'name'       => 'Alesia Matusevych',
+            'amount_eur' => 30.0,
+            'present'    => true,
+            'email'      => 'yulianovna1@gmail.com',
+            'phone'      => '+351911544075',
+        ],
+        [
+            'name'       => 'Guilherme Rolo',
+            'amount_eur' => 20.0,
+            'present'    => true,
+            'email'      => 'guirolo21@gmail.com',
+            'phone'      => '+351965413573',
+        ],
+        [
+            'name'       => 'Ana Luísa Saraiva',
+            'amount_eur' => 20.0,
+            'present'    => false,
+            'email'      => 'analuisasaraiva.tf@gmail.com',
+            'phone'      => '965746186',
+        ],
+        [
+            'name'       => 'William',
+            'amount_eur' => 30.0,
+            'present'    => true,
+            'phone'      => '912775972',
+        ],
+        [
+            'name'       => 'Marco Aurélio Mesquita Moutinho',
+            'amount_eur' => 30.0,
+            'present'    => true,
+            'email'      => 'marquito@sapo.pt',
+            'phone'      => '965142244',
+        ],
+        [
+            'name'       => 'Leonore Davim',
+            'amount_eur' => 30.0,
+            'present'    => true,
+            'phone'      => '919497711',
+        ],
     ];
 }
 
@@ -674,4 +792,22 @@ function edv_attendance_find_event_01_id(PDO $pdo): ?int
     $id = (int) ($stmt->fetchColumn() ?: 0);
 
     return $id > 0 ? $id : null;
+}
+
+/**
+ * Limpa bilhetes e presenças da edição #01 e reimporta a folha (edv_event_01_door_roster).
+ *
+ * @return array{event_id:int,matched:int,created:int,present:int,absent:int,skipped:int,messages:list<string>}|null
+ */
+function edv_attendance_reseed_event_01_from_roster(PDO $pdo): ?array
+{
+    $eventId = edv_attendance_find_event_01_id($pdo);
+    if ($eventId === null) {
+        return null;
+    }
+    edv_attendance_ensure_schema($pdo);
+    $pdo->prepare('DELETE FROM event_attendance WHERE event_id = ?')->execute([$eventId]);
+    $pdo->prepare('DELETE FROM tickets WHERE event_id = ?')->execute([$eventId]);
+
+    return edv_attendance_import_event_01_roster($pdo);
 }

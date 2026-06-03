@@ -10,6 +10,8 @@ require_admin_session();
 
 require_once __DIR__ . '/../api/link-common.php';
 require_once __DIR__ . '/../api/link-confirm.php';
+require_once __DIR__ . '/../api/link-registrations-edv-2026-05-23-seed.php';
+require_once __DIR__ . '/../api/attendance.php';
 
 /**
  * @param array<string,mixed> $row
@@ -142,6 +144,28 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && (string)($_POST['action'] ?? '') ==
             }
         } catch (Throwable $e) {
             $flashMessage = 'Erro a apagar registo: ' . $e->getMessage();
+        }
+    }
+} elseif ($_SERVER['REQUEST_METHOD'] === 'POST' && (string) ($_POST['action'] ?? '') === 'reseed_edv_2026_05_23') {
+    if ((string) ($_POST['confirm_reseed'] ?? '') !== '1') {
+        $flashMessage = 'Confirma a substituição das inscrições do evento 23/05/2026.';
+    } else {
+        try {
+            $linkResult = edv_link_registrations_apply_2026_05_23_seed(link_api_db());
+            $attResult  = edv_attendance_reseed_event_01_from_roster(db());
+            $flashMessage = sprintf(
+                'Inscrições #01: %d removidas, %d gravadas. Presenças: %d bilhetes (%d presentes, %d ausentes).',
+                (int) $linkResult['deleted'],
+                (int) $linkResult['inserted'],
+                (int) ($attResult['matched'] ?? 0) + (int) ($attResult['created'] ?? 0),
+                (int) ($attResult['present'] ?? 0),
+                (int) ($attResult['absent'] ?? 0)
+            );
+            if ($attResult === null) {
+                $flashMessage .= ' (evento 2026-05-23 não encontrado na base principal — cria-o em Eventos.)';
+            }
+        } catch (Throwable $e) {
+            $flashMessage = 'Erro ao repor dados: ' . $e->getMessage();
         }
     }
 }
@@ -290,6 +314,13 @@ $linkStoreHint = match ($linkStore['mode']) {
     border-radius:3px; cursor:pointer; }
   .btn-confirm:hover { background:rgba(45,106,79,.35); color:var(--bone); }
   .badge-confirmed { background:rgba(45,106,79,.2); color:#8fd4a8; }
+  .seed-panel { background: rgba(184,146,74,.08); border: 1px solid rgba(184,146,74,.28);
+    padding: .85rem 1rem; margin-bottom: 1.25rem; border-radius: 6px; font-size: .78rem; line-height: 1.55; }
+  .seed-panel form { margin-top: .65rem; display: flex; flex-wrap: wrap; gap: .65rem; align-items: center; }
+  .seed-panel label { font-size: .78rem; color: rgba(245,239,230,.75); display: flex; gap: .4rem; align-items: center; }
+  .btn-seed { appearance:none; border:1px solid rgba(184,146,74,.45); background:rgba(184,146,74,.15); color:var(--gold-l);
+    padding:.4rem .7rem; font-size:.68rem; letter-spacing:.06em; text-transform:uppercase; border-radius:3px; cursor:pointer; }
+  .btn-seed:hover { background:rgba(184,146,74,.28); }
 
   <?php require __DIR__ . '/_scanner-styles.php'; ?>
 </style>
@@ -315,6 +346,16 @@ require __DIR__ . '/_topbar.php';
   </div>
 
   <?php if ($loadError === ''): ?>
+    <div class="seed-panel">
+      <strong>Dados de produção — edição 23/05/2026</strong><br />
+      Repõe as 10 inscrições reais do /links (referências BBY447, DJR787, …) e actualiza a lista em
+      <a href="/admin/attendance.php" style="color:var(--gold-l)">Presenças</a> com emails e telemóveis.
+      <form method="post" onsubmit="return confirm('Substituir todas as inscrições edv-2026-05-23 e bilhetes da edição #01?');">
+        <input type="hidden" name="action" value="reseed_edv_2026_05_23" />
+        <label><input type="checkbox" name="confirm_reseed" value="1" required /> Substituir inscrições e bilhetes #01</label>
+        <button type="submit" class="btn-seed">Importar lista de produção</button>
+      </form>
+    </div>
     <div class="banner-info" role="status">
       <?= $linkStoreHint ?>
     </div>

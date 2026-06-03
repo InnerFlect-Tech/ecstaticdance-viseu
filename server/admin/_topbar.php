@@ -32,6 +32,7 @@ $iLink   = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-li
 $iScan   = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 7V5a2 2 0 0 1 2-2h2"/><path d="M17 3h2a2 2 0 0 1 2 2v2"/><path d="M21 17v2a2 2 0 0 1-2 2h-2"/><path d="M7 21H5a2 2 0 0 1-2-2v-2"/><line x1="7" y1="12" x2="17" y2="12"/></svg>';
 $iPeople = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>';
 $iBackup = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><ellipse cx="12" cy="5" rx="8" ry="3"/><path d="M4 5v6c0 1.7 3.6 3 8 3s8-1.3 8-3V5"/><path d="M4 11v6c0 1.7 3.6 3 8 3s8-1.3 8-3v-6"/></svg>';
+$iImport = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3v12"/><path d="m7 10 5 5 5-5"/><path d="M5 21h14"/></svg>';
 $iLogout = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>';
 ?>
 <!-- ══════════ TOP BAR ══════════ -->
@@ -88,8 +89,12 @@ $iLogout = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-li
 
     <?php if (!$__hideDbBackup): ?>
       <a href="/admin/export-database.php"
-         class="tb-btn tb-icon-btn" aria-label="Descarregar backup SQL da base de dados" title="Backup SQL (toda a base)">
+         class="tb-btn tb-icon-btn" aria-label="Descarregar backup SQL da base de dados" title="Exportar backup SQL">
         <?= $iBackup ?>
+      </a>
+      <a href="/admin/import-database.php"
+         class="tb-btn tb-icon-btn" aria-label="Importar backup SQL ou SQLite" title="Importar backup">
+        <?= $iImport ?>
       </a>
     <?php endif; ?>
 

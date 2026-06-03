@@ -103,21 +103,7 @@ $editCostId = (int)($_REQUEST['edit_id'] ?? 0);
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $action = (string)($_POST['action'] ?? '');
-    if ($action === 'seed_base_costs') {
-        $eventId = (int)($_POST['event_id'] ?? 0);
-        if ($eventId > 0) {
-            $n = edv_settlement_ensure_base_cost_rows($pdo, $eventId);
-            edv_settlement_seed_shares_for_event($pdo, $eventId);
-            $flash = $n > 0 ? "Linhas de custos base criadas ({$n})." : 'Custos base já existem.';
-            $selectedEvent = $eventId;
-        }
-    } elseif ($action === 'reseed_event_01') {
-        $id = edv_settlement_seed_event_01_historical($pdo, true);
-        $flash = $id ? 'Contas da edição #01 repostas (300€, custos, repartição).' : 'Evento #01 não encontrado (data 2026-05-23).';
-        if ($id) {
-            $selectedEvent = $id;
-        }
-    } elseif ($action === 'save_shares') {
+    if ($action === 'save_shares') {
         $eventId = (int)($_POST['event_id'] ?? 0);
         if ($eventId > 0) {
             edv_settlement_seed_shares_for_event($pdo, $eventId);
@@ -159,6 +145,23 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 }
             }
             $flash = 'Repartição actualizada.';
+            $selectedEvent = $eventId;
+        }
+    } elseif ($action === 'add_share') {
+        $eventId = (int)($_POST['event_id'] ?? 0);
+        if ($eventId > 0) {
+            $label = trim((string)($_POST['share_label_new'] ?? ''));
+            $newId = edv_settlement_add_share($pdo, $eventId, $label !== '' ? $label : 'Nova entidade');
+            $flash = $newId ? 'Entidade adicionada à repartição.' : 'Não foi possível adicionar a linha.';
+            $selectedEvent = $eventId;
+        }
+    } elseif ($action === 'delete_share') {
+        $eventId = (int)($_POST['event_id'] ?? 0);
+        $shareId = (int)($_POST['share_id'] ?? 0);
+        if ($eventId > 0 && $shareId > 0) {
+            $flash = edv_settlement_delete_share($pdo, $eventId, $shareId)
+                ? 'Linha da repartição apagada.'
+                : 'Linha não encontrada.';
             $selectedEvent = $eventId;
         }
     } elseif ($action === 'add_cost') {
@@ -401,6 +404,8 @@ function costs_pool_label(string $pool): string
     .card { background: var(--dark-l); border: 1px solid rgba(245,239,230,.08); padding: .95rem 1rem; border-radius: 10px; }
     .card .label { font-size: .62rem; letter-spacing: .14em; text-transform: uppercase; color: rgba(245,239,230,.35); margin-bottom: .32rem; }
     .card .num { font-size: 1.35rem; font-weight: 300; }
+    .card-hero { margin-bottom: .85rem; }
+    .card-hero .num { font-size: clamp(1.75rem, 4vw, 2.35rem); }
     .num.ok { color: #6bcf9a; } .num.bad { color: #e8a598; } .num.gold { color: var(--gold); }
     .flash { background: rgba(45,106,79,.18); border: 1px solid rgba(45,106,79,.36); padding: .65rem .85rem; margin-bottom: .9rem; border-radius: 8px; font-size: .82rem; }
     .panel { background: var(--dark-m); border: 1px solid rgba(245,239,230,.08); border-radius: 10px; padding: .95rem; margin-bottom: 1rem; }
@@ -432,6 +437,9 @@ function costs_pool_label(string $pool): string
     .tier-chip { background: rgba(245,239,230,.05); border: 1px solid rgba(245,239,230,.1); padding: .5rem .65rem; border-radius: 8px; font-size: .8rem; }
     .shares-table input[type="number"] { max-width: 5rem; }
     .shares-table input[type="text"] { min-width: 8rem; }
+    .shares-actions { display: flex; flex-wrap: wrap; gap: .5rem; align-items: center; margin-top: .65rem; }
+    .shares-actions .inline-add { display: flex; flex-wrap: wrap; gap: .4rem; align-items: center; flex: 1; min-width: 12rem; }
+    .shares-actions .inline-add input[type="text"] { flex: 1; min-width: 10rem; max-width: 18rem; }
     .badge-base { font-size: .62rem; letter-spacing: .08em; text-transform: uppercase; color: #6bcf9a; }
     .badge-expense { font-size: .62rem; letter-spacing: .08em; text-transform: uppercase; color: rgba(245,239,230,.45); }
     .help { font-size: .78rem; color: rgba(245,239,230,.5); line-height: 1.5; margin-top: .5rem; }
@@ -440,6 +448,21 @@ function costs_pool_label(string $pool): string
       padding: .85rem 1rem; border-radius: 10px; margin-bottom: 1rem; font-size: .82rem; line-height: 1.55;
     }
     .event01-banner strong { color: var(--gold); font-weight: 500; }
+    .panel-head { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: .6rem; margin-bottom: .8rem; }
+    .panel-head h2 { margin-bottom: 0; }
+    .cost-modal-backdrop { display: none; position: fixed; inset: 0; background: rgba(14,11,9,.88);
+      z-index: 200; align-items: center; justify-content: center; padding: 1rem; }
+    .cost-modal-backdrop.open { display: flex; }
+    .cost-modal { background: var(--dark-m); border: 1px solid rgba(245,239,230,.12); border-radius: 12px;
+      width: 100%; max-width: 560px; max-height: min(92vh, 720px); overflow-y: auto; padding: 1.1rem 1.15rem 1.25rem; position: relative; }
+    .cost-modal h3 { font-size: .68rem; letter-spacing: .14em; text-transform: uppercase; color: rgba(245,239,230,.38);
+      margin-bottom: .85rem; padding-right: 2rem; }
+    .cost-modal-close { position: absolute; top: .85rem; right: .85rem; background: none; border: none;
+      color: rgba(245,239,230,.4); cursor: pointer; font-size: 1.35rem; line-height: 1; }
+    .cost-modal-close:hover { color: var(--bone); }
+    .cost-modal .form-grid { grid-template-columns: 1fr; }
+    @media (min-width: 520px) { .cost-modal .form-grid.cols-2 { grid-template-columns: 1fr 1fr; } }
+    .cost-modal-actions { display: flex; flex-wrap: wrap; gap: .45rem; margin-top: .85rem; }
   </style>
 </head>
 <body class="has-bottom-tabs">
@@ -478,20 +501,47 @@ require __DIR__ . '/_topbar.php';
         <?php endforeach; ?>
       </select>
     </form>
-    <?php if ($selectedEvent > 0): ?>
-      <form method="post" style="margin-top:.65rem;display:inline;">
-        <input type="hidden" name="action" value="seed_base_costs" />
-        <input type="hidden" name="event_id" value="<?= (int)$selectedEvent ?>" />
-        <button class="btn" type="submit">Criar linhas custos base (Transportes, Flyers, …)</button>
-      </form>
-      <?php if ($isEvent01): ?>
-        <form method="post" style="margin-top:.65rem;display:inline;margin-left:.35rem;">
-          <input type="hidden" name="action" value="reseed_event_01" />
-          <button class="btn" type="submit">Repor dados #01 (300€ / 47€ / 69€)</button>
-        </form>
-      <?php endif; ?>
-    <?php endif; ?>
   </div>
+
+  <?php if ($selectedEvent > 0): ?>
+  <div class="card card-hero">
+    <div class="label">Receita Atual (pagos)</div>
+    <div class="num gold"><?= number_format($revenuePaid, 2, ',', ' ') ?> €</div>
+    <div class="mono"><?= $ticketsPaid ?> pagos / <?= $ticketsSold ?> vendidos</div>
+  </div>
+  <div class="row">
+    <div class="card">
+      <div class="label">Custos base</div>
+      <div class="num"><?= number_format($baseCostsSum, 2, ',', ' ') ?> €</div>
+      <div class="mono">Subtraídos antes do espaço</div>
+    </div>
+    <div class="card">
+      <div class="label">Outros / reembolsos</div>
+      <div class="num"><?= number_format($expenseCostsSum, 2, ',', ' ') ?> €</div>
+      <div class="mono">Não entram na folha %</div>
+    </div>
+    <div class="card">
+      <div class="label">Resultado Atual</div>
+      <div class="num <?= $netNow >= 0 ? 'ok' : 'bad' ?>"><?= number_format($netNow, 2, ',', ' ') ?> €</div>
+      <div class="mono">Receita - custos</div>
+    </div>
+    <div class="card">
+      <div class="label">Promessas de custo</div>
+      <div class="num"><?= number_format($promisedCosts, 2, ',', ' ') ?> €</div>
+      <div class="mono">Ex.: fotógrafo, som, etc.</div>
+    </div>
+    <div class="card">
+      <div class="label">Estimativa Lotação</div>
+      <div class="num <?= $netAtCapacity >= 0 ? 'ok' : 'bad' ?>"><?= number_format($netAtCapacity, 2, ',', ' ') ?> €</div>
+      <div class="mono">Capacidade × ticket médio (<?= number_format($avgTicket, 2, ',', ' ') ?> €)</div>
+    </div>
+    <div class="card">
+      <div class="label">Resultado após promessas</div>
+      <div class="num <?= $netAfterPromises >= 0 ? 'ok' : 'bad' ?>"><?= number_format($netAfterPromises, 2, ',', ' ') ?> €</div>
+      <div class="mono">Atual: receita - custos - promessas</div>
+    </div>
+  </div>
+  <?php endif; ?>
 
   <?php if ($settlement): ?>
   <div class="panel">
@@ -562,6 +612,7 @@ require __DIR__ . '/_topbar.php';
               <th>%</th>
               <th>€ fixo</th>
               <th>Base de cálculo</th>
+              <th></th>
             </tr>
           </thead>
           <tbody>
@@ -585,6 +636,10 @@ require __DIR__ . '/_topbar.php';
                     <option value="final" <?= (string)($sr['pool'] ?? '') === 'final' ? 'selected' : '' ?>><?= costs_h(costs_pool_label('final')) ?></option>
                   </select>
                 </td>
+                <td>
+                  <button class="btn btn-danger" type="submit" form="delete-share-<?= (int)$sr['id'] ?>"
+                    onclick="return confirm('Apagar esta entidade da repartição?');">Apagar</button>
+                </td>
               </tr>
             <?php endforeach; ?>
           </tbody>
@@ -592,126 +647,31 @@ require __DIR__ . '/_topbar.php';
       </div>
       <div style="margin-top:.65rem;"><button class="btn" type="submit">Guardar percentagens</button></div>
     </form>
-  </div>
-  <?php endif; ?>
-
-  <div class="row">
-    <div class="card">
-      <div class="label">Receita Atual (pagos)</div>
-      <div class="num gold"><?= number_format($revenuePaid, 2, ',', ' ') ?> €</div>
-      <div class="mono"><?= $ticketsPaid ?> pagos / <?= $ticketsSold ?> vendidos</div>
-    </div>
-    <div class="card">
-      <div class="label">Custos base</div>
-      <div class="num"><?= number_format($baseCostsSum, 2, ',', ' ') ?> €</div>
-      <div class="mono">Subtraídos antes do espaço</div>
-    </div>
-    <div class="card">
-      <div class="label">Outros / reembolsos</div>
-      <div class="num"><?= number_format($expenseCostsSum, 2, ',', ' ') ?> €</div>
-      <div class="mono">Não entram na folha %</div>
-    </div>
-    <div class="card">
-      <div class="label">Resultado Atual</div>
-      <div class="num <?= $netNow >= 0 ? 'ok' : 'bad' ?>"><?= number_format($netNow, 2, ',', ' ') ?> €</div>
-      <div class="mono">Receita - custos</div>
-    </div>
-    <div class="card">
-      <div class="label">Promessas de custo</div>
-      <div class="num"><?= number_format($promisedCosts, 2, ',', ' ') ?> €</div>
-      <div class="mono">Ex.: fotógrafo, som, etc.</div>
-    </div>
-    <div class="card">
-      <div class="label">Estimativa Lotação</div>
-      <div class="num <?= $netAtCapacity >= 0 ? 'ok' : 'bad' ?>"><?= number_format($netAtCapacity, 2, ',', ' ') ?> €</div>
-      <div class="mono">Capacidade × ticket médio (<?= number_format($avgTicket, 2, ',', ' ') ?> €)</div>
-    </div>
-    <div class="card">
-      <div class="label">Resultado após promessas</div>
-      <div class="num <?= $netAfterPromises >= 0 ? 'ok' : 'bad' ?>"><?= number_format($netAfterPromises, 2, ',', ' ') ?> €</div>
-      <div class="mono">Atual: receita - custos - promessas</div>
-    </div>
-  </div>
-
-  <div class="panel">
-    <h2>Custos base e outros</h2>
-    <form method="post">
-      <input type="hidden" name="action" value="add_cost" />
+    <form method="post" class="shares-actions">
+      <input type="hidden" name="action" value="add_share" />
       <input type="hidden" name="event_id" value="<?= (int)$selectedEvent ?>" />
-      <div class="form-grid" style="grid-template-columns:1fr 1fr 1fr 1fr 1fr;">
-        <select name="base_cost_slug" id="cost_base_slug">
-          <option value="">— Outro / personalizado —</option>
-          <?php foreach (EDV_BASE_COST_SLUGS as $slug => $blabel): ?>
-            <option value="<?= costs_h($slug) ?>"><?= costs_h($blabel) ?></option>
-          <?php endforeach; ?>
-        </select>
-        <input name="label" placeholder="Descrição (se outro)" />
-        <input name="amount_eur" type="number" step="0.01" min="0" placeholder="Valor €" required />
-        <select name="cost_bucket">
-          <option value="base">Custo base (folha)</option>
-          <option value="expense">Outro / reembolso</option>
-        </select>
-        <input name="paid_by" placeholder="Pago por" />
-      </div>
-      <input type="hidden" name="category" value="custos_base" />
-      <div style="margin-top:.6rem;max-width:280px;">
-        <select name="cost_stage">
-          <option value="actual">Custo real (já ocorreu)</option>
-          <option value="promised">Promessa (previsto)</option>
-        </select>
-      </div>
-      <div style="margin-top:.6rem;">
-        <textarea name="notes" placeholder="Notas (opcional)"></textarea>
-      </div>
-      <div style="margin-top:.6rem;">
-        <button class="btn" type="submit">Adicionar custo</button>
+      <div class="inline-add">
+        <label class="mono" for="share_label_new">Nova entidade</label>
+        <input type="text" id="share_label_new" name="share_label_new" placeholder="Nome (opcional)" />
+        <button class="btn" type="submit">Adicionar linha</button>
       </div>
     </form>
-  </div>
-
-  <?php if ($editCostId > 0 && is_array($editCost)): ?>
-  <div class="panel">
-    <h2>Editar custo</h2>
-    <form method="post">
-      <input type="hidden" name="action" value="update_cost" />
-      <input type="hidden" name="event_id" value="<?= (int)$selectedEvent ?>" />
-      <input type="hidden" name="id" value="<?= (int)$editCost['id'] ?>" />
-      <div class="form-grid">
-        <select name="base_cost_slug">
-          <option value="">— Outro —</option>
-          <?php foreach (EDV_BASE_COST_SLUGS as $slug => $blabel): ?>
-            <option value="<?= costs_h($slug) ?>" <?= (string)($editCost['base_cost_slug'] ?? '') === $slug ? 'selected' : '' ?>><?= costs_h($blabel) ?></option>
-          <?php endforeach; ?>
-        </select>
-        <input name="label" value="<?= costs_h((string)$editCost['label']) ?>" required />
-        <input name="category" value="<?= costs_h((string)($editCost['category'] ?? '')) ?>" />
-        <select name="cost_bucket">
-          <option value="base" <?= (string)($editCost['cost_bucket'] ?? 'base') === 'base' ? 'selected' : '' ?>>Custo base</option>
-          <option value="expense" <?= (string)($editCost['cost_bucket'] ?? '') === 'expense' ? 'selected' : '' ?>>Outro</option>
-        </select>
-        <input name="amount_eur" type="number" step="0.01" min="0" value="<?= number_format((float)$editCost['amount_eur'], 2, '.', '') ?>" required />
-        <input name="paid_by" value="<?= costs_h((string)($editCost['paid_by'] ?? '')) ?>" />
-        <input name="incurred_at" type="datetime-local" value="<?= costs_h(str_replace(' ', 'T', substr((string)$editCost['incurred_at'], 0, 16))) ?>" />
-      </div>
-      <div style="margin-top:.6rem;max-width:280px;">
-        <select name="cost_stage">
-          <option value="actual" <?= ((string)($editCost['cost_stage'] ?? 'actual')) === 'actual' ? 'selected' : '' ?>>Custo real (já ocorreu)</option>
-          <option value="promised" <?= ((string)($editCost['cost_stage'] ?? 'actual')) === 'promised' ? 'selected' : '' ?>>Promessa de custo (previsto)</option>
-        </select>
-      </div>
-      <div style="margin-top:.6rem;">
-        <textarea name="notes"><?= costs_h((string)($editCost['notes'] ?? '')) ?></textarea>
-      </div>
-      <div style="margin-top:.6rem;display:flex;gap:.4rem;">
-        <button class="btn" type="submit">Guardar edição</button>
-        <a class="btn" href="/admin/costs.php?event_id=<?= (int)$selectedEvent ?>">Cancelar</a>
-      </div>
-    </form>
+    <p class="help">Adiciona entidades que recebem dinheiro (facilitadores, DJ, espaço, etc.). Define % ou valor fixo e a base de cálculo; depois guarda.</p>
+    <?php foreach ($shareRows as $sr): ?>
+      <form id="delete-share-<?= (int)$sr['id'] ?>" method="post" class="share-delete-form">
+        <input type="hidden" name="action" value="delete_share" />
+        <input type="hidden" name="event_id" value="<?= (int)$selectedEvent ?>" />
+        <input type="hidden" name="share_id" value="<?= (int)$sr['id'] ?>" />
+      </form>
+    <?php endforeach; ?>
   </div>
   <?php endif; ?>
 
   <div class="panel">
-    <h2>Custos registados</h2>
+    <div class="panel-head">
+      <h2>Custos registados</h2>
+      <button type="button" class="btn" id="costAddBtn">Adicionar custo</button>
+    </div>
     <div class="table-wrap">
       <table>
         <thead>
@@ -758,7 +718,7 @@ require __DIR__ . '/_topbar.php';
                   <?php endif; ?>
                 </td>
                 <td style="display:flex;gap:.35rem;">
-                  <a class="btn" href="/admin/costs.php?event_id=<?= (int)$selectedEvent ?>&edit_id=<?= (int)$row['id'] ?>">Editar</a>
+                  <button type="button" class="btn js-edit-cost" data-cost-id="<?= (int)$row['id'] ?>">Editar</button>
                   <form method="post">
                     <input type="hidden" name="action" value="toggle_reimbursed" />
                     <input type="hidden" name="event_id" value="<?= (int)$selectedEvent ?>" />
@@ -781,6 +741,172 @@ require __DIR__ . '/_topbar.php';
     </div>
   </div>
 </main>
+
+<div class="cost-modal-backdrop" id="costModal" role="dialog" aria-modal="true" aria-labelledby="costModalTitle">
+  <div class="cost-modal">
+    <button type="button" class="cost-modal-close" id="costModalClose" aria-label="Fechar">&times;</button>
+    <h3 id="costModalTitle">Adicionar custo</h3>
+    <form method="post" id="costForm">
+      <input type="hidden" name="action" id="costFormAction" value="add_cost" />
+      <input type="hidden" name="event_id" value="<?= (int)$selectedEvent ?>" />
+      <input type="hidden" name="id" id="costFormId" value="" />
+      <input type="hidden" name="category" id="costFormCategory" value="custos_base" />
+      <div class="form-grid cols-2">
+        <div>
+          <select name="base_cost_slug" id="costFormSlug">
+            <option value="">— Outro / personalizado —</option>
+            <?php foreach (EDV_BASE_COST_SLUGS as $slug => $blabel): ?>
+              <option value="<?= costs_h($slug) ?>"><?= costs_h($blabel) ?></option>
+            <?php endforeach; ?>
+          </select>
+        </div>
+        <div>
+          <input name="label" id="costFormLabel" placeholder="Descrição" required />
+        </div>
+        <div>
+          <input name="amount_eur" id="costFormAmount" type="number" step="0.01" min="0" placeholder="Valor €" required />
+        </div>
+        <div>
+          <select name="cost_bucket" id="costFormBucket">
+            <option value="base">Custo base (folha)</option>
+            <option value="expense">Outro / reembolso</option>
+          </select>
+        </div>
+        <div>
+          <input name="paid_by" id="costFormPaidBy" placeholder="Pago por" />
+        </div>
+        <div id="costFormIncurredWrap">
+          <input name="incurred_at" id="costFormIncurred" type="datetime-local" />
+        </div>
+        <div>
+          <select name="cost_stage" id="costFormStage">
+            <option value="actual">Custo real (já ocorreu)</option>
+            <option value="promised">Promessa (previsto)</option>
+          </select>
+        </div>
+      </div>
+      <div style="margin-top:.6rem;">
+        <textarea name="notes" id="costFormNotes" placeholder="Notas (opcional)"></textarea>
+      </div>
+      <div class="cost-modal-actions">
+        <button class="btn" type="submit" id="costFormSubmit">Adicionar custo</button>
+        <button class="btn" type="button" id="costModalCancel">Cancelar</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<?php
+$costsForJs = [];
+foreach ($costs as $row) {
+    $incurred = (string)($row['incurred_at'] ?? '');
+    $costsForJs[] = [
+        'id' => (int)$row['id'],
+        'base_cost_slug' => (string)($row['base_cost_slug'] ?? ''),
+        'label' => (string)$row['label'],
+        'category' => (string)($row['category'] ?? ''),
+        'cost_bucket' => (string)($row['cost_bucket'] ?? 'base'),
+        'amount_eur' => (float)$row['amount_eur'],
+        'paid_by' => (string)($row['paid_by'] ?? ''),
+        'incurred_at' => $incurred !== '' ? str_replace(' ', 'T', substr($incurred, 0, 16)) : '',
+        'cost_stage' => (string)($row['cost_stage'] ?? 'actual'),
+        'notes' => (string)($row['notes'] ?? ''),
+    ];
+}
+?>
+<script type="application/json" id="costs-data"><?= json_encode($costsForJs, JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_UNESCAPED_UNICODE) ?></script>
+<script>
+(function () {
+  var modal = document.getElementById('costModal');
+  var form = document.getElementById('costForm');
+  if (!modal || !form) return;
+
+  var costsById = {};
+  try {
+    var raw = document.getElementById('costs-data');
+    if (raw && raw.textContent) {
+      JSON.parse(raw.textContent).forEach(function (c) { costsById[c.id] = c; });
+    }
+  } catch (e) { /* ignore */ }
+
+  var titleEl = document.getElementById('costModalTitle');
+  var actionEl = document.getElementById('costFormAction');
+  var idEl = document.getElementById('costFormId');
+  var categoryEl = document.getElementById('costFormCategory');
+  var slugEl = document.getElementById('costFormSlug');
+  var labelEl = document.getElementById('costFormLabel');
+  var amountEl = document.getElementById('costFormAmount');
+  var bucketEl = document.getElementById('costFormBucket');
+  var paidByEl = document.getElementById('costFormPaidBy');
+  var incurredWrap = document.getElementById('costFormIncurredWrap');
+  var incurredEl = document.getElementById('costFormIncurred');
+  var stageEl = document.getElementById('costFormStage');
+  var notesEl = document.getElementById('costFormNotes');
+  var submitEl = document.getElementById('costFormSubmit');
+
+  function closeModal() {
+    modal.classList.remove('open');
+    document.body.style.overflow = '';
+  }
+
+  function openModal(mode, costId) {
+    var isEdit = mode === 'edit' && costId && costsById[costId];
+    if (isEdit) {
+      var c = costsById[costId];
+      titleEl.textContent = 'Editar custo';
+      actionEl.value = 'update_cost';
+      idEl.value = String(c.id);
+      categoryEl.value = c.category || 'custos_base';
+      slugEl.value = c.base_cost_slug || '';
+      labelEl.value = c.label || '';
+      amountEl.value = Number(c.amount_eur).toFixed(2);
+      bucketEl.value = c.cost_bucket === 'expense' ? 'expense' : 'base';
+      paidByEl.value = c.paid_by || '';
+      incurredEl.value = c.incurred_at || '';
+      stageEl.value = c.cost_stage === 'promised' ? 'promised' : 'actual';
+      notesEl.value = c.notes || '';
+      submitEl.textContent = 'Guardar edição';
+      incurredWrap.style.display = '';
+    } else {
+      titleEl.textContent = 'Adicionar custo';
+      actionEl.value = 'add_cost';
+      idEl.value = '';
+      categoryEl.value = 'custos_base';
+      slugEl.value = '';
+      labelEl.value = '';
+      amountEl.value = '';
+      bucketEl.value = 'base';
+      paidByEl.value = '';
+      incurredEl.value = '';
+      stageEl.value = 'actual';
+      notesEl.value = '';
+      submitEl.textContent = 'Adicionar custo';
+      incurredWrap.style.display = 'none';
+    }
+    modal.classList.add('open');
+    document.body.style.overflow = 'hidden';
+    labelEl.focus();
+  }
+
+  document.getElementById('costAddBtn')?.addEventListener('click', function () { openModal('add'); });
+  document.getElementById('costModalClose')?.addEventListener('click', closeModal);
+  document.getElementById('costModalCancel')?.addEventListener('click', closeModal);
+  modal.addEventListener('click', function (e) { if (e.target === modal) closeModal(); });
+  document.addEventListener('keydown', function (e) {
+    if (e.key === 'Escape' && modal.classList.contains('open')) closeModal();
+  });
+  document.querySelectorAll('.js-edit-cost').forEach(function (btn) {
+    btn.addEventListener('click', function () {
+      var id = parseInt(btn.getAttribute('data-cost-id') || '0', 10);
+      if (id > 0) openModal('edit', id);
+    });
+  });
+
+  <?php if ($editCostId > 0 && is_array($editCost)): ?>
+  openModal('edit', <?= (int)$editCostId ?>);
+  <?php endif; ?>
+})();
+</script>
 
 </body>
 </html>

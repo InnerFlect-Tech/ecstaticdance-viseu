@@ -400,6 +400,62 @@ function edv_settlement_get_shares(PDO $pdo, int $eventId): array
     return $stmt->fetchAll(PDO::FETCH_ASSOC) ?: [];
 }
 
+function edv_settlement_unique_role_key(PDO $pdo, int $eventId): string
+{
+    $check = $pdo->prepare('SELECT 1 FROM event_settlement_shares WHERE event_id = ? AND role_key = ? LIMIT 1');
+    for ($i = 0; $i < 20; $i++) {
+        $key = 'beneficiary_' . substr(bin2hex(random_bytes(6)), 0, 12);
+        $check->execute([$eventId, $key]);
+        if (!$check->fetchColumn()) {
+            return $key;
+        }
+    }
+
+    return 'beneficiary_' . (string) time();
+}
+
+/**
+ * @return int|null New share id
+ */
+function edv_settlement_add_share(PDO $pdo, int $eventId, string $label = 'Nova entidade'): ?int
+{
+    edv_settlement_ensure_schema($pdo);
+    edv_settlement_seed_shares_for_event($pdo, $eventId);
+
+    $sortStmt = $pdo->prepare('SELECT COALESCE(MAX(sort_order), 0) FROM event_settlement_shares WHERE event_id = ?');
+    $sortStmt->execute([$eventId]);
+    $sortOrder = (int) ($sortStmt->fetchColumn() ?: 0) + 10;
+
+    $roleKey = edv_settlement_unique_role_key($pdo, $eventId);
+    $now = date('Y-m-d H:i:s');
+    $ins = $pdo->prepare(
+        'INSERT INTO event_settlement_shares (event_id, role_key, label, percent, amount_fixed_eur, pool, sort_order, is_active, created_at)
+         VALUES (?, ?, ?, 0, NULL, ?, ?, 1, ?)'
+    );
+    $ins->execute([
+        $eventId,
+        $roleKey,
+        mb_substr(trim($label) !== '' ? trim($label) : 'Nova entidade', 0, 120),
+        'post_venue',
+        $sortOrder,
+        $now,
+    ]);
+
+    $id = (int) $pdo->lastInsertId();
+
+    return $id > 0 ? $id : null;
+}
+
+function edv_settlement_delete_share(PDO $pdo, int $eventId, int $shareId): bool
+{
+    if ($shareId <= 0 || $eventId <= 0) {
+        return false;
+    }
+    $stmt = $pdo->prepare('DELETE FROM event_settlement_shares WHERE id = ? AND event_id = ?');
+
+    return $stmt->execute([$shareId, $eventId]) && $stmt->rowCount() > 0;
+}
+
 /**
  * Bilhetes vendidos agrupados por valor (escalões).
  *
