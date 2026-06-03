@@ -1,17 +1,2 @@
-# Preview local / stack alternativo (Node `npm run start`).
-# NÃO renomear para nixpacks.toml na raiz do repo: Coolify auto-detecta Nixpacks e ignora o Dockerfile.
-# Produção: Coolify → Build Pack = Dockerfile. Ver docs/COOLIFY.md secção 7.
-
-[phases.setup]
-# Node + PHP 8.3 (Nix) para o proxy /api → 127.0.0.1:8080 — ver scripts/start-preview-with-php.sh.
-nixPkgs = ["nodejs_22", "php83"]
-
-[phases.install]
-cmds = ["npm ci"]
-
-[phases.build]
-cmds = ["npm run build"]
-
-[start]
-cmd = "npm run start"
-
+# Alias documentação — produção usa nixpacks.toml na raiz (idêntico).
+# Ver docs/COOLIFY.md

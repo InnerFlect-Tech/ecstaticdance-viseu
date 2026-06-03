@@ -8,6 +8,9 @@ cd "$ROOT"
 export BROWSER=none
 export CI="${CI:-true}"
 
+mkdir -p "$ROOT/server/data" "$ROOT/server/uploads/link-proofs"
+chmod 775 "$ROOT/server/data" "$ROOT/server/uploads" "$ROOT/server/uploads/link-proofs" 2>/dev/null || true
+
 if ! command -v php >/dev/null 2>&1; then
   echo "Erro: «php» não está no PATH. Adiciona PHP ao Nixpacks (aptPkgs em nixpacks.toml)." >&2
   exit 1

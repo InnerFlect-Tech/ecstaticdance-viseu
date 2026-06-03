@@ -2,6 +2,8 @@
 
 Deploy the Vite static site and PHP backend at **ecstaticdanceviseu.pt**.
 
+> **Produção Hetzner (Coolify):** o site público está em **Nixpacks + SQLite em volumes**, não neste fluxo cPanel. Usa **[COOLIFY.md](./COOLIFY.md)** e **`environment.coolify.env`**. Este guia aplica-se a **cPanel / MySQL** ou migração futura para SQL gerido.
+
 ---
 
 ## Prerequisites

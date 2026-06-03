@@ -235,11 +235,13 @@ if (isset($_GET['export']) && (string)$_GET['export'] === 'csv') {
 $n = count($rows);
 
 $linkStore = link_registrations_storage_info();
-$isDockerDataPath = $linkStore['mode'] === 'sqlite'
-    && str_starts_with((string)$linkStore['detail'], '/var/www/edv-server/data/');
-$sqlitePersistenceHint = $isDockerDataPath
-    ? 'SQLite em caminho Docker. Com volume persistente montado em <code>/var/www/edv-server/data</code>, os dados mantêm-se após deploy; sem volume, podem desaparecer.'
-    : 'SQLite local. Garante que o diretório da base está em armazenamento persistente; sem persistência, os dados podem desaparecer entre deploys.';
+$sqlitePath = (string) ($linkStore['detail'] ?? '');
+$isCoolifySqlite = $linkStore['mode'] === 'sqlite'
+    && (str_contains($sqlitePath, '/app/server/data/')
+        || str_contains($sqlitePath, '/var/www/edv-server/data/'));
+$sqlitePersistenceHint = $isCoolifySqlite
+    ? 'Coolify: monta volume persistente em <code>/app/server/data</code> (Nixpacks) ou <code>/var/www/edv-server/data</code> (Dockerfile). Paths em <code>environment.coolify.env</code>.'
+    : 'Garante armazenamento persistente para o directorio da base; sem volume, os dados podem desaparecer entre redeploys.';
 $linkStoreHint = match ($linkStore['mode']) {
     'json'   => 'Modo JSON (só desenvolvimento). Ficheiro: ' . htmlspecialchars($linkStore['detail'], ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'),
     'sqlite' => 'SQLite — ficheiro: ' . htmlspecialchars($linkStore['detail'], ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8')

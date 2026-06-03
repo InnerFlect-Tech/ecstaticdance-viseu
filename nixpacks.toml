@@ -1,0 +1,16 @@
+# Coolify v4 (produção actual): auto-detect Node + este ficheiro.
+# Build: npm ci → npm run build (dist/)
+# Start: npm run start → Vite preview (PORT) + PHP built-in (127.0.0.1:8080) para /api, /admin, /uploads
+# Ver docs/COOLIFY.md e environment.coolify.env
+
+[phases.setup]
+nixPkgs = ["nodejs_22", "php83"]
+
+[phases.install]
+cmds = ["npm ci"]
+
+[phases.build]
+cmds = ["npm run build"]
+
+[start]
+cmd = "npm run start"

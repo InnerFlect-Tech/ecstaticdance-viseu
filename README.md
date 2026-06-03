@@ -27,7 +27,7 @@ Para gravar pedidos **localmente**:
    - **SQLite:** `LINK_USE_SQLITE=true`, `LINK_USE_JSON=false` (exemplo típico).  
    - **Sem extensão sqlite:** `LINK_USE_SQLITE=false`, `LINK_USE_JSON=true` — dados em `server/data/link-registrations-dev.json` (**só desenvolvimento; nunca em produção**).
 
-Em produção (cPanel) os mesmos ficheiros usam **MySQL**; checklist em **`docs/DEPLOYMENT.md`** (secção *Link hub (links.html)*). No servidor continua a ser necessário o interpretador PHP com as extensões do hosting para o `/api`.
+**Produção:** [Coolify + Nixpacks](docs/COOLIFY.md) com **SQLite** em volumes (`environment.coolify.env`). **cPanel** usa **MySQL** — [`docs/DEPLOYMENT.md`](docs/DEPLOYMENT.md).
 ---
 
 ## Sistema de bilhetes
@@ -48,8 +48,9 @@ O sistema de bilhetes está implementado como camada PHP + MySQL no cPanel, sepa
 
 | Doc | Descrição |
 |---|---|
-| [docs/DEPLOYMENT.md](docs/DEPLOYMENT.md) | Guia completo de deploy no cPanel |
-| [docs/DATABASE.md](docs/DATABASE.md) | Esquema MySQL e queries de gestão |
+| [docs/COOLIFY.md](docs/COOLIFY.md) | **Produção Hetzner** — Nixpacks, volumes, SQLite, env |
+| [docs/DEPLOYMENT.md](docs/DEPLOYMENT.md) | Deploy no cPanel (MySQL) |
+| [docs/DATABASE.md](docs/DATABASE.md) | Esquema e queries (MySQL + notas Coolify SQLite) |
 | [docs/STRIPE.md](docs/STRIPE.md) | Configuração Stripe + MB Way + Multibanco |
 | [docs/ADMIN.md](docs/ADMIN.md) | Como usar o painel de admin e scanner QR |
 
@@ -60,63 +61,43 @@ O sistema de bilhetes está implementado como camada PHP + MySQL no cPanel, sepa
 | Reserva de bilhetes | `/bilhetes.html` |
 | Confirmação / QR code | `/confirmacao.html` |
 | Pagamento cancelado | `/cancelamento.html` |
-| Painel de admin | **`https://ecstaticdanceviseu.pt/admin/`** — faz login em **`/admin/login.php`** se não tiveres sessão ([docs/ADMIN.md](docs/ADMIN.md)). No **Coolify com Dockerfile**, PHP corre no mesmo contentor (proxy Nginx → `php -S`). No **cPanel**, PHP é o da hospedagem. |
+| Painel de admin | **`https://ecstaticdanceviseu.pt/admin/`** — login em **`/admin/login.php`** ([docs/ADMIN.md](docs/ADMIN.md)). Coolify: PHP no contentor (Nixpacks: Vite faz proxy para `php -S`). cPanel: PHP da hospedagem. |
 
 ---
 
-## Deploy no Coolify (Hetzner)
+## Deploy no Coolify (Hetzner) — produção actual
 
-Referência única (**volumes SQLite, `/var/www/edv-server`, env `EDV_*`, healthcheck**): **[docs/COOLIFY.md](docs/COOLIFY.md)**
+Guia completo: **[docs/COOLIFY.md](docs/COOLIFY.md)** · Env copiável: **`environment.coolify.env`**
 
-### Opção A (recomendada): Dockerfile (Nginx + PHP)
+### Nixpacks (modo actual no painel)
 
-O contentor faz **build Vite** → serve `dist/` com **Nginx** (`exec` em primeiro plano na **porta 80**) e **PHP built-in** (`php -S … -t server`) em `127.0.0.1:8080` em background — **tini -g** como init. O proxy Coolify deve mapear para a **porta 80** do contentor, não 8080 (ver `nginx.conf` e `docs/COOLIFY.md` → 502).
+Coolify v4 detecta **Node** + `nixpacks.toml` → `npm run build` + `npm run start`:
 
-Na **primeira arranque**, se não existir `config.php` no contentor, o `entrypoint` copia `server/api/config.example.php` → `config.php`. O exemplo inclui **`ADMIN_PASSWORD_HASH` para a palavra-passe `admin123`** e **`USE_SQLITE_MAIN_DB = true`** (eventos/bilhetes em ficheiro SQLite em `server/data/`, sem MySQL no contentor). O painel em **`/admin/`** deixa de rebentar com *No such file or directory* no MySQL.
+- **Vite preview** em `$PORT` (Coolify define) serve `dist/`
+- **PHP** em `127.0.0.1:8080` (`-t server/`) para `/api`, `/admin`, `/uploads`
+- **SQLite** em volumes: `/app/server/data` + `/app/server/uploads`
+- **Não** uses paths `/var/www/edv-server/...` nas env vars (isso é só para o Dockerfile)
 
-Se já tinhas um `config.php` antigo (só MySQL placeholder) no volume, edita-o ou apaga para voltar a gerar a partir do exemplo, ou monta um **`config.php`** completo. Para **MySQL** em produção, monta credenciais reais e define **`USE_SQLITE_MAIN_DB = false`**.
+| Coolify | Valor |
+|---------|--------|
+| Build Pack | Nixpacks / Automatic |
+| Volumes | `/app/server/data`, `/app/server/uploads` |
+| Env | `environment.coolify.env` |
+| Health | `/api/health.php` ou `/deploy-stamp.json` |
 
-### 1. Configurar o repositório
+Push em `main` + deploy automático. Verificar `https://ecstaticdanceviseu.pt/deploy-stamp.json` após cada deploy.
 
-No Coolify, cria um novo recurso do tipo **Docker** e liga ao repositório Git.
+### Dockerfile (opcional)
 
-- **Build Pack**: **Dockerfile** (Nixpacks é alternativa — ver Opção B.)
-- **Dockerfile location**: `./Dockerfile` (raiz do repo)
-- **Base directory**: `/` (vazio ou raiz)
-- **Porta exposta / Publish port**: `80` (o `EXPOSE 80` do Dockerfile; no painel, o tráfego público deve mapear para a porta **80** do contentor.)
-- **Health check path**: `/`
+Build Pack = **Dockerfile**, porta **80**, volumes em `/var/www/edv-server/data` e `.../uploads`. Nginx + PHP — ver `Dockerfile` e secção 6 em `docs/COOLIFY.md`.
 
-### 1b. Ativar deploy ao fazer push no GitHub
+### Variáveis de ambiente (resumo)
 
-1. Abre o **serviço** em Coolify → separador **Configuration** (ou **General**).
-2. Em **Source**, confirma:
-   - **Repository**: `InnerFlect-Tech/ecstaticdance-viseu` (ou o nome correcto da org/repo).
-   - **Branch**: `main`.
-3. Activa **Automatic deployment** / **Deploy on commit** (o nome exacto varia entre v3/v4 do Coolify) para esta branch.
-4. Garante que a **GitHub App** do Coolify tem acesso ao repositório: em GitHub → *Organization / Repository settings* → *GitHub Apps* → *Coolify* → *Repository access* → inclui este repo (ou “All repositories”). Sem isto, o Coolify não recebe eventos de push.
-5. Grava as alterações e faz **Redeploy** uma vez (ou **Deploy**) para validar o build.
-6. Se o push não disparar deploy, no serviço Coolify procura **Webhook** / **Deploy hook** → copia o URL; em GitHub → *Settings* → *Webhooks* → *Add webhook* → cola o URL, content type `application/json`, eventos mínimos **Just the push event**. (Só necessário se a integração Git App não estiver a notificar.)
-
-Depois de um deploy bem-sucedido, `https://ecstaticdanceviseu.pt/links` e `/links.html` devem servir o HTML do hub (e os ficheiros em `/assets/` mudam de hash em cada build). O `nginx.conf` do Docker redirecciona o “brochure + checkout” para a splash (inclui **`/buy`** e `/buy.html`); repõe o deploy se esses URL ainda mostrarem a página completa.
-
-### Opção B: Nixpacks (Node + PHP)
-
-O `vite preview` faz **proxy** de `/api`, `/admin` e `/uploads` para `http://127.0.0.1:${EDV_PHP_API_PORT}` (por omissão **8080**). Só com Vite, nada ouve na 8080 → logs tipo **`ECONNREFUSED 127.0.0.1:8080`**.
-
-Este repo inclui:
-
-- `nixpacks.toml.example` — Node **e** `php83` (Nix), build `npm run build`, arranque `npm run start` (só preview; **não** renomear para `nixpacks.toml` no repo se usas Dockerfile no Coolify).
-- `scripts/start-preview-with-php.sh` — sobe **PHP built-in** (`php -S … -t server`) na primeira porta livre **8080–8099**, exporta `EDV_PHP_API_PORT`, e corre `vite preview` em `0.0.0.0:$PORT`.
-- `BROWSER=none` / `CI=true` por omissão no script para evitar `xdg-open ENOENT` em contentores.
-
-**Base de dados em produção:** `server/api/config.php` não vai no Git. No Coolify (Nixpacks), monta o ficheiro (secret file) ou adiciona-o ao artefacto antes do start; define **MySQL** e `LINK_USE_SQLITE` / `LINK_USE_JSON` a **`false`**. Sem isto, o proxy deixa de dar `ECONNREFUSED`, mas a API pode responder 500 se as credenciais forem placeholders. Com **Dockerfile**, o mesmo: monta `config.php` em `/var/www/edv-server/api/config.php` quando precisares de credenciais reais.
-
-### 2. Variáveis de ambiente
-
-| Variável | Descrição | Exemplo |
-|----------|-----------|---------|
-| `PORT` | Porta do Vite preview (Coolify define automaticamente) | `3000` |
-| `EDV_PHP_API_PORT` | Porta do PHP built-in (opcional; omissão = primeira livre 8080–8099) | `8080` |
+| Variável | Descrição |
+|----------|-----------|
+| `PORT` | Porta Vite (Nixpacks; Coolify define) |
+| `EDV_*` | Ver `environment.coolify.env` |
+| `EDV_REPLACE_CONFIG_FROM_EXAMPLE` | `1` = gera `config.php` em cada arranque |
 
 ### 3. Formulário de contacto — Web3Forms
 

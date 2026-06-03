@@ -2,10 +2,11 @@
 /* ============================================================
    config.php — copy to config.php and fill in (not committed)
 
-   ── Coolify / Docker ──
-   Podes configurar só **Environment Variables** e deixar o entrypoint criar
-   `config.php` a partir deste ficheiro. Variáveis suportadas (todas opcionais;
-   omitir = usar o valor literal por omissão abaixo):
+   ── Coolify (Nixpacks) / Docker / local ──
+   Produção Coolify: copiar `environment.coolify.env` (paths `/app/server/data/...`).
+   Com `EDV_REPLACE_CONFIG_FROM_EXAMPLE=1`, cada arranque gera `config.php` daqui.
+   Omitir path env = defaults relativos a `server/data/` (dev e Nixpacks).
+   Variáveis suportadas (todas opcionais):
 
    Base de dados (multi-driver via PDO):
      EDV_DB_DRIVER   (sqlite | mysql | pgsql)
