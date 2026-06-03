@@ -47,7 +47,7 @@ Coolify → **Storages** → **Volumes**:
 
 **Não montar:** `/app`, `/app/dist` (sobrescreve o código da imagem → site não actualiza).
 
-O script de arranque cria `data/` e `uploads/` em `EDV_SERVER_ROOT` e liga `/app/server/uploads` → `/var/www/edv-server/uploads` para o PHP e o proxy Vite usarem o mesmo volume.
+O arranque só cria pastas em `EDV_SERVER_ROOT`; o PHP serve `/uploads` a partir do volume via `server/router.php` (sem apagar nem substituir `/app/server/uploads`).
 
 ---
 

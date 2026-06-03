@@ -76,7 +76,7 @@ function admin_link_delete_proof_file(string $proofRelpath): void {
     if ($clean === '') {
         return;
     }
-    $baseUploads = realpath(dirname(__DIR__) . '/uploads');
+    $baseUploads = realpath(edv_uploads_base_dir());
     if (!is_string($baseUploads) || $baseUploads === '') {
         return;
     }

@@ -335,8 +335,18 @@ function link_generate_payment_ref(): string {
     return $a . $n;
 }
 
+function edv_uploads_base_dir(): string
+{
+    $root = getenv('EDV_SERVER_ROOT');
+    if (is_string($root) && trim($root) !== '') {
+        return rtrim(trim($root), '/') . '/uploads';
+    }
+
+    return dirname(__DIR__) . '/uploads';
+}
+
 function link_proofs_dir(): string {
-    $dir = dirname(__DIR__) . '/uploads/link-proofs';
+    $dir = edv_uploads_base_dir() . '/link-proofs';
     if (!is_dir($dir)) {
         @mkdir($dir, 0755, true);
     }
