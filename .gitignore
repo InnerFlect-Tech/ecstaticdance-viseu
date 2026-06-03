@@ -12,6 +12,8 @@ server/api/build-info.json
 server/data/*.sqlite
 server/data/*.sqlite-journal
 server/data/*.sqlite-wal
+server/data/*.bak*
+server/data/*.bak-pre-import
 server/data/link-registrations-dev.json
 
 # Boat sunset static export — secrets and junk from macOS zip
