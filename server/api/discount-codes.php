@@ -309,9 +309,28 @@ function edv_lookup_discount_code(string $code, ?int $eventId = null, ?string $e
 }
 
 /**
- * @return list<array{email:string,name:string,last_event_date:string}>
+ * Motivo de exclusão de um email da lista de campanha, ou null se for elegível (antes de «já tem código»).
  */
-function edv_discount_recipients_for_event(int $eventId): array
+function edv_discount_recipient_skip_reason(string $email): ?string
+{
+    $email = edv_normalize_email($email);
+    if ($email === '') {
+        return 'email vazio';
+    }
+    if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
+        return 'email inválido';
+    }
+    if (edv_is_placeholder_presence_email($email)) {
+        return 'presença sem email real';
+    }
+
+    return null;
+}
+
+/**
+ * @return array{recipients:list<array{email:string,name:string,last_event_date:string}>,excluded:list<array{email:string,name:string,reason:string}>}
+ */
+function edv_discount_recipient_analysis_for_event(int $eventId): array
 {
     $pdo = db();
     edv_discount_codes_ensure_schema($pdo);
@@ -320,41 +339,20 @@ function edv_discount_recipients_for_event(int $eventId): array
     $ev->execute([$eventId]);
     $eventDate = $ev->fetchColumn();
     if ($eventDate === false) {
-        return [];
+        return ['recipients' => [], 'excluded' => []];
     }
 
     $stmt = $pdo->prepare(
-        'SELECT ea.email, ea.name, MAX(e.date) AS last_event_date
+        'SELECT ea.email, MAX(ea.name) AS name, MAX(e.date) AS last_event_date
          FROM event_attendance ea
          INNER JOIN events e ON e.id = ea.event_id
          WHERE e.date < ?
            AND ea.email NOT LIKE ?
-         GROUP BY ea.email, ea.name
-         ORDER BY ea.name ASC, ea.email ASC'
+         GROUP BY ea.email
+         ORDER BY name ASC, ea.email ASC'
     );
     $stmt->execute([(string) $eventDate, '%@presenca.ecstaticdanceviseu.pt']);
     $rows = $stmt->fetchAll(PDO::FETCH_ASSOC) ?: [];
-
-    $seen = [];
-    $out = [];
-    foreach ($rows as $row) {
-        $email = edv_normalize_email((string) ($row['email'] ?? ''));
-        if ($email === '' || !filter_var($email, FILTER_VALIDATE_EMAIL)) {
-            continue;
-        }
-        if (edv_is_placeholder_presence_email($email)) {
-            continue;
-        }
-        if (isset($seen[$email])) {
-            continue;
-        }
-        $seen[$email] = true;
-        $out[] = [
-            'email'           => $email,
-            'name'            => trim((string) ($row['name'] ?? '')),
-            'last_event_date' => (string) ($row['last_event_date'] ?? ''),
-        ];
-    }
 
     $existing = $pdo->prepare(
         'SELECT email FROM discount_codes WHERE event_id = ? AND email IS NOT NULL AND email != \'\''
@@ -365,10 +363,135 @@ function edv_discount_recipients_for_event(int $eventId): array
         $hasCode[edv_normalize_email((string) $em)] = true;
     }
 
-    return array_values(array_filter(
-        $out,
-        static fn(array $r): bool => !isset($hasCode[$r['email']])
-    ));
+    $recipients = [];
+    $excluded = [];
+    foreach ($rows as $row) {
+        $rawEmail = (string) ($row['email'] ?? '');
+        $email = edv_normalize_email($rawEmail);
+        $name = trim((string) ($row['name'] ?? ''));
+        $skip = edv_discount_recipient_skip_reason($rawEmail);
+        if ($skip !== null) {
+            $excluded[] = ['email' => $rawEmail, 'name' => $name, 'reason' => $skip];
+            continue;
+        }
+        if (isset($hasCode[$email])) {
+            $excluded[] = ['email' => $email, 'name' => $name, 'reason' => 'já tem código para este evento'];
+            continue;
+        }
+        $recipients[] = [
+            'email'           => $email,
+            'name'            => $name,
+            'last_event_date' => (string) ($row['last_event_date'] ?? ''),
+        ];
+    }
+
+    return ['recipients' => $recipients, 'excluded' => $excluded];
+}
+
+/**
+ * @return list<array{email:string,name:string,last_event_date:string}>
+ */
+function edv_discount_recipients_for_event(int $eventId): array
+{
+    return edv_discount_recipient_analysis_for_event($eventId)['recipients'];
+}
+
+/**
+ * Normaliza e deduplica destinatários vindos do formulário (JSON).
+ *
+ * @param list<mixed> $raw
+ * @return array{recipients:list<array{email:string,name:string}>,skipped:list<array{email:string,reason:string}>}
+ */
+function edv_discount_normalize_recipient_list(array $raw): array
+{
+    $recipients = [];
+    $skipped = [];
+    $seen = [];
+
+    foreach ($raw as $r) {
+        if (!is_array($r)) {
+            continue;
+        }
+        $rawEmail = (string) ($r['email'] ?? '');
+        $email = edv_normalize_email($rawEmail);
+        $name = trim((string) ($r['name'] ?? ''));
+        $skip = edv_discount_recipient_skip_reason($rawEmail);
+        if ($skip !== null) {
+            $skipped[] = ['email' => $rawEmail !== '' ? $rawEmail : '(vazio)', 'reason' => $skip];
+            continue;
+        }
+        if (isset($seen[$email])) {
+            $skipped[] = ['email' => $email, 'reason' => 'email duplicado na lista'];
+            continue;
+        }
+        $seen[$email] = true;
+        $recipients[] = ['email' => $email, 'name' => $name];
+    }
+
+    return ['recipients' => $recipients, 'skipped' => $skipped];
+}
+
+/**
+ * @return list<mixed>
+ */
+function edv_discount_decode_recipients_json(string $encoded): array
+{
+    $encoded = trim($encoded);
+    if ($encoded === '') {
+        return [];
+    }
+    if (str_starts_with($encoded, 'b64:')) {
+        $decoded = base64_decode(substr($encoded, 4), true);
+        if ($decoded === false) {
+            return [];
+        }
+        $encoded = $decoded;
+    }
+    $data = json_decode($encoded, true);
+
+    return is_array($data) ? $data : [];
+}
+
+/**
+ * Apaga campanha e todos os códigos associados (se nenhum foi utilizado).
+ *
+ * @return array{ok:bool,message:string}
+ */
+function edv_delete_discount_campaign(PDO $pdo, int $campaignId): array
+{
+    if ($campaignId <= 0) {
+        return ['ok' => false, 'message' => 'Campanha inválida.'];
+    }
+
+    $camp = $pdo->prepare('SELECT id FROM discount_campaigns WHERE id = ?');
+    $camp->execute([$campaignId]);
+    if (!$camp->fetchColumn()) {
+        return ['ok' => false, 'message' => 'Campanha não encontrada.'];
+    }
+
+    $uses = $pdo->prepare(
+        'SELECT COUNT(*)
+         FROM discount_code_uses u
+         INNER JOIN discount_codes dc ON dc.id = u.discount_code_id
+         WHERE dc.campaign_id = ?'
+    );
+    $uses->execute([$campaignId]);
+    if ((int) $uses->fetchColumn() > 0) {
+        return ['ok' => false, 'message' => 'Não é possível apagar: já há códigos utilizados nesta campanha.'];
+    }
+
+    $pdo->beginTransaction();
+    try {
+        $pdo->prepare('DELETE FROM discount_codes WHERE campaign_id = ?')->execute([$campaignId]);
+        $pdo->prepare('DELETE FROM discount_campaigns WHERE id = ?')->execute([$campaignId]);
+        $pdo->commit();
+
+        return ['ok' => true, 'message' => 'Campanha apagada. Podes preparar a lista de novo.'];
+    } catch (Throwable $e) {
+        $pdo->rollBack();
+
+        return ['ok' => false, 'message' => 'Erro ao apagar campanha: ' . $e->getMessage()];
+    }
 }
 
 function edv_record_discount_code_use(string $code, string $ticketId, string $email, float $amountPaid): void

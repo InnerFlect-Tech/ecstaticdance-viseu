@@ -10,7 +10,20 @@ require_admin_session();
 
 $pdo = db();
 $flash = '';
+$flashError = false;
 $importResult = null;
+
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && (string) ($_POST['action'] ?? '') === 'update_email') {
+    $attendanceId = (int) ($_POST['attendance_id'] ?? 0);
+    $email = edv_normalize_email(trim((string) ($_POST['email'] ?? '')));
+    $result = edv_attendance_update_email($pdo, $attendanceId, $email);
+    if ($result['ok']) {
+        $flash = 'Email atualizado.';
+    } else {
+        $flash = $result['error'] ?? 'Não foi possível atualizar o email.';
+        $flashError = true;
+    }
+}
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && (string) ($_POST['action'] ?? '') === 'import_event_01') {
     $importResult = edv_attendance_import_event_01_roster($pdo);
@@ -132,9 +145,17 @@ function att_h(string $v): string
       color: rgba(245,239,230,.65); margin-bottom: 1rem;
     }
     .flash { background: rgba(45,106,79,.18); border: 1px solid rgba(45,106,79,.36); padding: .65rem .85rem; margin-bottom: .9rem; border-radius: 8px; font-size: .82rem; }
+    .flash-error { background: rgba(139,48,48,.2); border-color: rgba(180,70,70,.45); }
     .btn { border: 1px solid rgba(245,239,230,.18); background: rgba(245,239,230,.06); color: var(--bone); cursor: pointer;
       padding: .44rem .7rem; border-radius: 8px; font-size: .72rem; text-transform: uppercase; letter-spacing: .08em; }
-    .email-placeholder { color: rgba(245,239,230,.45); font-style: italic; }
+    .email-edit { display: flex; gap: .35rem; align-items: center; flex-wrap: wrap; min-width: 12rem; }
+    .email-edit input {
+      flex: 1 1 10rem; min-width: 9rem; max-width: 16rem;
+      background: rgba(245,239,230,.06); border: 1px solid rgba(245,239,230,.16); color: var(--bone);
+      padding: .35rem .45rem; border-radius: 6px; font-size: .78rem; font-family: inherit;
+    }
+    .email-edit .btn-save { padding: .32rem .5rem; font-size: .62rem; }
+    .email-placeholder-hint { font-size: .68rem; color: rgba(245,239,230,.4); font-style: italic; }
     .tag-phone { font-size: .62rem; color: #6bcf9a; letter-spacing: .06em; text-transform: uppercase; }
   </style>
 </head>
@@ -156,7 +177,7 @@ require __DIR__ . '/_topbar.php';
   </div>
 
   <?php if ($flash !== ''): ?>
-    <div class="flash"><?= att_h($flash) ?></div>
+    <div class="flash<?= $flashError ? ' flash-error' : '' ?>"><?= att_h($flash) ?></div>
   <?php endif; ?>
 
   <?php if ($isEvent01): ?>
@@ -225,18 +246,29 @@ require __DIR__ . '/_topbar.php';
           </tr>
         </thead>
         <tbody>
-          <?php foreach ($rows as $r): ?>
+          <?php foreach ($rows as $r):
+              $rowEmail = (string) $r['email'];
+              $isPlaceholderEmail = edv_is_placeholder_presence_email($rowEmail);
+              $emailInputValue = $isPlaceholderEmail ? '' : $rowEmail;
+          ?>
             <tr>
               <td class="mono"><?= att_h(date('d/m/Y H:i', strtotime((string) $r['checked_in_at']))) ?></td>
               <td><?= att_h((string) $r['name']) ?></td>
               <td>
-                <?php if (edv_is_placeholder_presence_email((string) $r['email'])): ?>
-                  <span class="email-placeholder" title="Sem email na folha — desconto de regresso usa este marcador até reserva com email real">sem email</span>
-                  <?php if ((string) ($r['phone'] ?? '') !== ''): ?>
-                    <span class="tag-phone">tel</span>
-                  <?php endif; ?>
-                <?php else: ?>
-                  <?= att_h((string) $r['email']) ?>
+                <form method="post" class="email-edit">
+                  <input type="hidden" name="action" value="update_email" />
+                  <input type="hidden" name="event_id" value="<?= (int) $selectedEvent ?>" />
+                  <input type="hidden" name="attendance_id" value="<?= (int) $r['id'] ?>" />
+                  <input type="email" name="email" value="<?= att_h($emailInputValue) ?>" placeholder="email@exemplo.com" autocomplete="email" required />
+                  <button type="submit" class="btn btn-save">Guardar</button>
+                </form>
+                <?php if ($isPlaceholderEmail): ?>
+                  <div class="email-placeholder-hint">
+                    sem email
+                    <?php if ((string) ($r['phone'] ?? '') !== ''): ?>
+                      <span class="tag-phone">tel</span>
+                    <?php endif; ?>
+                  </div>
                 <?php endif; ?>
               </td>
               <td class="mono"><?= att_h((string) $r['phone']) ?></td>

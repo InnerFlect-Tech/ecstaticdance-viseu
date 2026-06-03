@@ -75,6 +75,17 @@ export function isEarlyBirdPeriod(d = new Date()) {
   return ymd <= until
 }
 
+/** Early bird activo no admin (data limite definida). */
+export function isEarlyBirdConfigured() {
+  return Boolean(eventPricingConfig.earlyBirdUntil)
+}
+
+/** Sincroniza piso local com config do evento (páginas sem email). */
+export function syncEventPricingFloor(d = new Date()) {
+  pricingState.minEur = defaultTicketMinEur(d)
+  pricingState.tier = isEarlyBirdPeriod(d) ? 'early_bird' : 'standard'
+}
+
 /** Piso local (sem API) — early bird vs standard. */
 export function defaultTicketMinEur(d = new Date()) {
   return isEarlyBirdPeriod(d) ? eventPricingConfig.earlyBirdMinEur : eventPricingConfig.standardMinEur
@@ -210,6 +221,7 @@ export async function loadActiveEventPricing() {
     const data = await res.json()
     if (data.ok && data.event) {
       setEventPricingFromEvent(data.event)
+      syncEventPricingFloor()
       return data.event
     }
   } catch {

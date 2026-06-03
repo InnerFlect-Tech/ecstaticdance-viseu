@@ -1,5 +1,13 @@
 import { syncManualBookingLang } from './manual-booking.js'
-import { getPricingState, getEventPricingConfig, isEarlyBirdPeriod, ticketMinEur, formatEarlyBirdUntil, loadActiveEventPricing } from './pricing.js'
+import {
+  getPricingState,
+  getEventPricingConfig,
+  isEarlyBirdPeriod,
+  isEarlyBirdConfigured,
+  defaultTicketMinEur,
+  formatEarlyBirdUntil,
+  loadActiveEventPricing,
+} from './pricing.js'
 
 /**
  * links.html — language toggle, sticky mobile CTA, inline booking panel (same page).
@@ -9,15 +17,16 @@ function prefersReducedMotion() {
 }
 
 function paintLinksDynamicPricing() {
-  const min = ticketMinEur()
+  const min = defaultTicketMinEur()
   const early = isEarlyBirdPeriod()
   const returning = getPricingState().isReturning
   const cfg = getEventPricingConfig()
+  const untilPt = formatEarlyBirdUntil(cfg.earlyBirdUntil, 'pt')
   const untilEn = formatEarlyBirdUntil(cfg.earlyBirdUntil, 'en')
   const pt = returning
     ? `Sliding scale deste ${min}€ — dançarino·a de regresso.`
     : early
-      ? `Sliding Scale deste ${min}€.`
+      ? `Sliding scale desde ${min}€${untilPt ? ` · early bird até ${untilPt}` : ' · early bird'}`
       : `Sliding scale desde ${min}€`
   const en = returning
     ? `Sliding scale from €${min} — returning dancer`
@@ -32,33 +41,53 @@ function paintLinksDynamicPricing() {
   })
 }
 
+function setLinksContribHintVisible(visible) {
+  document.querySelectorAll('[data-links-contrib-hint]').forEach((el) => {
+    el.hidden = !visible
+  })
+}
+
 function paintLinksContributionEarly() {
   const early = isEarlyBirdPeriod()
   const returning = getPricingState().isReturning
   const cfg = getEventPricingConfig()
   const untilPt = formatEarlyBirdUntil(cfg.earlyBirdUntil, 'pt')
   const untilEn = formatEarlyBirdUntil(cfg.earlyBirdUntil, 'en')
+  const standard = cfg.standardMinEur
+  const earlyMin = cfg.earlyBirdMinEur
+
+  let pt = ''
+  let en = ''
+  let showHint = false
+
+  if (returning) {
+    showHint = true
+    pt = 'Já dançaste connosco? Com o mesmo email aplica-se o preço de regresso (desde 15€).'
+    en = 'Already danced with us? Use the same email for the returning-dancer rate (from €15).'
+  } else if (early && isEarlyBirdConfigured()) {
+    showHint = true
+    pt = untilPt
+      ? `Early bird até ${untilPt} (inclusivo): sliding scale desde ${earlyMin}€. Depois passa para ${standard}€.`
+      : `Early bird: sliding scale desde ${earlyMin}€. Depois passa para ${standard}€.`
+    en = untilEn
+      ? `Early bird through ${untilEn} (inclusive): sliding scale from €${earlyMin}. Then €${standard}.`
+      : `Early bird: sliding scale from €${earlyMin}. Then €${standard}.`
+  } else if (isEarlyBirdConfigured()) {
+    showHint = true
+    pt = untilPt
+      ? `O early bird (desde ${earlyMin}€ até ${untilPt}) terminou. Sliding scale desde ${standard}€.`
+      : `Sliding scale desde ${standard}€.`
+    en = untilEn
+      ? `Early bird (€${earlyMin} through ${untilEn}) has ended. Sliding scale from €${standard}.`
+      : `Sliding scale from €${standard}.`
+  }
+
+  setLinksContribHintVisible(showHint)
   document.querySelectorAll('[data-links-contrib-early-pt]').forEach((el) => {
-    if (returning) {
-      el.textContent = 'Já dançaste connosco? Com o mesmo email o piso é o preço de regresso (desde 15€).'
-      return
-    }
-    el.textContent = early
-      ? `Early bird: o bilhete é ${cfg.earlyBirdMinEur}€${untilPt ? ` até ${untilPt}` : ''}.`
-      : cfg.earlyBirdUntil
-        ? `Piso mínimo ${cfg.standardMinEur}€ (early bird de ${cfg.earlyBirdMinEur}€ até ${untilPt} já terminou).`
-        : `Piso mínimo ${cfg.standardMinEur}€.`
+    el.textContent = pt
   })
   document.querySelectorAll('[data-links-contrib-early-en]').forEach((el) => {
-    if (returning) {
-      el.textContent = 'Already danced with us? Use the same email for the returning-dancer floor (from €15).'
-      return
-    }
-    el.textContent = early
-      ? `Early bird: the ticket is €${cfg.earlyBirdMinEur}${untilEn ? ` through ${untilEn}` : ''}.`
-      : cfg.earlyBirdUntil
-        ? `Minimum €${cfg.standardMinEur} (early bird at €${cfg.earlyBirdMinEur}${untilEn ? ` through ${untilEn}` : ''} has ended).`
-        : `Minimum €${cfg.standardMinEur}.`
+    el.textContent = en
   })
 }
 

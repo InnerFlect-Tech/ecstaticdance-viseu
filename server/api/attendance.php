@@ -558,6 +558,58 @@ function edv_attendance_list_for_event(int $eventId): array
 }
 
 /**
+ * Atualiza o email de uma presença e do bilhete associado.
+ *
+ * @return array{ok:bool,error?:string}
+ */
+function edv_attendance_update_email(PDO $pdo, int $attendanceId, string $newEmail): array
+{
+    edv_attendance_ensure_schema($pdo);
+
+    $newEmail = edv_normalize_email($newEmail);
+    if ($newEmail === '' || !filter_var($newEmail, FILTER_VALIDATE_EMAIL)) {
+        return ['ok' => false, 'error' => 'Indica um email válido.'];
+    }
+    if (edv_is_placeholder_presence_email($newEmail)) {
+        return ['ok' => false, 'error' => 'Usa um email real (não um marcador de presença).'];
+    }
+
+    $stmt = $pdo->prepare(
+        'SELECT id, event_id, ticket_id, email FROM event_attendance WHERE id = ? LIMIT 1'
+    );
+    $stmt->execute([$attendanceId]);
+    $row = $stmt->fetch(PDO::FETCH_ASSOC);
+    if (!is_array($row)) {
+        return ['ok' => false, 'error' => 'Registo de presença não encontrado.'];
+    }
+
+    $eventId = (int) $row['event_id'];
+    $oldEmail = edv_normalize_email((string) $row['email']);
+    if ($newEmail === $oldEmail) {
+        return ['ok' => true];
+    }
+
+    $dup = $pdo->prepare(
+        'SELECT 1 FROM event_attendance WHERE event_id = ? AND email = ? AND id <> ? LIMIT 1'
+    );
+    $dup->execute([$eventId, $newEmail, $attendanceId]);
+    if ($dup->fetchColumn()) {
+        return ['ok' => false, 'error' => 'Já existe outra presença neste evento com esse email.'];
+    }
+
+    try {
+        $pdo->prepare('UPDATE event_attendance SET email = ? WHERE id = ?')
+            ->execute([$newEmail, $attendanceId]);
+        $pdo->prepare('UPDATE tickets SET email = ? WHERE id = ?')
+            ->execute([$newEmail, (string) $row['ticket_id']]);
+    } catch (PDOException $e) {
+        return ['ok' => false, 'error' => 'Erro ao gravar: ' . $e->getMessage()];
+    }
+
+    return ['ok' => true];
+}
+
+/**
  * Preenche event_attendance a partir de check-ins já gravados em tickets.
  */
 function edv_attendance_backfill_from_tickets(): int

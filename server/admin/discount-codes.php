@@ -13,6 +13,7 @@ $pdo = db();
 edv_discount_codes_ensure_schema($pdo);
 $flash = '';
 $previewRecipients = [];
+$previewExcluded = [];
 $previewEventId = 0;
 $previewMin = 15.0;
 
@@ -32,7 +33,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         if ($previewEventId <= 0) {
             $flash = 'Selecciona um evento.';
         } else {
-            $previewRecipients = edv_discount_recipients_for_event($previewEventId);
+            $analysis = edv_discount_recipient_analysis_for_event($previewEventId);
+            $previewRecipients = $analysis['recipients'];
+            $previewExcluded = $analysis['excluded'];
             if ($previewRecipients === []) {
                 $flash = 'Nenhum destinatário novo encontrado (presenças anteriores sem código já criado).';
             }
@@ -42,9 +45,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $minEur = max(0.0, (float) ($_POST['min_eur'] ?? 15));
         $label = trim((string) ($_POST['label'] ?? ''));
         $recipientsJson = (string) ($_POST['recipients_json'] ?? '');
-        $recipients = json_decode($recipientsJson, true);
-        if ($eventId <= 0 || !is_array($recipients) || $recipients === []) {
-            $flash = 'Lista de destinatários inválida.';
+        $parsed = edv_discount_decode_recipients_json($recipientsJson);
+        $normalized = edv_discount_normalize_recipient_list($parsed);
+        $recipients = $normalized['recipients'];
+        $skipped = $normalized['skipped'];
+        if ($eventId <= 0 || $recipients === []) {
+            $flash = 'Lista de destinatários inválida ou vazia.';
+            if ($skipped !== []) {
+                $flash .= ' (' . count($skipped) . ' ignorados.)';
+            }
         } else {
             $ev = $pdo->prepare('SELECT date FROM events WHERE id = ?');
             $ev->execute([$eventId]);
@@ -53,33 +62,26 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
             $pdo->beginTransaction();
             try {
-                $insCamp = $pdo->prepare(
-                    'INSERT INTO discount_campaigns (event_id, label, min_eur, status, recipient_count, codes_generated, emails_sent, created_at)
-                     VALUES (?, ?, ?, \'ready\', ?, 0, 0, ?)'
-                );
-                $insCamp->execute([
-                    $eventId,
-                    $label !== '' ? $label : null,
-                    $minEur,
-                    count($recipients),
-                    date('Y-m-d H:i:s'),
-                ]);
-                $campaignId = (int) $pdo->lastInsertId();
                 $generated = 0;
                 $insCode = $pdo->prepare(
                     'INSERT INTO discount_codes
                      (campaign_id, event_id, code, min_eur, email, name, max_uses, use_count, valid_until, is_active, created_at)
                      VALUES (?, ?, ?, ?, ?, ?, 1, 0, ?, 1, ?)'
                 );
+                $insCamp = $pdo->prepare(
+                    'INSERT INTO discount_campaigns (event_id, label, min_eur, status, recipient_count, codes_generated, emails_sent, created_at)
+                     VALUES (?, ?, ?, \'ready\', 0, 0, 0, ?)'
+                );
+                $insCamp->execute([
+                    $eventId,
+                    $label !== '' ? $label : null,
+                    $minEur,
+                    date('Y-m-d H:i:s'),
+                ]);
+                $campaignId = (int) $pdo->lastInsertId();
                 foreach ($recipients as $r) {
-                    if (!is_array($r)) {
-                        continue;
-                    }
-                    $email = edv_normalize_email((string) ($r['email'] ?? ''));
-                    $name = trim((string) ($r['name'] ?? ''));
-                    if ($email === '' || !filter_var($email, FILTER_VALIDATE_EMAIL)) {
-                        continue;
-                    }
+                    $email = $r['email'];
+                    $name = $r['name'];
                     $code = edv_generate_promo_code($pdo);
                     $insCode->execute([
                         $campaignId,
@@ -94,11 +96,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     $generated++;
                 }
                 $pdo->prepare(
-                    'UPDATE discount_campaigns SET codes_generated = ? WHERE id = ?'
-                )->execute([$generated, $campaignId]);
+                    'UPDATE discount_campaigns SET recipient_count = ?, codes_generated = ? WHERE id = ?'
+                )->execute([$generated, $generated, $campaignId]);
                 $pdo->commit();
                 $selectedCampaignId = $campaignId;
                 $flash = "Campanha criada com {$generated} códigos.";
+                if ($skipped !== []) {
+                    $flash .= ' ' . count($skipped) . ' entrada(s) ignorada(s) (email inválido ou duplicado).';
+                }
             } catch (Throwable $e) {
                 $pdo->rollBack();
                 $flash = 'Erro ao gerar códigos: ' . $e->getMessage();
@@ -179,6 +184,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 $selectedCampaignId = $campaignId;
             }
         }
+    } elseif ($action === 'delete_campaign') {
+        $campaignId = (int) ($_POST['campaign_id'] ?? 0);
+        $result = edv_delete_discount_campaign($pdo, $campaignId);
+        $flash = $result['message'];
+        if ($result['ok']) {
+            $selectedCampaignId = 0;
+        }
     }
 }
 
@@ -256,7 +268,10 @@ $recentUses = $pdo->query(
     .tag { display: inline-block; padding: .15rem .45rem; border-radius: 999px; font-size: .62rem; background: rgba(245,239,230,.08); }
     .tag.ok { background: rgba(45,106,79,.2); color: #6bcf9a; }
     .tag.pending { background: rgba(212,168,90,.15); color: var(--gold); }
+    .tag.warn { background: rgba(180,80,60,.18); color: #e8a090; }
     .scroll-table { max-height: 360px; overflow: auto; }
+    .btn-danger { border-color: rgba(180,80,60,.45); background: rgba(180,80,60,.12); color: #e8a090; }
+    .actions-row { display: flex; flex-wrap: wrap; gap: .5rem; align-items: center; margin-bottom: .75rem; }
   </style>
 </head>
 <body class="has-bottom-tabs">
@@ -299,7 +314,7 @@ $recentUses = $pdo->query(
           <input type="hidden" name="action" value="generate_campaign" />
           <input type="hidden" name="event_id" value="<?= (int) $previewEventId ?>" />
           <input type="hidden" name="min_eur" value="<?= number_format($previewMin, 2, '.', '') ?>" />
-          <input type="hidden" name="recipients_json" value="<?= dc_h(json_encode($previewRecipients, JSON_UNESCAPED_UNICODE)) ?>" />
+          <input type="hidden" name="recipients_json" value="b64:<?= dc_h(base64_encode(json_encode($previewRecipients, JSON_UNESCAPED_UNICODE))) ?>" />
           <div class="field">
             <label>Nome da campanha (opcional)</label>
             <input type="text" name="label" placeholder="Comunidade junho 2026" />
@@ -321,6 +336,25 @@ $recentUses = $pdo->query(
           <p class="help"><strong><?= count($previewRecipients) ?></strong> destinatários · cada um receberá um código único ligado ao email.</p>
           <button class="btn btn-gold" type="submit">2. Gerar códigos</button>
         </form>
+        <?php if ($previewExcluded !== []): ?>
+          <div style="margin-top:.85rem;">
+            <p class="help"><strong><?= count($previewExcluded) ?></strong> presença(s) não incluída(s) na lista:</p>
+            <div class="scroll-table">
+              <table>
+                <thead><tr><th>Nome</th><th>Email</th><th>Motivo</th></tr></thead>
+                <tbody>
+                  <?php foreach ($previewExcluded as $x): ?>
+                    <tr>
+                      <td><?= dc_h($x['name'] !== '' ? $x['name'] : '—') ?></td>
+                      <td><?= dc_h($x['email']) ?></td>
+                      <td><span class="tag warn"><?= dc_h($x['reason']) ?></span></td>
+                    </tr>
+                  <?php endforeach; ?>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        <?php endif; ?>
       <?php endif; ?>
     </section>
 
@@ -370,14 +404,31 @@ $recentUses = $pdo->query(
   </section>
 
   <?php if ($selectedCampaign): ?>
+    <?php
+      $codesListed = count($campaignCodes);
+      $codesExpected = (int) $selectedCampaign['codes_generated'];
+    ?>
     <section class="panel">
       <h2>Códigos — <?= dc_h((string) ($selectedCampaign['label'] ?? 'Campanha #' . $selectedCampaign['id'])) ?></h2>
-      <form method="post" style="margin-bottom:.75rem;">
-        <input type="hidden" name="action" value="send_campaign_emails" />
-        <input type="hidden" name="campaign_id" value="<?= (int) $selectedCampaign['id'] ?>" />
-        <button class="btn btn-gold" type="submit">3. Enviar lote de emails (até 25)</button>
-      </form>
-      <p class="help">Cada clique envia até 25 emails pendentes. Repete até todos estarem enviados.</p>
+      <p class="help" style="margin-bottom:.6rem;">
+        <strong><?= $codesListed ?></strong> códigos na lista
+        <?php if ($codesListed !== $codesExpected): ?>
+          · <span class="tag warn">registo indica <?= $codesExpected ?> — apaga a campanha e gera de novo se faltar alguém</span>
+        <?php endif; ?>
+      </p>
+      <div class="actions-row">
+        <form method="post">
+          <input type="hidden" name="action" value="send_campaign_emails" />
+          <input type="hidden" name="campaign_id" value="<?= (int) $selectedCampaign['id'] ?>" />
+          <button class="btn btn-gold" type="submit">3. Enviar lote de emails (até 25)</button>
+        </form>
+        <form method="post" onsubmit="return confirm('Apagar esta campanha e todos os códigos? Só é possível se nenhum código tiver sido usado.');">
+          <input type="hidden" name="action" value="delete_campaign" />
+          <input type="hidden" name="campaign_id" value="<?= (int) $selectedCampaign['id'] ?>" />
+          <button class="btn btn-danger" type="submit">Apagar campanha</button>
+        </form>
+      </div>
+      <p class="help">Cada clique envia até 25 emails pendentes. Repete até todos estarem enviados. Para corrigir a lista ou valores, apaga a campanha e volta ao passo 1.</p>
       <div class="scroll-table">
         <table>
           <thead><tr><th>Nome</th><th>Email</th><th>Código</th><th>Enviado</th><th>Usado</th></tr></thead>
