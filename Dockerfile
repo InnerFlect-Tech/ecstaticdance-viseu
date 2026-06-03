@@ -33,6 +33,14 @@ RUN rm -rf /usr/share/nginx/html/*
 COPY --from=builder /app/dist /usr/share/nginx/html
 COPY server /var/www/edv-server
 
+# Coolify may skip rebuild when a stale image is already tagged with the same commit SHA.
+# SOURCE_COMMIT is injected by Coolify at build time; also written for runtime verification.
+ARG SOURCE_COMMIT=unknown
+RUN printf '{"commit":"%s","built_at":"%s"}\n' \
+      "${SOURCE_COMMIT}" "$(date -u +%Y-%m-%dT%H:%M:%SZ)" \
+      > /var/www/edv-server/api/build-info.json \
+    && cp /var/www/edv-server/api/build-info.json /usr/share/nginx/html/build-info.json
+
 COPY nginx.conf /etc/nginx/conf.d/default.conf
 COPY scripts/docker-entrypoint.sh /entrypoint.sh
 RUN chmod +x /entrypoint.sh

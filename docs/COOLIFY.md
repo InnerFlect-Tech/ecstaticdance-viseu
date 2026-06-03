@@ -63,6 +63,23 @@ No Coolify podes repetir esse path atrás do proxy público (**Health check**: `
 4. **Deploy / Redeploy**.  
 5. Verificar: página pública `/links`, admin `/admin/link-bookings.php` (total e faixa técnica), e existe ficheiros no volume após uma inscrição de teste.
 
+### «Nada mudou» após deploy (build ignorado)
+
+No log, se aparecer **`Build step skipped`** com imagem já etiquetada com o mesmo commit, o Coolify pode **não reconstruir** e voltar a arrancar uma imagem **antiga** (código de Maio, `links.html` com hashes antigos).
+
+**Verificação rápida (browser ou curl):**
+
+- `https://ecstaticdanceviseu.pt/api/health.php` → deve incluir `"commit":"<sha do main>"` (não `unknown`).
+- `https://ecstaticdanceviseu.pt/build-info.json` → mesmo commit.
+- `https://ecstaticdanceviseu.pt/links.html` → no código-fonte, o JS deve ser `manual-booking-BcDjgn_k.js` (o hash muda quando o front muda).
+
+**Correcção:**
+
+1. Coolify → serviço → **Redeploy** → activar **Force rebuild** / **Build without cache** (v4: opção no deploy ou em *Advanced*).
+2. Confirma que o log **não** diz `Build step skipped` — deve correr `npm run build` no Dockerfile.
+3. **Volumes:** só `/var/www/edv-server/data` e `.../uploads`. **Não** montes `/var/www/edv-server` inteiro nem `/usr/share/nginx/html` (sobrescreve código novo da imagem).
+4. Se persistir: apaga a imagem antiga no servidor (`docker images | grep i5ive34`) e redeploy.
+
 ---
 
 ## Checklist rápido

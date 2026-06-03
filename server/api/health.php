@@ -9,4 +9,14 @@ declare(strict_types=1);
 header('Content-Type: application/json; charset=UTF-8');
 header('Cache-Control: no-store');
 http_response_code(200);
-echo '{"ok":true,"service":"edv-php"}';
+
+$payload = ['ok' => true, 'service' => 'edv-php'];
+$infoPath = __DIR__ . '/build-info.json';
+if (is_readable($infoPath)) {
+    $info = json_decode((string) file_get_contents($infoPath), true);
+    if (is_array($info)) {
+        $payload = array_merge($payload, $info);
+    }
+}
+
+echo json_encode($payload, JSON_UNESCAPED_SLASHES);
