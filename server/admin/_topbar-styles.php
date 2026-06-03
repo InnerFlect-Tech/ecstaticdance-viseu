@@ -120,6 +120,10 @@ declare(strict_types=1);
     font-size: 0.62rem;
   }
   .tb-scan-fab:hover { filter: brightness(1.1); }
+  .tb-scan-fab.is-active {
+    box-shadow: 0 0 0 1px rgba(212,168,90,0.45);
+    color: var(--gold-l);
+  }
   /* Compact label on narrow desktop nav */
   @media (min-width: 768px) and (max-width: 900px) {
     .tb-scan-nav .tb-scan-label { display: none; }
@@ -128,8 +132,7 @@ declare(strict_types=1);
 
   /* Mobile: barra inferior visível — sem Scan nem Sair no topo (ficam na bottom bar) */
   @media (max-width: 767px) {
-    #openScannerBtn,
-    .tb-scan-nav {
+    .topbar-nav .tb-scan-nav {
       display: none !important;
     }
     .topbar-ctx .tb-logout {
@@ -235,6 +238,10 @@ declare(strict_types=1);
   }
   .btab.btab-scan:active .btab-icon-wrap { filter: brightness(1.15); }
   .btab.btab-scan svg { width: 22px; height: 22px; color: #5dc29a; }
+  .btab.btab-scan.is-active .btab-icon-wrap {
+    border-color: rgba(212,168,90,0.55);
+    box-shadow: 0 0 0 1px rgba(212,168,90,0.25);
+  }
   .btab-scan-sub {
     font-size: 0.5rem !important;
     color: rgba(245,239,230,0.35) !important;

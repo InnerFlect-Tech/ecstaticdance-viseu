@@ -6,6 +6,7 @@
    ============================================================ */
 
 require_once __DIR__ . '/auth.php';
+require_once __DIR__ . '/../api/attendance.php';
 require_admin_session();
 
 header('Content-Type: application/json; charset=utf-8');
@@ -41,6 +42,8 @@ if ($stmt->rowCount() === 0) {
     echo json_encode(['ok' => false, 'error' => 'Bilhete não encontrado ou inválido']);
     exit;
 }
+
+edv_attendance_sync_for_ticket($ticket_id, $checked);
 
 echo json_encode(['ok' => true, 'checked_in' => $checked]);
 exit;

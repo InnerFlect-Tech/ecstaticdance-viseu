@@ -82,9 +82,9 @@ function main_db_sqlite_seed_if_empty(PDO $pdo): void {
          VALUES (?, ?, ?, ?, ?, ?, ?, 1)'
     );
     $ins->execute([
-        'Ecstatic Dance Viseu #01 (local)',
-        'Evento de exemplo para desenvolvimento local.',
-        '2026-05-23',
+        'Ecstatic Dance Viseu #02 (local)',
+        'DJ Bernardo B-file — jornada musical de 3h. Warm-up e integração a anunciar.',
+        '2026-06-27',
         'Nua e Crua, Viseu',
         'paid',
         60,
@@ -119,6 +119,12 @@ function db(): PDO {
             $pdo->exec('PRAGMA foreign_keys = ON');
             main_db_sqlite_migrate($pdo);
             main_db_sqlite_seed_if_empty($pdo);
+            require_once __DIR__ . '/attendance.php';
+            edv_attendance_ensure_schema($pdo);
+            $attN = (int) $pdo->query('SELECT COUNT(*) FROM event_attendance')->fetchColumn();
+            if ($attN === 0) {
+                edv_attendance_backfill_from_tickets();
+            }
         } elseif ($driver === 'mysql') {
             if (!in_array('mysql', PDO::getAvailableDrivers(), true)) {
                 throw new RuntimeException(
@@ -166,6 +172,11 @@ function db(): PDO {
             );
         } else {
             throw new RuntimeException('Driver de base de dados não suportado: ' . $driver);
+        }
+
+        if ($driver !== 'sqlite') {
+            require_once __DIR__ . '/attendance.php';
+            edv_attendance_ensure_schema($pdo);
         }
     }
     return $pdo;
@@ -356,4 +367,23 @@ function send_ticket_email(
 // ── Sanitise string input ──
 function sanitise(string $val, int $max = 255): string {
     return mb_substr(trim(strip_tags($val)), 0, $max);
+}
+
+/**
+ * Extrai UUID de bilhete de QR cru, URL de confirmação ou texto colado.
+ */
+function normalize_ticket_code(string $raw): string {
+    $raw = trim($raw);
+    if ($raw === '') {
+        return '';
+    }
+    if (preg_match(
+        '/[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}/i',
+        $raw,
+        $m
+    )) {
+        return strtolower($m[0]);
+    }
+
+    return sanitise($raw, 36);
 }

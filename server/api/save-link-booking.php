@@ -28,7 +28,7 @@ $dinner_note   = link_sanitise((string)($body['dinner_note'] ?? ''), 64);
 $payment_method = link_sanitise((string)($body['payment_method'] ?? ''), 20);
 $heard_from    = link_sanitise((string)($body['heard_from'] ?? ''), 32);
 $heard_other   = link_sanitise((string)($body['heard_other'] ?? ''), 255);
-$event_slug    = link_sanitise((string)($body['event_slug'] ?? 'edv-2026-05-23'), 64);
+$event_slug    = link_sanitise((string)($body['event_slug'] ?? 'edv-2026-06-27'), 64);
 
 $allowed_m = ['mbway', 'transfer', 'revolut'];
 $allowed_h = ['instagram', 'facebook', 'friends', 'mailing', 'whatsapp', 'telegram', 'other'];
@@ -51,7 +51,8 @@ if ($heard_from === 'other' && $heard_other === '') {
 if ($ticket_euros < 0 || $total_euros < 0) {
     link_json_err('Valores inválidos.');
 }
-$tmin = link_ticket_min_eur();
+$eventIdForPricing = link_resolve_event_id_from_slug($event_slug) ?? 0;
+$tmin = link_ticket_min_eur($email, $eventIdForPricing > 0 ? $eventIdForPricing : null);
 $tmax = link_ticket_max_eur();
 if ($ticket_euros < $tmin - 0.001 || $ticket_euros > $tmax + 0.001) {
     link_json_err(

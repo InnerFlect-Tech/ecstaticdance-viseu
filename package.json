@@ -11,6 +11,7 @@
     "start": "bash scripts/start-preview-with-php.sh"
   },
   "devDependencies": {
+    "qr-scanner": "^1.4.2",
     "vite": "^6.3.3"
   }
 }

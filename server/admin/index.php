@@ -290,7 +290,8 @@ require __DIR__ . '/_topbar.php';
 
       <div class="banner-hint-links" role="note">
         Esta lista são bilhetes com QR (<strong>Check-in</strong>).
-        <strong>Inscrições manuais</strong> pela página <code>/links</code> (MB Way, transferência, comprovativo) estão em
+        Na porta usa o <a href="/admin/scan.php?event_id=<?= $selected_event ?>">Scanner QR</a>.
+        Inscrições manuais <code>/links</code> em
         <a href="/admin/link-bookings.php">Inscrições · /links</a>.
       </div>
 
@@ -327,6 +328,8 @@ require __DIR__ . '/_topbar.php';
           <option value="not_checked"<?= $filter_status === 'not_checked' ? 'selected' : '' ?>>Sem entrada</option>
         </select>
         <button type="submit" class="btn btn-outline">Filtrar</button>
+        <a href="/admin/scan.php?event_id=<?= $selected_event ?>" class="btn btn-outline">Scanner QR</a>
+        <button type="button" class="btn btn-outline" id="openScannerQuick">Scan rápido</button>
         <span class="spacer"></span>
         <span style="font-size:.75rem;color:rgba(245,239,230,.3)"><?= count($tickets) ?> resultado<?= count($tickets) !== 1 ? 's' : '' ?></span>
       </form>
@@ -392,7 +395,10 @@ require __DIR__ . '/_topbar.php';
 </div>
 
 
-<?php require __DIR__ . '/_scanner-modal.php'; ?>
+<?php
+$__scanEventId = $selected_event;
+require __DIR__ . '/_scanner-modal.php';
+?>
 
 <script>
 // ── Manual check-in toggle ──

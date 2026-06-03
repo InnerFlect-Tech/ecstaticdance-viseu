@@ -6,7 +6,7 @@
    ============================================================ */
 
 require_once __DIR__ . '/helpers.php';
-require_once __DIR__ . '/ticket-pricing.php';
+require_once __DIR__ . '/attendance.php';
 
 cors();
 header('Cache-Control: no-store');
@@ -62,7 +62,8 @@ if (!$event_id || !$name || !$email || !$phone) {
 if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
     json_err('Email inválido.');
 }
-$min_allowed = (int) edv_ticket_min_eur();
+$min_allowed = (int) edv_ticket_min_eur($email, $event_id);
+$price_tier  = edv_ticket_price_tier($email, $event_id);
 
 if ($amount < $min_allowed || $amount > 200) {
     json_err('Valor fora do intervalo permitido (€' . $min_allowed . '–€200).');
@@ -91,12 +92,14 @@ if ((int)$event['capacity'] > 0 && $sold >= (int)$event['capacity']) {
 
 // Create pending ticket
 $ticket_id = generate_uuid();
+edv_attendance_ensure_schema(db());
+
 $ins = db()->prepare(
     'INSERT INTO tickets
-     (id, event_id, name, email, phone, amount_paid, payment_status, created_at)
-     VALUES (?, ?, ?, ?, ?, ?, \'pending\', ?)'
+     (id, event_id, name, email, phone, amount_paid, price_tier, payment_status, created_at)
+     VALUES (?, ?, ?, ?, ?, ?, ?, \'pending\', ?)'
 );
-$ins->execute([$ticket_id, $event_id, $name, $email, $phone, $amount, db_now_string()]);
+$ins->execute([$ticket_id, $event_id, $name, $email, $phone, $amount, $price_tier, db_now_string()]);
 
 // Create Stripe Checkout session
 $app_url = APP_URL;

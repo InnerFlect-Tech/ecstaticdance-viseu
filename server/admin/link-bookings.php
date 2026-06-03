@@ -9,6 +9,7 @@ require_once __DIR__ . '/auth.php';
 require_admin_session();
 
 require_once __DIR__ . '/../api/link-common.php';
+require_once __DIR__ . '/../api/link-confirm.php';
 
 /**
  * @param array<string,mixed> $row
@@ -40,6 +41,16 @@ function admin_link_payment_label(string $m): string {
 /**
  * @param array<string,mixed> $row
  */
+function admin_link_status_label(array $row): string {
+    if (!empty($row['ticket_id']) || !empty($row['confirmed_at'])) {
+        return 'Confirmado';
+    }
+    if (!empty($row['step2_at'])) {
+        return 'A verificar';
+    }
+    return 'Aguarda passo 2';
+}
+
 function admin_link_step2_label(array $row): string {
     if (empty($row['step2_at'])) {
         return 'Passo 2 pendente';
@@ -80,7 +91,25 @@ function admin_link_delete_proof_file(string $proofRelpath): void {
 }
 
 $flashMessage = '';
-if ($_SERVER['REQUEST_METHOD'] === 'POST' && (string)($_POST['action'] ?? '') === 'delete_registration') {
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && (string)($_POST['action'] ?? '') === 'confirm_registration') {
+    $confirmId = link_sanitise((string) ($_POST['registration_id'] ?? ''), 36);
+    if (strlen($confirmId) < 32) {
+        $flashMessage = 'ID de registo inválido.';
+    } else {
+        $result = link_confirm_registration($confirmId);
+        if (!empty($result['ok'])) {
+            if (!empty($result['already'])) {
+                $flashMessage = 'Este pedido já estava confirmado (bilhete ' . ($result['ticket_id'] ?? '') . ').';
+            } elseif (!empty($result['error'])) {
+                $flashMessage = $result['error'];
+            } else {
+                $flashMessage = 'Bilhete confirmado e email enviado ao participante (ID ' . ($result['ticket_id'] ?? '') . ').';
+            }
+        } else {
+            $flashMessage = $result['error'] ?? 'Não foi possível confirmar.';
+        }
+    }
+} elseif ($_SERVER['REQUEST_METHOD'] === 'POST' && (string)($_POST['action'] ?? '') === 'delete_registration') {
     $deleteId = link_sanitise((string)($_POST['registration_id'] ?? ''), 36);
     if (strlen($deleteId) < 32) {
         $flashMessage = 'ID de registo inválido.';
@@ -255,6 +284,12 @@ $linkStoreHint = match ($linkStore['mode']) {
     color:#f1d5cf; padding:.34rem .55rem; font-size:.68rem; letter-spacing:.04em; text-transform:uppercase;
     border-radius:3px; cursor:pointer; }
   .btn-delete:hover { background: rgba(196,89,63,.2); border-color: rgba(196,89,63,.55); }
+  .btn-confirm { appearance:none; display:block; width:100%; margin-bottom:.45rem;
+    border:1px solid rgba(45,106,79,.45); background:rgba(45,106,79,.22); color:#8fd4a8;
+    padding:.4rem .55rem; font-size:.68rem; letter-spacing:.06em; text-transform:uppercase;
+    border-radius:3px; cursor:pointer; }
+  .btn-confirm:hover { background:rgba(45,106,79,.35); color:var(--bone); }
+  .badge-confirmed { background:rgba(45,106,79,.2); color:#8fd4a8; }
 
   <?php require __DIR__ . '/_scanner-styles.php'; ?>
 </style>
@@ -272,9 +307,10 @@ require __DIR__ . '/_topbar.php';
   <div class="page-header">
     <h1>Inscrições · reservas manuais (/links)</h1>
     <p>
-      Pedidos do formulário «Pedir bilhete» na página pública <code style="font-size:.78rem;color:rgba(245,239,230,.35)">/links</code>
-      — guardados via <code style="font-size:.78rem;color:rgba(245,239,230,.35)">server/api/config.php</code>.
+      Pedidos do formulário «Pedir bilhete» em <code style="font-size:.78rem;color:rgba(245,239,230,.35)">/links</code>.
       Total nesta origem: <strong><?= (int)$n ?></strong>.
+      Após o passo 2, o participante recebe email automático de «pedido recebido»; quando verificares o pagamento, usa
+      <strong>Confirmar e enviar bilhete</strong> para criar o QR e enviar o email final.
     </p>
   </div>
 
@@ -321,6 +357,7 @@ require __DIR__ . '/_topbar.php';
             <th>Pagamento</th>
             <th>Origem</th>
             <th>Passo 2</th>
+            <th>Estado</th>
             <th>Ações</th>
           </tr>
         </thead>
@@ -330,6 +367,9 @@ require __DIR__ . '/_topbar.php';
             $pm = admin_link_payment_label((string)($r['payment_method'] ?? ''));
             $heard = admin_link_heard_label($r);
             $step2 = admin_link_step2_label($r);
+            $status = admin_link_status_label($r);
+            $canConfirm = !empty($r['step2_at']) && empty($r['ticket_id']) && empty($r['confirmed_at']);
+            $isConfirmed = !empty($r['ticket_id']) || !empty($r['confirmed_at']);
             $ticket = isset($r['ticket_euros']) ? (float)$r['ticket_euros'] : 0.0;
             $total = isset($r['total_euros']) ? (float)$r['total_euros'] : 0.0;
             $dinnerNote = trim((string)($r['dinner_note'] ?? ''));
@@ -382,6 +422,27 @@ require __DIR__ . '/_topbar.php';
               <?php endif; ?>
             </td>
             <td>
+              <?php if ($isConfirmed): ?>
+                <span class="badge badge-confirmed"><?= htmlspecialchars($status, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8') ?></span>
+                <?php if (!empty($r['ticket_id'])): ?>
+                  <div class="mono" style="margin-top:.45rem;font-size:.65rem;word-break:break-all">
+                    <a class="proof-link" href="/admin/?q=<?= urlencode((string) $r['email']) ?>">Bilhete → check-in</a>
+                  </div>
+                <?php endif; ?>
+              <?php elseif (!empty($r['step2_at'])): ?>
+                <span class="badge badge-wait"><?= htmlspecialchars($status, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8') ?></span>
+              <?php else: ?>
+                <span class="badge badge-wait"><?= htmlspecialchars($status, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8') ?></span>
+              <?php endif; ?>
+            </td>
+            <td>
+              <?php if ($canConfirm): ?>
+                <form method="post" onsubmit="return confirm('Confirmar pagamento e enviar bilhete com QR por email ao participante?');">
+                  <input type="hidden" name="action" value="confirm_registration" />
+                  <input type="hidden" name="registration_id" value="<?= htmlspecialchars((string)($r['id'] ?? ''), ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8') ?>" />
+                  <button type="submit" class="btn-confirm">Confirmar e enviar bilhete</button>
+                </form>
+              <?php endif; ?>
               <form method="post" onsubmit="return confirm('Apagar esta inscrição? Esta ação não pode ser desfeita.');">
                 <input type="hidden" name="action" value="delete_registration" />
                 <input type="hidden" name="registration_id" value="<?= htmlspecialchars((string)($r['id'] ?? ''), ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8') ?>" />
@@ -396,8 +457,6 @@ require __DIR__ . '/_topbar.php';
   <?php endif; ?>
 </div>
 
-<?php require __DIR__ . '/_scanner-modal.php'; ?>
-<?php require __DIR__ . '/_scanner-script.php'; ?>
 
 </body>
 </html>

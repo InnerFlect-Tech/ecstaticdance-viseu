@@ -100,9 +100,25 @@ function link_sql_now(): string {
     return $d->format('Y-m-d H:i:s');
 }
 
-/** Mínimo do bilhete; igual a create-checkout.php e js/pricing.js */
-function link_ticket_min_eur(): float {
-    return edv_ticket_min_eur();
+/** Mínimo do bilhete (com desconto de regresso se aplicável). */
+function link_ticket_min_eur(?string $email = null, ?int $eventId = null): float {
+    return edv_ticket_min_eur($email, $eventId);
+}
+
+/** Resolve evento principal a partir do slug edv-YYYY-MM-DD. */
+function link_resolve_event_id_from_slug(string $slug): ?int
+{
+    if (!preg_match('/edv-(\d{4}-\d{2}-\d{2})$/', $slug, $m)) {
+        return null;
+    }
+    require_once __DIR__ . '/helpers.php';
+    $q = db()->prepare(
+        'SELECT id FROM events WHERE date = ? ORDER BY is_active DESC, id DESC LIMIT 1'
+    );
+    $q->execute([$m[1]]);
+    $id = $q->fetchColumn();
+
+    return $id !== false ? (int) $id : null;
 }
 
 function link_ticket_max_eur(): float {
@@ -117,7 +133,7 @@ function link_sqlite_migrate(PDO $pdo): void {
 CREATE TABLE IF NOT EXISTS link_registrations (
   id TEXT NOT NULL PRIMARY KEY,
   payment_ref TEXT NOT NULL UNIQUE,
-  event_slug TEXT NOT NULL DEFAULT 'edv-2026-05-23',
+  event_slug TEXT NOT NULL DEFAULT 'edv-2026-06-27',
   name TEXT NOT NULL,
   email TEXT NOT NULL,
   phone TEXT NOT NULL,
@@ -132,6 +148,9 @@ CREATE TABLE IF NOT EXISTS link_registrations (
   proof_relpath TEXT,
   proof_mime TEXT,
   step2_at TEXT,
+  ticket_id TEXT,
+  confirmed_at TEXT,
+  receipt_email_sent_at TEXT,
   created_at TEXT NOT NULL,
   updated_at TEXT NOT NULL
 );
@@ -139,6 +158,58 @@ SQL
     );
     $pdo->exec('CREATE INDEX IF NOT EXISTS idx_email ON link_registrations (email);');
     $pdo->exec('CREATE INDEX IF NOT EXISTS idx_step1 ON link_registrations (step1_at);');
+    link_registrations_ensure_columns($pdo);
+}
+
+/**
+ * Colunas de confirmação / emails (migração incremental em bases existentes).
+ */
+function link_registrations_ensure_columns(PDO $pdo): void
+{
+    if (link_is_sqlite()) {
+        $cols = $pdo->query('PRAGMA table_info(link_registrations)')->fetchAll(PDO::FETCH_ASSOC);
+        $names = array_column($cols, 'name');
+        $add = static function (string $col, string $ddl) use ($pdo, $names): void {
+            if (!in_array($col, $names, true)) {
+                $pdo->exec('ALTER TABLE link_registrations ADD COLUMN ' . $ddl);
+            }
+        };
+        $add('ticket_id', 'ticket_id TEXT');
+        $add('confirmed_at', 'confirmed_at TEXT');
+        $add('receipt_email_sent_at', 'receipt_email_sent_at TEXT');
+        return;
+    }
+    $driver = $pdo->getAttribute(PDO::ATTR_DRIVER_NAME);
+    if ($driver === 'mysql') {
+        $alters = [
+            'ticket_id' => 'ADD COLUMN `ticket_id` CHAR(36) NULL DEFAULT NULL AFTER `step2_at`',
+            'confirmed_at' => 'ADD COLUMN `confirmed_at` DATETIME NULL DEFAULT NULL AFTER `ticket_id`',
+            'receipt_email_sent_at' => 'ADD COLUMN `receipt_email_sent_at` DATETIME NULL DEFAULT NULL AFTER `confirmed_at`',
+        ];
+        foreach ($alters as $col => $sql) {
+            try {
+                $chk = $pdo->query(
+                    "SELECT 1 FROM information_schema.COLUMNS
+                     WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'link_registrations' AND COLUMN_NAME = " . $pdo->quote($col)
+                );
+                if ($chk && $chk->fetchColumn()) {
+                    continue;
+                }
+                $pdo->exec('ALTER TABLE `link_registrations` ' . $sql);
+            } catch (PDOException) {
+                // coluna já existe ou sem permissão — ignorar
+            }
+        }
+        try {
+            $pdo->exec('CREATE INDEX `idx_link_ticket_id` ON `link_registrations` (`ticket_id`)');
+        } catch (PDOException) {
+            // índice já existe
+        }
+    } elseif ($driver === 'pgsql') {
+        $pdo->exec('ALTER TABLE link_registrations ADD COLUMN IF NOT EXISTS ticket_id CHAR(36)');
+        $pdo->exec('ALTER TABLE link_registrations ADD COLUMN IF NOT EXISTS confirmed_at TIMESTAMPTZ');
+        $pdo->exec('ALTER TABLE link_registrations ADD COLUMN IF NOT EXISTS receipt_email_sent_at TIMESTAMPTZ');
+    }
 }
 
 /**
@@ -184,6 +255,8 @@ function link_api_db(): PDO {
                 PDO::ATTR_EMULATE_PREPARES   => false,
             ]
         );
+        link_registrations_ensure_columns($pdo);
+
         return $pdo;
     }
     $mysqlHost = DB_HOST;
@@ -202,6 +275,8 @@ function link_api_db(): PDO {
             PDO::ATTR_EMULATE_PREPARES   => false,
         ]
     );
+    link_registrations_ensure_columns($pdo);
+
     return $pdo;
 }
 

@@ -7,6 +7,11 @@ declare(strict_types=1);
 require_once __DIR__ . '/auth.php';
 require_admin_session();
 
+if (!admin_analytics_enabled()) {
+    header('Location: /admin/');
+    exit;
+}
+
 // ── Mock snapshot (replace with GA4 Data API or embedded Looker Studio later) ──
 $mockPeriod = 'Últimos 28 dias (demo)';
 $mockKpis = [
@@ -283,8 +288,6 @@ require __DIR__ . '/_topbar.php';
   </details>
 </main>
 
-<?php require __DIR__ . '/_scanner-modal.php'; ?>
-<?php require __DIR__ . '/_scanner-script.php'; ?>
 
 </body>
 </html>

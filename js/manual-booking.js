@@ -5,13 +5,15 @@ import {
   TICKET_MAX_EUR,
   TICKET_SLIDER_CAP_EUR,
   TICKET_STEP,
-  isEarlyBirdPeriod,
+  minPriceLabelEn,
+  minPriceLabelPt,
   normalizeTicketAmountEur,
+  refreshTicketPricing,
   snapTicketSliderEur,
   ticketMinEur,
 } from './pricing.js'
 
-const DEFAULT_EVENT_SLUG = 'edv-2026-05-23'
+const DEFAULT_EVENT_SLUG = 'edv-2026-06-27'
 const INFO_EMAIL = 'info@ecstaticdanceviseu.pt'
 /** Extra fixo: jantar no local (reserva manual em bilhetes.html) */
 const DINNER_EUR = 12
@@ -562,13 +564,8 @@ function applyTicketPricingToDom() {
     const pt = minEl.querySelector('.lang-pt')
     const en = minEl.querySelector('.lang-en')
     if (pt && en) {
-      if (isEarlyBirdPeriod()) {
-        pt.textContent = `${min}€ — early bird`
-        en.textContent = `€${min} — early bird`
-      } else {
-        pt.textContent = `${min}€ — mínimo`
-        en.textContent = `€${min} — minimum`
-      }
+      pt.textContent = minPriceLabelPt()
+      en.textContent = minPriceLabelEn()
     }
   }
 
@@ -814,6 +811,30 @@ function applyHubPrefTicket() {
   }
 }
 
+function wireLinkPricingByEmail() {
+  const emailInput = getEl('lb_email')
+  const slugInput = getEl('lb_event_slug')
+  if (!emailInput) return
+  let debounce = 0
+  const run = async () => {
+    window.clearTimeout(debounce)
+    debounce = window.setTimeout(async () => {
+      const slug = slugInput?.value || DEFAULT_EVENT_SLUG
+      const phoneInput = getEl('lb_phone')
+      await refreshTicketPricing(emailInput.value.trim(), 0, slug, phoneInput?.value?.trim() || '')
+      applyTicketPricingToDom()
+      window.dispatchEvent(new CustomEvent('edv:pricing-updated'))
+      lastTicketTierForAnim = null
+      recalcTotals()
+    }, 400)
+  }
+  emailInput.addEventListener('input', run)
+  emailInput.addEventListener('blur', run)
+  const phoneInput = getEl('lb_phone')
+  phoneInput?.addEventListener('input', run)
+  phoneInput?.addEventListener('blur', run)
+}
+
 function init() {
   if (!document.getElementById('lb_booking_form')) return
   initManualLang()
@@ -821,6 +842,7 @@ function init() {
   applyHubPrefTicket()
   wireStep1InlineErrorClearing()
   getEl('lb_booking_form').addEventListener('submit', onSubmitStep1)
+  wireLinkPricingByEmail()
   getEl('lb_heard_from').addEventListener('change', setHeardOtherVisible)
   setHeardOtherVisible()
   wireTotals()

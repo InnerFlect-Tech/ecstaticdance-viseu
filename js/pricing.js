@@ -1,34 +1,126 @@
 /**
- * Preços alinhados com server/api/ticket-pricing.php (PHP).
- * Early bird: piso 20€ até ao fim do dia 9 de maio de 2026 (Europe/Lisbon); depois 30€.
- * Máx. 200€; de 5 em 5 no slider até 100€.
+ * Preços alinhados com server/api/get-ticket-pricing.php.
+ * Early bird, standard, ou dançarino·a de regresso (por email).
  */
 
 export const TICKET_MAX_EUR = 200
-/** Teto do range visual (hub + reserva manual); acima disto usar campo livre 101–200. */
 export const TICKET_SLIDER_CAP_EUR = 100
 export const TICKET_STEP = 5
 export const STANDARD_MIN_EUR = 30
 export const EARLY_BIRD_MIN_EUR = 20
+export const RETURNING_MIN_EUR_DEFAULT = 15
+
+/** @type {{ minEur: number, tier: string, isReturning: boolean, eventId: number, email: string }} */
+let pricingState = {
+  minEur: STANDARD_MIN_EUR,
+  tier: 'standard',
+  isReturning: false,
+  eventId: 0,
+  email: '',
+}
+
+export function getPricingState() {
+  return pricingState
+}
 
 /**
- * Early bird até ao fim do dia 9 de maio de 2026 (calendário em Europe/Lisbon; alinhado a ticket-pricing.php).
  * @param {Date} [d]
  */
 export function isEarlyBirdPeriod(d = new Date()) {
   const ymd = d.toLocaleDateString('en-CA', { timeZone: 'Europe/Lisbon' })
-  return ymd <= '2026-05-09'
+  return ymd <= '2026-06-13'
 }
 
-/**
- * @param {Date} [d]
- */
-export function ticketMinEur(d = new Date()) {
+/** Piso local (sem API) — early bird vs standard. */
+export function defaultTicketMinEur(d = new Date()) {
   return isEarlyBirdPeriod(d) ? EARLY_BIRD_MIN_EUR : STANDARD_MIN_EUR
 }
 
 /**
- * Ajusta o valor do slider ao intervalo e ao step.
+ * Piso activo (API ou fallback local).
+ * @param {Date} [d]
+ */
+export function ticketMinEur(d = new Date()) {
+  if (pricingState.email && pricingState.minEur > 0) {
+    return pricingState.minEur
+  }
+  return defaultTicketMinEur(d)
+}
+
+/**
+ * @param {string} email
+ * @param {number} [eventId]
+ */
+export async function refreshTicketPricing(email, eventId = 0, eventSlug = '', phone = '') {
+  const trimmed = String(email || '').trim()
+  const phoneTrim = String(phone || '').trim()
+  if ((!trimmed || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(trimmed)) && !phoneTrim) {
+    pricingState = {
+      minEur: defaultTicketMinEur(),
+      tier: isEarlyBirdPeriod() ? 'early_bird' : 'standard',
+      isReturning: false,
+      eventId: eventId || 0,
+      email: '',
+    }
+    return pricingState
+  }
+
+  const q = new URLSearchParams()
+  if (trimmed && /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(trimmed)) q.set('email', trimmed)
+  if (phoneTrim) q.set('phone', phoneTrim)
+  if (eventId > 0) q.set('event_id', String(eventId))
+  if (eventSlug) q.set('event_slug', eventSlug)
+
+  try {
+    const res = await fetch(`/api/get-ticket-pricing.php?${q}`)
+    const data = await res.json()
+    if (data.ok) {
+      pricingState = {
+        minEur: Number(data.min_eur) || defaultTicketMinEur(),
+        tier: String(data.tier || 'standard'),
+        isReturning: Boolean(data.is_returning),
+        eventId: eventId || 0,
+        email: trimmed,
+      }
+      return pricingState
+    }
+  } catch {
+    // fallback
+  }
+
+  pricingState = {
+    minEur: defaultTicketMinEur(),
+    tier: isEarlyBirdPeriod() ? 'early_bird' : 'standard',
+    isReturning: false,
+    eventId: eventId || 0,
+    email: trimmed,
+  }
+  return pricingState
+}
+
+export function minPriceLabelPt() {
+  const min = ticketMinEur()
+  if (pricingState.tier === 'returning') {
+    return `${min}€ — dançarino·a de regresso`
+  }
+  if (pricingState.tier === 'early_bird') {
+    return `${min}€ — early bird`
+  }
+  return `${min}€ — mínimo`
+}
+
+export function minPriceLabelEn() {
+  const min = ticketMinEur()
+  if (pricingState.tier === 'returning') {
+    return `€${min} — returning dancer`
+  }
+  if (pricingState.tier === 'early_bird') {
+    return `€${min} — early bird`
+  }
+  return `€${min} — minimum`
+}
+
+/**
  * @param {number} raw
  * @param {Date} [d]
  */
@@ -40,9 +132,6 @@ export function snapTicketEur(raw, d = new Date()) {
   return Math.min(max, Math.max(min, n))
 }
 
-/**
- * Valores do slider hub / bilhete manual: entre mínimo e {@link TICKET_SLIDER_CAP_EUR}, passo 5€.
- */
 export function snapTicketSliderEur(raw, d = new Date()) {
   const min = ticketMinEur(d)
   const cap = TICKET_SLIDER_CAP_EUR
@@ -51,9 +140,6 @@ export function snapTicketSliderEur(raw, d = new Date()) {
   return Math.min(cap, Math.max(min, n))
 }
 
-/**
- * Preferência do hub ou valor final: até 100€ alinha ao slider; acima, qualquer inteiro 101–200.
- */
 export function normalizeTicketAmountEur(raw, d = new Date()) {
   let n = Number(raw)
   if (!Number.isFinite(n)) return snapTicketSliderEur(DEFAULT_TICKET_EUR, d)
@@ -66,9 +152,6 @@ export function normalizeTicketAmountEur(raw, d = new Date()) {
 
 export const DEFAULT_TICKET_EUR = 30
 
-/**
- * bilhetes.html — aplica min/max e rótulo do piso no slider Stripe.
- */
 export function applyBilhetesAmountRange() {
   const range = document.getElementById('amountRange')
   const disp = document.getElementById('amountDisplay')
@@ -81,12 +164,12 @@ export function applyBilhetesAmountRange() {
   range.step = String(TICKET_STEP)
   range.setAttribute('aria-label', `Valor entre ${min}€ e ${max}€`)
   let v = parseInt(String(range.value), 10)
-  if (!Number.isFinite(v)) v = DEFAULT_TICKET_EUR
+  if (!Number.isFinite(v)) v = min
   v = snapTicketEur(v)
   range.value = String(v)
   disp.textContent = String(v)
 
   if (minLb) {
-    minLb.textContent = `${min}€ — mínimo`
+    minLb.textContent = minPriceLabelPt()
   }
 }

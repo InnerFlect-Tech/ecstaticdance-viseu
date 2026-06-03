@@ -3,7 +3,7 @@
    Handles: booking form (bilhetes.html) + ticket display (confirmacao.html)
    ============================================================ */
 
-import { applyBilhetesAmountRange, ticketMinEur } from './pricing.js'
+import { applyBilhetesAmountRange, refreshTicketPricing } from './pricing.js'
 
 const API_BASE = '/api';
 
@@ -62,6 +62,7 @@ async function initBookingPage() {
       amountGroup.style.display = '';
       paidNote.style.display = '';
       applyBilhetesAmountRange();
+      wirePricingByEmail(currentEvent.id);
     } else {
       freeBadge.style.display = '';
       freeNote.style.display = '';
@@ -86,6 +87,21 @@ async function initBookingPage() {
   }
 
   document.getElementById('email')?.addEventListener('input', clearEmailFieldError);
+
+  function wirePricingByEmail(eventId) {
+    const emailInput = document.getElementById('email');
+    if (!emailInput) return;
+    let debounce = 0;
+    const run = () => {
+      window.clearTimeout(debounce);
+      debounce = window.setTimeout(async () => {
+        await refreshTicketPricing(emailInput.value.trim(), eventId);
+        applyBilhetesAmountRange();
+      }, 400);
+    };
+    emailInput.addEventListener('input', run);
+    emailInput.addEventListener('blur', run);
+  }
 
   // ── Form submit ──
   bookingForm.addEventListener('submit', async (e) => {

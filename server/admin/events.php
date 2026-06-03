@@ -38,6 +38,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $type = (string)($_POST['type'] ?? 'paid');
         $capacity = max(0, (int)($_POST['capacity'] ?? 0));
         $minPrice = max(0.0, (float)($_POST['min_price'] ?? 0));
+        $returningMinRaw = trim((string)($_POST['returning_min_eur'] ?? ''));
+        $returningMin = $returningMinRaw === '' ? null : max(0.0, (float)$returningMinRaw);
         $isActive = isset($_POST['is_active']) ? 1 : 0;
 
         if ($title === '' || $date === '') {
@@ -48,7 +50,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $stmt = $pdo->prepare(
                 "UPDATE events
                  SET title = ?, description = ?, date = ?, time_start = ?, time_end = ?, doors_open = ?,
-                     location = ?, type = ?, capacity = ?, min_price = ?, is_active = ?
+                     location = ?, type = ?, capacity = ?, min_price = ?, returning_min_eur = ?, is_active = ?
                  WHERE id = ?"
             );
             $stmt->execute([
@@ -62,11 +64,17 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 $type,
                 $capacity,
                 $minPrice,
+                $returningMin,
                 $isActive,
                 $eventId,
             ]);
+            if ($isActive === 1) {
+                $pdo->prepare('UPDATE events SET is_active = 0 WHERE id != ?')->execute([$eventId]);
+            }
             $selectedEventId = $eventId;
-            $flash = 'Evento atualizado.';
+            $flash = $isActive === 1
+                ? 'Evento atualizado e definido como único activo para venda.'
+                : 'Evento atualizado.';
         }
     } elseif ($action === 'create_event') {
         $title = trim((string)($_POST['title'] ?? ''));
@@ -265,6 +273,16 @@ require __DIR__ . '/_topbar.php';
               <input type="number" min="0" step="0.01" name="min_price" value="<?= number_format((float)$selected['min_price'], 2, '.', '') ?>" />
             </div>
             <div class="field">
+              <label>Preço regresso (€)</label>
+              <input type="number" min="0" step="0.01" name="returning_min_eur"
+                     value="<?= isset($selected['returning_min_eur']) && $selected['returning_min_eur'] !== null && $selected['returning_min_eur'] !== ''
+                       ? number_format((float)$selected['returning_min_eur'], 2, '.', '') : '' ?>"
+                     placeholder="15 (predefinição)" />
+            </div>
+          </div>
+
+          <div class="form-grid cols2" style="margin-top:.62rem;">
+            <div class="field">
               <label>Estado</label>
               <label class="switch">
                 <input type="checkbox" name="is_active" value="1" <?= (int)$selected['is_active'] === 1 ? 'checked' : '' ?> />
@@ -278,12 +296,12 @@ require __DIR__ . '/_topbar.php';
           </div>
         </form>
         <p class="help">A capacidade usada nos painéis e no checkout vem de <code>events.capacity</code>. Esta página grava diretamente nessa tabela.</p>
+        <p class="help" style="margin-top:.45rem">Quem fez check-in numa edição anterior (lista em <a href="/admin/attendance.php" style="color:#D4A85A">Presenças</a>) paga o piso de <strong>regresso</strong> ao usar o mesmo email. Vazio = 15€.</p>
+        <p class="help" style="margin-top:.65rem">Reservas manuais em <code>/links</code> usam o slug <code>edv-2026-06-27</code> (deve coincidir com a data do evento activo). Só um evento deve estar activo de cada vez — ao activar este, os restantes são desactivados automaticamente.</p>
       <?php endif; ?>
     </section>
   </div>
 </main>
 
-<?php require __DIR__ . '/_scanner-modal.php'; ?>
-<?php require __DIR__ . '/_scanner-script.php'; ?>
 </body>
 </html>

@@ -5,6 +5,7 @@
 declare(strict_types=1);
 
 require_once __DIR__ . '/link-common.php';
+require_once __DIR__ . '/link-mail.php';
 
 link_api_cors();
 header('Cache-Control: no-store');
@@ -86,6 +87,7 @@ if ($backend === 'json') {
 } elseif (!$pdo instanceof PDO) {
     link_json_err('Base de dados em falta.', 500);
 } else {
+    link_registrations_ensure_columns($pdo);
     $q = $pdo->prepare('SELECT * FROM link_registrations WHERE id = ?');
     $q->execute([$rid]);
     $row = $q->fetch();
@@ -125,6 +127,12 @@ if ($email_later && !$file_saved) {
     $line = "Passo 2 — comprovativo depois por email\nRef: {$row['payment_ref']}\nID: $rid\n"
         . "O participante indicou que envia o comprovativo para $info em seguida.\n";
     link_notify_team("Comprovativo depois — {$row['payment_ref']}", $line);
+    $rowFresh = array_merge($row, $patch);
+    if (link_should_send_receipt_email($rowFresh)) {
+        if (link_send_booking_received_email($rowFresh)) {
+            link_mark_receipt_email_sent($rid);
+        }
+    }
     link_json_ok(['status' => 'email_later', 'message' => 'Combinado. Envia o comprovativo para ' . $info . ' quando tiveres.']);
 }
 
@@ -154,6 +162,12 @@ if ($file_saved) {
     }
     $line = "Passo 2 — comprovativo carregado\nRef: {$row['payment_ref']}\nID: $rid\nFicheiro: $file_saved\n";
     link_notify_team("Comprovativo $rid", $line);
+    $rowFresh = array_merge($row, $patch);
+    if (link_should_send_receipt_email($rowFresh)) {
+        if (link_send_booking_received_email($rowFresh)) {
+            link_mark_receipt_email_sent($rid);
+        }
+    }
     link_json_ok(['status' => 'uploaded', 'message' => 'Obrigado! Recebemos o comprovativo.']);
 }
 

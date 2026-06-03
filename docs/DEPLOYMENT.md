@@ -177,6 +177,26 @@ Os dados vão para o backend SQL activo (`mysql`/`pgsql`) ou SQLite quando confi
 
 ---
 
+## Post-deploy SQL (junho 2026 — executar uma vez em produção)
+
+No phpMyAdmin ou cliente MySQL, **por ordem**:
+
+1. `server/setup/migration_2026_06_event_02.sql` — evento #02 activo  
+2. `server/setup/migration_2026_06_link_booking_emails.sql` — emails reserva manual  
+3. `server/setup/migration_2026_06_attendance_returning.sql` — presenças + preço regresso  
+4. `server/setup/migration_2026_06_event_settlement.sql` — custos base + repartição %  
+5. `server/setup/migration_2026_06_event_01_accounts.sql` — contas fechadas #01  
+6. `server/setup/migration_2026_06_event_01_attendance.sql` — garante evento #01  
+
+Depois no admin:
+
+- **Presenças** → evento #01 → «Importar folha #01» (10 presentes)  
+- **Custos** → evento #01 → «Repor dados #01» se a folha de contas não aparecer  
+
+Em SQLite local, as colunas/tabelas são criadas ao abrir admin; corre os ficheiros `*.sqlite.sql` equivalentes se necessário.
+
+---
+
 ## Subsequent deployments
 
 After making changes to the Vite site:

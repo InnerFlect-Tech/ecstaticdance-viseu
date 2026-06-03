@@ -6,16 +6,17 @@
    ============================================================ */
 
 require_once __DIR__ . '/helpers.php';
+require_once __DIR__ . '/attendance.php';
 
 cors();
 header('Cache-Control: no-store');
 
 // ── GET: preview / load ticket for confirmation page ──
 if ($_SERVER['REQUEST_METHOD'] === 'GET') {
-    $code    = sanitise($_GET['code']    ?? '', 36);
+    $code    = normalize_ticket_code((string) ($_GET['code'] ?? ''));
     $preview = isset($_GET['preview']) && $_GET['preview'] === '1';
 
-    if (!$code) {
+    if ($code === '') {
         json_err('Código em falta.', 400);
     }
 
@@ -49,10 +50,11 @@ require_once __DIR__ . '/../admin/auth.php';
 require_admin_session();
 
 $body = json_body();
-$code = sanitise($body['code'] ?? '', 36);
+$code = normalize_ticket_code((string) ($body['code'] ?? ''));
+$expectedEventId = isset($body['event_id']) ? (int) $body['event_id'] : 0;
 
-if (!$code) {
-    json_err('Código em falta.');
+if ($code === '') {
+    json_err('Código em falta — lê o QR ou cola o código do bilhete.');
 }
 
 $stmt = db()->prepare(
@@ -75,6 +77,15 @@ if (!in_array($ticket['payment_status'], ['paid', 'free'], true)) {
     json_err('Bilhete inválido — pagamento não confirmado.', 402);
 }
 
+if ($expectedEventId > 0 && (int) $ticket['event_id'] !== $expectedEventId) {
+    json_err(
+        'Este bilhete é para «' . $ticket['event_title'] . '» ('
+        . date('d/m/Y', strtotime((string) $ticket['event_date']))
+        . '), não para o evento seleccionado no scanner.',
+        409
+    );
+}
+
 if ($ticket['checked_in']) {
     json_err(
         'Bilhete já utilizado às ' . date('H:i', strtotime($ticket['checked_in_at'])) . '.',
@@ -89,6 +100,8 @@ db()->prepare(
 
 $ticket['checked_in']    = 1;
 $ticket['checked_in_at'] = date('Y-m-d H:i:s');
+
+edv_attendance_sync_for_ticket($code, true);
 
 json_ok([
     'ticket'        => $ticket,

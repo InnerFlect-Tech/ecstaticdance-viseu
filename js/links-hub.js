@@ -1,5 +1,5 @@
 import { syncManualBookingLang } from './manual-booking.js'
-import { isEarlyBirdPeriod, ticketMinEur } from './pricing.js'
+import { getPricingState, isEarlyBirdPeriod, ticketMinEur } from './pricing.js'
 
 /**
  * links.html — language toggle, sticky mobile CTA, inline booking panel (same page).
@@ -11,12 +11,17 @@ function prefersReducedMotion() {
 function paintLinksDynamicPricing() {
   const min = ticketMinEur()
   const early = isEarlyBirdPeriod()
-  const pt = early
-    ? `Sliding Scale deste ${min}€.`
-    : `Sliding scale desde ${min}€`
-  const en = early
-    ? `Sliding scale from €${min} · early bird through 9 May`
-    : `Sliding scale from €${min}`
+  const returning = getPricingState().isReturning
+  const pt = returning
+    ? `Sliding scale deste ${min}€ — dançarino·a de regresso.`
+    : early
+      ? `Sliding Scale deste ${min}€.`
+      : `Sliding scale desde ${min}€`
+  const en = returning
+    ? `Sliding scale from €${min} — returning dancer`
+    : early
+      ? `Sliding scale from €${min} · early bird through 13 June`
+      : `Sliding scale from €${min}`
   document.querySelectorAll('[data-links-price-pt]').forEach((el) => {
     el.textContent = pt
   })
@@ -27,15 +32,24 @@ function paintLinksDynamicPricing() {
 
 function paintLinksContributionEarly() {
   const early = isEarlyBirdPeriod()
+  const returning = getPricingState().isReturning
   document.querySelectorAll('[data-links-contrib-early-pt]').forEach((el) => {
+    if (returning) {
+      el.textContent = 'Já dançaste connosco? Com o mesmo email o piso é o preço de regresso (desde 15€).'
+      return
+    }
     el.textContent = early
-      ? 'Early bird: o bilhete é 20€ até 9 de maio.'
-      : 'Piso mínimo 30€ (early bird de 20€ até 9 de maio já terminou).'
+      ? 'Early bird: o bilhete é 20€ até 13 de junho.'
+      : 'Piso mínimo 30€ (early bird de 20€ até 13 de junho já terminou).'
   })
   document.querySelectorAll('[data-links-contrib-early-en]').forEach((el) => {
+    if (returning) {
+      el.textContent = 'Already danced with us? Use the same email for the returning-dancer floor (from €15).'
+      return
+    }
     el.textContent = early
-      ? 'Early bird: the ticket is €20 through 9 May.'
-      : 'Minimum €30 (early bird at €20 through 9 May has ended).'
+      ? 'Early bird: the ticket is €20 through 13 June.'
+      : 'Minimum €30 (early bird at €20 through 13 June has ended).'
   })
 }
 
@@ -208,6 +222,11 @@ function initStickyCta() {
 }
 
 function init() {
+  window.addEventListener('edv:pricing-updated', () => {
+    paintLinksDynamicPricing()
+    paintLinksContributionEarly()
+  })
+
   let stored = 'pt'
   try {
     stored = localStorage.getItem('edv_lang') === 'en' ? 'en' : 'pt'

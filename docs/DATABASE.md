@@ -21,7 +21,31 @@ MySQL database structure and management on cPanel.
 | `type` | ENUM('free','paid') | Determines booking flow |
 | `capacity` | SMALLINT | Total places (0 = unlimited) |
 | `min_price` | DECIMAL(8,2) | Minimum amount for paid events (€25) |
+| `returning_min_eur` | DECIMAL(8,2) NULL | Floor price (€) for returning dancers on this event; NULL = 15€ default |
 | `is_active` | TINYINT(1) | 1 = shown on booking page |
+
+### `event_attendance` table (who actually came)
+
+One row per person per event, filled when they **check in at the door** (QR scan or manual check-in). This is the source of truth for “returning dancer” pricing — not ticket sales alone.
+
+| Column | Type | Notes |
+|---|---|---|
+| `id` | BIGINT | Primary key |
+| `event_id` | INT FK | References `events.id` |
+| `ticket_id` | CHAR(36) FK | References `tickets.id` |
+| `email` | VARCHAR(255) | Normalised lowercase; **unique per event** |
+| `name` | VARCHAR(255) | From ticket at check-in |
+| `phone` | VARCHAR(40) | From ticket |
+| `amount_paid` | DECIMAL(8,2) | Ticket amount |
+| `checked_in_at` | DATETIME | Door entry time |
+
+**Returning dancer rule:** if `email` exists in `event_attendance` (or legacy `tickets.checked_in = 1`) for any event with `date` **before** the event being purchased, checkout uses `events.returning_min_eur` (or 15€ default) as the sliding-scale floor. Stored on the ticket as `price_tier = 'returning'`.
+
+Admin: **Presenças** (`/admin/attendance.php`) lists attendees per event and exports CSV.
+
+**Edição #01:** folha à porta importada via «Importar folha #01» (10 presentes / 12 bilhetes). Sem email na folha → marcador `tel+…@presenca.ecstaticdanceviseu.pt`; desconto de regresso também por telemóvel na reserva.
+
+Migrations: `migration_2026_06_attendance_returning.sql`, `migration_2026_06_event_01_attendance.sql`
 
 ### `tickets` table
 
@@ -37,8 +61,30 @@ MySQL database structure and management on cPanel.
 | `stripe_session_id` | VARCHAR(255) | Stripe Checkout session ID |
 | `checked_in` | TINYINT(1) | 1 = scanned at door |
 | `checked_in_at` | DATETIME | Timestamp of check-in |
+| `price_tier` | VARCHAR | `standard` \| `early_bird` \| `returning` — audit of pricing tier used |
 | `paid_at` | DATETIME | Set by webhook on payment |
 | `created_at` | DATETIME | Registration time |
+
+### `event_costs` — custos base e outros
+
+| Column | Notes |
+|---|---|
+| `cost_bucket` | `base` = custos base (subtraídos da receita antes das %); `expense` = outros/reembolsos (fora da folha) |
+| `base_cost_slug` | `transportes`, `flyers`, `comidas`, `promo_online` (linhas da folha) |
+| `cost_stage` | `actual` \| `promised` |
+| `amount_eur` | Valor em euros |
+
+### `event_settlement_shares` — repartição %
+
+Per-event rows: Espaço (25% pós-custos-base), Facilitadores/DJ (% pós-espaço), Indias/Carolina (50/50 do restante).
+
+| `pool` | Applied to |
+|---|---|
+| `post_base` | Receita − custos base |
+| `post_venue` | Após deduzir espaço |
+| `final` | Lucro após equipa |
+
+Admin: **Custos** → folha de cálculo + percentagens. Migration: `migration_2026_06_event_settlement.sql`.
 
 ---
 

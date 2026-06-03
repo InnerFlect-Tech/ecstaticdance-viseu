@@ -6,7 +6,7 @@ SET NAMES utf8mb4;
 CREATE TABLE IF NOT EXISTS `link_registrations` (
   `id`                 CHAR(36)     NOT NULL,
   `payment_ref`        VARCHAR(40)  NOT NULL,
-  `event_slug`         VARCHAR(64)  NOT NULL DEFAULT 'edv-2026-05-23',
+  `event_slug`         VARCHAR(64)  NOT NULL DEFAULT 'edv-2026-06-27',
   `name`               VARCHAR(255) NOT NULL,
   `email`              VARCHAR(255) NOT NULL,
   `phone`              VARCHAR(40)  NOT NULL,

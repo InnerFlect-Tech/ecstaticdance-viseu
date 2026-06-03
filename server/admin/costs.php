@@ -2,6 +2,7 @@
 declare(strict_types=1);
 
 require_once __DIR__ . '/auth.php';
+require_once __DIR__ . '/../api/event-settlement.php';
 require_admin_session();
 
 function costs_now_sql(): string {
@@ -93,6 +94,8 @@ function costs_ensure_table(PDO $pdo): void {
 
 $pdo = db();
 costs_ensure_table($pdo);
+edv_settlement_ensure_schema($pdo);
+edv_settlement_seed_event_01_historical($pdo);
 
 $flash = '';
 $selectedEvent = (int)($_REQUEST['event_id'] ?? 0);
@@ -100,10 +103,73 @@ $editCostId = (int)($_REQUEST['edit_id'] ?? 0);
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $action = (string)($_POST['action'] ?? '');
-    if ($action === 'add_cost') {
+    if ($action === 'seed_base_costs') {
+        $eventId = (int)($_POST['event_id'] ?? 0);
+        if ($eventId > 0) {
+            $n = edv_settlement_ensure_base_cost_rows($pdo, $eventId);
+            edv_settlement_seed_shares_for_event($pdo, $eventId);
+            $flash = $n > 0 ? "Linhas de custos base criadas ({$n})." : 'Custos base já existem.';
+            $selectedEvent = $eventId;
+        }
+    } elseif ($action === 'reseed_event_01') {
+        $id = edv_settlement_seed_event_01_historical($pdo, true);
+        $flash = $id ? 'Contas da edição #01 repostas (300€, custos, repartição).' : 'Evento #01 não encontrado (data 2026-05-23).';
+        if ($id) {
+            $selectedEvent = $id;
+        }
+    } elseif ($action === 'save_shares') {
+        $eventId = (int)($_POST['event_id'] ?? 0);
+        if ($eventId > 0) {
+            edv_settlement_seed_shares_for_event($pdo, $eventId);
+            $ids = $_POST['share_id'] ?? [];
+            $labels = $_POST['share_label'] ?? [];
+            $percents = $_POST['share_percent'] ?? [];
+            $fixeds = $_POST['share_fixed'] ?? [];
+            $pools = $_POST['share_pool'] ?? [];
+            $activeIds = array_map('intval', is_array($_POST['share_active'] ?? null) ? $_POST['share_active'] : []);
+            if (is_array($ids)) {
+                $upd = $pdo->prepare(
+                    'UPDATE event_settlement_shares
+                     SET label = ?, percent = ?, amount_fixed_eur = ?, pool = ?, is_active = ?
+                     WHERE id = ? AND event_id = ?'
+                );
+                foreach ($ids as $i => $sid) {
+                    $sid = (int) $sid;
+                    if ($sid <= 0) {
+                        continue;
+                    }
+                    $label = trim((string)($labels[$i] ?? ''));
+                    $pct = max(0.0, (float)($percents[$i] ?? 0));
+                    $fixedRaw = trim((string)($fixeds[$i] ?? ''));
+                    $fixed = $fixedRaw === '' ? null : max(0.0, (float) $fixedRaw);
+                    $pool = (string)($pools[$i] ?? 'post_venue');
+                    if (!in_array($pool, ['post_base', 'post_venue', 'final', 'gross', 'post_gross_base'], true)) {
+                        $pool = 'post_venue';
+                    }
+                    $active = in_array($sid, $activeIds, true) ? 1 : 0;
+                    $upd->execute([
+                        $label !== '' ? mb_substr($label, 0, 120) : '—',
+                        $pct,
+                        $fixed,
+                        $pool,
+                        $active,
+                        $sid,
+                        $eventId,
+                    ]);
+                }
+            }
+            $flash = 'Repartição actualizada.';
+            $selectedEvent = $eventId;
+        }
+    } elseif ($action === 'add_cost') {
         $eventId = (int)($_POST['event_id'] ?? 0);
         $label = trim((string)($_POST['label'] ?? ''));
         $category = trim((string)($_POST['category'] ?? ''));
+        $baseSlug = trim((string)($_POST['base_cost_slug'] ?? ''));
+        $costBucket = (string)($_POST['cost_bucket'] ?? 'base');
+        if (!in_array($costBucket, ['base', 'expense'], true)) {
+            $costBucket = 'base';
+        }
         $amount = (float)($_POST['amount_eur'] ?? 0);
         $paidBy = trim((string)($_POST['paid_by'] ?? ''));
         $notes = trim((string)($_POST['notes'] ?? ''));
@@ -112,26 +178,34 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         if (!in_array($costStage, ['actual', 'promised'], true)) {
             $costStage = 'actual';
         }
+        if ($baseSlug !== '' && isset(EDV_BASE_COST_SLUGS[$baseSlug])) {
+            $label = EDV_BASE_COST_SLUGS[$baseSlug];
+            $category = 'custos_base';
+            $costBucket = 'base';
+        }
 
-        if ($eventId <= 0 || $label === '' || $amount <= 0) {
-            $flash = 'Preenche evento, descrição e valor (>0).';
+        if ($eventId <= 0 || $label === '' || $amount < 0) {
+            $flash = 'Preenche evento, descrição e valor (≥0).';
         } else {
             if ($incurredAt === '') {
                 $incurredAt = costs_now_sql();
             }
             $stmt = $pdo->prepare(
-                'INSERT INTO event_costs (event_id, label, category, amount_eur, paid_by, notes, incurred_at, reimbursed, cost_stage, reimbursed_at, created_at)
-                 VALUES (?, ?, ?, ?, ?, ?, ?, 0, ?, NULL, ?)'
+                'INSERT INTO event_costs (event_id, label, category, base_cost_slug, amount_eur, paid_by, notes,
+                 incurred_at, reimbursed, cost_stage, cost_bucket, reimbursed_at, created_at)
+                 VALUES (?, ?, ?, ?, ?, ?, ?, ?, 0, ?, ?, NULL, ?)'
             );
             $stmt->execute([
                 $eventId,
                 mb_substr($label, 0, 255),
-                mb_substr($category, 0, 80),
+                mb_substr($category !== '' ? $category : ($costBucket === 'base' ? 'custos_base' : ''), 0, 80),
+                $baseSlug !== '' ? mb_substr($baseSlug, 0, 40) : null,
                 $amount,
                 $paidBy !== '' ? mb_substr($paidBy, 0, 120) : null,
                 $notes !== '' ? $notes : null,
                 $incurredAt,
                 $costStage,
+                $costBucket,
                 costs_now_sql(),
             ]);
             $flash = 'Custo registado.';
@@ -143,6 +217,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $eventId = (int)($_POST['event_id'] ?? 0);
         $label = trim((string)($_POST['label'] ?? ''));
         $category = trim((string)($_POST['category'] ?? ''));
+        $baseSlug = trim((string)($_POST['base_cost_slug'] ?? ''));
+        $costBucket = (string)($_POST['cost_bucket'] ?? 'base');
+        if (!in_array($costBucket, ['base', 'expense'], true)) {
+            $costBucket = 'base';
+        }
         $amount = (float)($_POST['amount_eur'] ?? 0);
         $paidBy = trim((string)($_POST['paid_by'] ?? ''));
         $notes = trim((string)($_POST['notes'] ?? ''));
@@ -151,8 +230,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         if (!in_array($costStage, ['actual', 'promised'], true)) {
             $costStage = 'actual';
         }
-        if ($id <= 0 || $eventId <= 0 || $label === '' || $amount <= 0) {
-            $flash = 'Preenche evento, descrição e valor (>0).';
+        if ($id <= 0 || $eventId <= 0 || $label === '' || $amount < 0) {
+            $flash = 'Preenche evento, descrição e valor (≥0).';
             $editCostId = $id;
         } else {
             if ($incurredAt === '') {
@@ -160,17 +239,20 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             }
             $stmt = $pdo->prepare(
                 'UPDATE event_costs
-                 SET label = ?, category = ?, amount_eur = ?, paid_by = ?, notes = ?, incurred_at = ?, cost_stage = ?
+                 SET label = ?, category = ?, base_cost_slug = ?, amount_eur = ?, paid_by = ?, notes = ?,
+                     incurred_at = ?, cost_stage = ?, cost_bucket = ?
                  WHERE id = ? AND event_id = ?'
             );
             $stmt->execute([
                 mb_substr($label, 0, 255),
                 mb_substr($category, 0, 80),
+                $baseSlug !== '' ? mb_substr($baseSlug, 0, 40) : null,
                 $amount,
                 $paidBy !== '' ? mb_substr($paidBy, 0, 120) : null,
                 $notes !== '' ? $notes : null,
                 $incurredAt,
                 $costStage,
+                $costBucket,
                 $id,
                 $eventId,
             ]);
@@ -239,6 +321,8 @@ if ($selectedEvent > 0) {
     $s = $pdo->prepare(
         "SELECT
             COALESCE(SUM(amount_eur),0) AS total_costs,
+            COALESCE(SUM(CASE WHEN cost_bucket = 'base' AND cost_stage = 'actual' THEN amount_eur ELSE 0 END),0) AS base_costs,
+            COALESCE(SUM(CASE WHEN cost_bucket = 'expense' THEN amount_eur ELSE 0 END),0) AS expense_costs,
             COALESCE(SUM(CASE WHEN reimbursed = 1 THEN amount_eur ELSE 0 END),0) AS reimbursed_costs,
             COALESCE(SUM(CASE WHEN reimbursed = 0 THEN amount_eur ELSE 0 END),0) AS pending_reimburse,
             COALESCE(SUM(CASE WHEN cost_stage = 'promised' THEN amount_eur ELSE 0 END),0) AS promised_costs
@@ -266,10 +350,35 @@ $capacity = $selected ? (int)$selected['capacity'] : 0;
 $avgTicket = $ticketsPaid > 0 ? ($revenuePaid / $ticketsPaid) : (float)($selected['min_price'] ?? 0);
 $projectedAtCapacity = $capacity > 0 ? $capacity * $avgTicket : 0.0;
 $totalCosts = (float)$summary['total_costs'];
+$baseCostsSum = (float)($summary['base_costs'] ?? 0);
+$expenseCostsSum = (float)($summary['expense_costs'] ?? 0);
 $promisedCosts = (float)$summary['promised_costs'];
 $netNow = $revenuePaid - $totalCosts;
 $netAtCapacity = $projectedAtCapacity - $totalCosts;
 $netAfterPromises = $revenuePaid - $totalCosts - $promisedCosts;
+
+$settlement = $selectedEvent > 0 ? edv_settlement_calculate($pdo, $selectedEvent) : null;
+$baseCostLines = $selectedEvent > 0 ? edv_settlement_base_cost_lines($pdo, $selectedEvent) : [];
+$shareRows = $selectedEvent > 0 ? edv_settlement_get_shares($pdo, $selectedEvent) : [];
+$isEvent01 = $selectedEvent > 0 && edv_settlement_find_event_01_id($pdo) === $selectedEvent;
+$settlementProfile = $selectedEvent > 0 ? edv_settlement_get_profile($pdo, $selectedEvent) : 'standard';
+
+function costs_money(float $v): string
+{
+    return number_format($v, 2, ',', ' ') . ' €';
+}
+
+function costs_pool_label(string $pool): string
+{
+    return match ($pool) {
+        'gross' => 'Receita total (#01)',
+        'post_gross_base' => 'Após espaço − custos base (#01)',
+        'post_base' => 'Pós custos base',
+        'post_venue' => 'Pós espaço',
+        'final' => 'Lucro final',
+        default => $pool,
+    };
+}
 ?>
 <!DOCTYPE html>
 <html lang="pt">
@@ -311,6 +420,26 @@ $netAfterPromises = $revenuePaid - $totalCosts - $promisedCosts;
       padding: .65rem .6rem; border-bottom: 1px solid rgba(245,239,230,.11); }
     td { padding: .62rem .6rem; border-bottom: 1px solid rgba(245,239,230,.06); color: rgba(245,239,230,.84); vertical-align: top; }
     .mono { font-family: ui-monospace, monospace; font-size: .72rem; color: rgba(245,239,230,.52); }
+    .settle-flow { display: flex; flex-direction: column; gap: 0; border: 1px solid rgba(245,239,230,.1); border-radius: 10px; overflow: hidden; }
+    .settle-row { display: grid; grid-template-columns: 1fr auto auto; gap: .75rem; align-items: center;
+      padding: .65rem .85rem; border-bottom: 1px solid rgba(245,239,230,.06); background: rgba(0,0,0,.12); }
+    .settle-row:last-child { border-bottom: none; }
+    .settle-row.is-total { background: rgba(212,168,90,.1); font-weight: 500; }
+    .settle-row.is-pool { background: rgba(45,106,79,.12); }
+    .settle-row .pct { color: rgba(245,239,230,.45); font-size: .78rem; }
+    .settle-row .amt { font-variant-numeric: tabular-nums; text-align: right; min-width: 6rem; }
+    .tier-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: .5rem; margin-top: .5rem; }
+    .tier-chip { background: rgba(245,239,230,.05); border: 1px solid rgba(245,239,230,.1); padding: .5rem .65rem; border-radius: 8px; font-size: .8rem; }
+    .shares-table input[type="number"] { max-width: 5rem; }
+    .shares-table input[type="text"] { min-width: 8rem; }
+    .badge-base { font-size: .62rem; letter-spacing: .08em; text-transform: uppercase; color: #6bcf9a; }
+    .badge-expense { font-size: .62rem; letter-spacing: .08em; text-transform: uppercase; color: rgba(245,239,230,.45); }
+    .help { font-size: .78rem; color: rgba(245,239,230,.5); line-height: 1.5; margin-top: .5rem; }
+    .event01-banner {
+      background: rgba(212,168,90,.12); border: 1px solid rgba(212,168,90,.35);
+      padding: .85rem 1rem; border-radius: 10px; margin-bottom: 1rem; font-size: .82rem; line-height: 1.55;
+    }
+    .event01-banner strong { color: var(--gold); font-weight: 500; }
   </style>
 </head>
 <body class="has-bottom-tabs">
@@ -322,12 +451,20 @@ require __DIR__ . '/_topbar.php';
 
 <main class="main">
   <div class="head">
-    <h1>Custos e estimativa por evento</h1>
-    <p>Regista custos manuais e acompanha receita (bilhetes pagos) vs. custos para fechar contas e reembolsos.</p>
+    <h1>Contas do evento</h1>
+    <p>Receita por escalão de bilhete → <strong>custos base</strong> (fixos) → <strong>espaço</strong> → equipa → <strong>lucro Indias / Carolina</strong>. Igual à folha de cálculo da equipa.</p>
   </div>
 
   <?php if ($flash !== ''): ?>
     <div class="flash"><?= costs_h($flash) ?></div>
+  <?php endif; ?>
+
+  <?php if ($isEvent01): ?>
+    <div class="event01-banner">
+      <strong>Ecstatic Dance Viseu #01</strong> — contas fechadas: 300€ em bilhetes (6×20€ + 6×30€),
+      75€ Nua e Crua (25% da receita), custos base 47€ (20€ flyers + 27€ comida),
+      20€ a cada facilitador, <strong>69€ para cada um</strong> (Indias e Carolina).
+    </div>
   <?php endif; ?>
 
   <div class="panel">
@@ -341,7 +478,122 @@ require __DIR__ . '/_topbar.php';
         <?php endforeach; ?>
       </select>
     </form>
+    <?php if ($selectedEvent > 0): ?>
+      <form method="post" style="margin-top:.65rem;display:inline;">
+        <input type="hidden" name="action" value="seed_base_costs" />
+        <input type="hidden" name="event_id" value="<?= (int)$selectedEvent ?>" />
+        <button class="btn" type="submit">Criar linhas custos base (Transportes, Flyers, …)</button>
+      </form>
+      <?php if ($isEvent01): ?>
+        <form method="post" style="margin-top:.65rem;display:inline;margin-left:.35rem;">
+          <input type="hidden" name="action" value="reseed_event_01" />
+          <button class="btn" type="submit">Repor dados #01 (300€ / 47€ / 69€)</button>
+        </form>
+      <?php endif; ?>
+    <?php endif; ?>
   </div>
+
+  <?php if ($settlement): ?>
+  <div class="panel">
+    <h2>Repartição<?= $isEvent01 ? ' — edição #01' : '' ?></h2>
+    <p class="help" style="margin-top:0;margin-bottom:.75rem;"><?= costs_h((string)($settlement['profile_label'] ?? '')) ?></p>
+    <div class="tier-grid">
+      <?php if (empty($settlement['revenue_tiers'])): ?>
+        <p class="mono">Sem bilhetes / escalões — receita 0 €.</p>
+      <?php else: ?>
+        <?php foreach ($settlement['revenue_tiers'] as $tier): ?>
+          <div class="tier-chip">
+            <strong><?= costs_money((float)$tier['price_eur']) ?></strong>
+            × <?= (int)$tier['quantity'] ?>
+            = <?= costs_money((float)$tier['subtotal']) ?>
+            <?php if (($tier['source'] ?? '') === 'manual'): ?>
+              <span class="mono"> (manual)</span>
+            <?php endif; ?>
+          </div>
+        <?php endforeach; ?>
+      <?php endif; ?>
+    </div>
+
+    <div class="settle-flow" style="margin-top:1rem;">
+      <?php foreach ($settlement['flow'] as $line): ?>
+        <?php
+          $kind = (string)($line['kind'] ?? '');
+          $rowClass = match ($kind) {
+              'total', 'split' => 'is-total',
+              'pool' => 'is-pool',
+              default => '',
+          };
+          $amt = (float)($line['amount'] ?? 0);
+        ?>
+        <div class="settle-row <?= $rowClass ?>">
+          <span>
+            <?= costs_h((string)($line['label'] ?? '')) ?>
+            <?php if (!empty($line['note'])): ?>
+              <span class="mono" style="display:block;margin-top:.15rem;"><?= costs_h((string)$line['note']) ?></span>
+            <?php endif; ?>
+          </span>
+          <span class="pct"><?= !empty($line['percent']) ? costs_h((string)$line['percent']) : '' ?></span>
+          <span class="amt <?= $kind === 'split' ? 'ok' : ($kind === 'total' ? 'gold' : '') ?>">
+            <?php if ($kind === 'deduction'): ?>
+              − <?= costs_money(abs($amt)) ?>
+            <?php else: ?>
+              <?= costs_money($amt) ?>
+            <?php endif; ?>
+          </span>
+        </div>
+      <?php endforeach; ?>
+    </div>
+    <?php if ($settlementProfile === 'standard'): ?>
+      <p class="help">Edições novas: custos base primeiro, depois espaço % e equipa % no mesmo pool.</p>
+    <?php endif; ?>
+  </div>
+
+  <div class="panel">
+    <h2>Percentagens da repartição</h2>
+    <form method="post">
+      <input type="hidden" name="action" value="save_shares" />
+      <input type="hidden" name="event_id" value="<?= (int)$selectedEvent ?>" />
+      <div class="table-wrap">
+        <table class="shares-table">
+          <thead>
+            <tr>
+              <th>Activo</th>
+              <th>Papel</th>
+              <th>%</th>
+              <th>€ fixo</th>
+              <th>Base de cálculo</th>
+            </tr>
+          </thead>
+          <tbody>
+            <?php foreach ($shareRows as $i => $sr): ?>
+              <tr>
+                <td>
+                  <input type="hidden" name="share_id[]" value="<?= (int)$sr['id'] ?>" />
+                  <input type="checkbox" name="share_active[]" value="<?= (int)$sr['id'] ?>" <?= (int)($sr['is_active'] ?? 0) === 1 ? 'checked' : '' ?> />
+                </td>
+                <td><input type="text" name="share_label[]" value="<?= costs_h((string)$sr['label']) ?>" /></td>
+                <td><input type="number" name="share_percent[]" step="0.01" min="0" max="100" value="<?= number_format((float)$sr['percent'], 2, '.', '') ?>" /></td>
+                <td><input type="number" name="share_fixed[]" step="0.01" min="0" placeholder="—"
+                    value="<?= isset($sr['amount_fixed_eur']) && $sr['amount_fixed_eur'] !== null && $sr['amount_fixed_eur'] !== ''
+                      ? number_format((float)$sr['amount_fixed_eur'], 2, '.', '') : '' ?>" /></td>
+                <td>
+                  <select name="share_pool[]">
+                    <option value="gross" <?= (string)($sr['pool'] ?? '') === 'gross' ? 'selected' : '' ?>><?= costs_h(costs_pool_label('gross')) ?></option>
+                    <option value="post_gross_base" <?= (string)($sr['pool'] ?? '') === 'post_gross_base' ? 'selected' : '' ?>><?= costs_h(costs_pool_label('post_gross_base')) ?></option>
+                    <option value="post_base" <?= (string)($sr['pool'] ?? '') === 'post_base' ? 'selected' : '' ?>><?= costs_h(costs_pool_label('post_base')) ?></option>
+                    <option value="post_venue" <?= (string)($sr['pool'] ?? '') === 'post_venue' ? 'selected' : '' ?>><?= costs_h(costs_pool_label('post_venue')) ?></option>
+                    <option value="final" <?= (string)($sr['pool'] ?? '') === 'final' ? 'selected' : '' ?>><?= costs_h(costs_pool_label('final')) ?></option>
+                  </select>
+                </td>
+              </tr>
+            <?php endforeach; ?>
+          </tbody>
+        </table>
+      </div>
+      <div style="margin-top:.65rem;"><button class="btn" type="submit">Guardar percentagens</button></div>
+    </form>
+  </div>
+  <?php endif; ?>
 
   <div class="row">
     <div class="card">
@@ -350,9 +602,14 @@ require __DIR__ . '/_topbar.php';
       <div class="mono"><?= $ticketsPaid ?> pagos / <?= $ticketsSold ?> vendidos</div>
     </div>
     <div class="card">
-      <div class="label">Custos Totais</div>
-      <div class="num"><?= number_format($totalCosts, 2, ',', ' ') ?> €</div>
-      <div class="mono">Pendentes: <?= number_format((float)$summary['pending_reimburse'], 2, ',', ' ') ?> €</div>
+      <div class="label">Custos base</div>
+      <div class="num"><?= number_format($baseCostsSum, 2, ',', ' ') ?> €</div>
+      <div class="mono">Subtraídos antes do espaço</div>
+    </div>
+    <div class="card">
+      <div class="label">Outros / reembolsos</div>
+      <div class="num"><?= number_format($expenseCostsSum, 2, ',', ' ') ?> €</div>
+      <div class="mono">Não entram na folha %</div>
     </div>
     <div class="card">
       <div class="label">Resultado Atual</div>
@@ -377,21 +634,30 @@ require __DIR__ . '/_topbar.php';
   </div>
 
   <div class="panel">
-    <h2>Novo custo</h2>
+    <h2>Custos base e outros</h2>
     <form method="post">
       <input type="hidden" name="action" value="add_cost" />
       <input type="hidden" name="event_id" value="<?= (int)$selectedEvent ?>" />
-      <div class="form-grid">
-        <input name="label" placeholder="Descrição (ex.: aluguer sala)" required />
-        <input name="category" placeholder="Categoria (ex.: espaço, som, marketing)" />
-        <input name="amount_eur" type="number" step="0.01" min="0.01" placeholder="Valor €" required />
-        <input name="paid_by" placeholder="Pago por (nome)" />
-        <input name="incurred_at" type="datetime-local" />
+      <div class="form-grid" style="grid-template-columns:1fr 1fr 1fr 1fr 1fr;">
+        <select name="base_cost_slug" id="cost_base_slug">
+          <option value="">— Outro / personalizado —</option>
+          <?php foreach (EDV_BASE_COST_SLUGS as $slug => $blabel): ?>
+            <option value="<?= costs_h($slug) ?>"><?= costs_h($blabel) ?></option>
+          <?php endforeach; ?>
+        </select>
+        <input name="label" placeholder="Descrição (se outro)" />
+        <input name="amount_eur" type="number" step="0.01" min="0" placeholder="Valor €" required />
+        <select name="cost_bucket">
+          <option value="base">Custo base (folha)</option>
+          <option value="expense">Outro / reembolso</option>
+        </select>
+        <input name="paid_by" placeholder="Pago por" />
       </div>
+      <input type="hidden" name="category" value="custos_base" />
       <div style="margin-top:.6rem;max-width:280px;">
         <select name="cost_stage">
           <option value="actual">Custo real (já ocorreu)</option>
-          <option value="promised">Promessa de custo (previsto)</option>
+          <option value="promised">Promessa (previsto)</option>
         </select>
       </div>
       <div style="margin-top:.6rem;">
@@ -411,9 +677,19 @@ require __DIR__ . '/_topbar.php';
       <input type="hidden" name="event_id" value="<?= (int)$selectedEvent ?>" />
       <input type="hidden" name="id" value="<?= (int)$editCost['id'] ?>" />
       <div class="form-grid">
+        <select name="base_cost_slug">
+          <option value="">— Outro —</option>
+          <?php foreach (EDV_BASE_COST_SLUGS as $slug => $blabel): ?>
+            <option value="<?= costs_h($slug) ?>" <?= (string)($editCost['base_cost_slug'] ?? '') === $slug ? 'selected' : '' ?>><?= costs_h($blabel) ?></option>
+          <?php endforeach; ?>
+        </select>
         <input name="label" value="<?= costs_h((string)$editCost['label']) ?>" required />
         <input name="category" value="<?= costs_h((string)($editCost['category'] ?? '')) ?>" />
-        <input name="amount_eur" type="number" step="0.01" min="0.01" value="<?= number_format((float)$editCost['amount_eur'], 2, '.', '') ?>" required />
+        <select name="cost_bucket">
+          <option value="base" <?= (string)($editCost['cost_bucket'] ?? 'base') === 'base' ? 'selected' : '' ?>>Custo base</option>
+          <option value="expense" <?= (string)($editCost['cost_bucket'] ?? '') === 'expense' ? 'selected' : '' ?>>Outro</option>
+        </select>
+        <input name="amount_eur" type="number" step="0.01" min="0" value="<?= number_format((float)$editCost['amount_eur'], 2, '.', '') ?>" required />
         <input name="paid_by" value="<?= costs_h((string)($editCost['paid_by'] ?? '')) ?>" />
         <input name="incurred_at" type="datetime-local" value="<?= costs_h(str_replace(' ', 'T', substr((string)$editCost['incurred_at'], 0, 16))) ?>" />
       </div>
@@ -442,7 +718,7 @@ require __DIR__ . '/_topbar.php';
           <tr>
             <th>Data</th>
             <th>Descrição</th>
-            <th>Categoria</th>
+            <th>Tipo</th>
             <th>Valor</th>
             <th>Pago por</th>
             <th>Tipo</th>
@@ -465,7 +741,13 @@ require __DIR__ . '/_topbar.php';
                     <div class="mono" style="margin-top:.25rem;"><?= costs_h((string)$row['notes']) ?></div>
                   <?php endif; ?>
                 </td>
-                <td><?= costs_h((string)$row['category']) ?></td>
+                <td>
+                  <?php if ((string)($row['cost_bucket'] ?? 'base') === 'base'): ?>
+                    <span class="badge-base">Base<?= !empty($row['base_cost_slug']) ? ' · ' . costs_h((string)$row['base_cost_slug']) : '' ?></span>
+                  <?php else: ?>
+                    <span class="badge-expense">Outro</span>
+                  <?php endif; ?>
+                </td>
                 <td><?= number_format((float)$row['amount_eur'], 2, ',', ' ') ?> €</td>
                 <td><?= costs_h((string)($row['paid_by'] ?? '—')) ?></td>
                 <td><?= $isPromised ? 'Promessa' : 'Real' ?></td>
@@ -500,7 +782,5 @@ require __DIR__ . '/_topbar.php';
   </div>
 </main>
 
-<?php require __DIR__ . '/_scanner-modal.php'; ?>
-<?php require __DIR__ . '/_scanner-script.php'; ?>
 </body>
 </html>

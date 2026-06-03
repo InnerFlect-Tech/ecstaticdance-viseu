@@ -41,3 +41,8 @@ function require_admin_session(): void {
         json_err('Não autorizado.', 401);
     }
 }
+
+/** Analytics admin page — set true when ready to expose in nav. */
+function admin_analytics_enabled(): bool {
+    return false;
+}
