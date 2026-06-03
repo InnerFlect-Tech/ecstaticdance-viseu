@@ -240,7 +240,7 @@ $isCoolifySqlite = $linkStore['mode'] === 'sqlite'
     && (str_contains($sqlitePath, '/app/server/data/')
         || str_contains($sqlitePath, '/var/www/edv-server/data/'));
 $sqlitePersistenceHint = $isCoolifySqlite
-    ? 'Coolify: monta volume persistente em <code>/app/server/data</code> (Nixpacks) ou <code>/var/www/edv-server/data</code> (Dockerfile). Paths em <code>environment.coolify.env</code>.'
+    ? 'Coolify: volume persistente em <code>/var/www/edv-server/data</code> (ver <code>EDV_*_SQLITE_PATH</code> e <code>docs/COOLIFY.md</code>).'
     : 'Garante armazenamento persistente para o directorio da base; sem volume, os dados podem desaparecer entre redeploys.';
 $linkStoreHint = match ($linkStore['mode']) {
     'json'   => 'Modo JSON (só desenvolvimento). Ficheiro: ' . htmlspecialchars($linkStore['detail'], ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'),

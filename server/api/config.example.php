@@ -3,7 +3,7 @@
    config.php — copy to config.php and fill in (not committed)
 
    ── Coolify (Nixpacks) / Docker / local ──
-   Produção Coolify: copiar `environment.coolify.env` (paths `/app/server/data/...`).
+   Produção Coolify: copiar `environment.coolify.env` (paths `/var/www/edv-server/data/...` nos volumes).
    Com `EDV_REPLACE_CONFIG_FROM_EXAMPLE=1`, cada arranque gera `config.php` daqui.
    Omitir path env = defaults relativos a `server/data/` (dev e Nixpacks).
    Variáveis suportadas (todas opcionais):

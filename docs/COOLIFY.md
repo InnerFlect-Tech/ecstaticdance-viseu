@@ -1,211 +1,163 @@
 # Deploy no Coolify — referência (realidade v4.1)
 
-Produção actual em **Hetzner (CX53)** usa **Nixpacks** (auto-detect a partir de `package.json` + `nixpacks.toml`), **não** o `Dockerfile` da raiz — a menos que mudes explicitamente o Build Pack no painel.
+Produção em **Hetzner (CX53)**: **Nixpacks** (`package.json` + `nixpacks.toml`) + **volumes persistentes** já montados em `/var/www/edv-server/...`.
 
-| Modo | Quando usar | Raiz no contentor | Porta exposta |
-|------|-------------|-------------------|---------------|
-| **Nixpacks** (actual) | Coolify “Automatic” / Node | `/app` | `PORT` (Coolify define, ex. 3000) |
-| **Dockerfile** (opcional) | Build Pack = Dockerfile | `/var/www/edv-server` + Nginx em `:80` | `80` |
-
-Persistência: [Coolify Persistent Storage](https://coolify.io/docs/knowledge-base/persistent-storage) — volumes nos directórios onde a app **escreve** dados (SQLite, comprovativos).
+| O quê | Onde no contentor |
+|-------|-------------------|
+| Código + `dist/` (build) | `/app` |
+| SQLite + JSON dev | volume → `/var/www/edv-server/data` |
+| Comprovativos `/links` | volume → `/var/www/edv-server/uploads` |
+| HTTP público | Vite preview em `0.0.0.0:$PORT` (**3000**) |
 
 ---
 
-## 1. Arquitectura Nixpacks (produção)
+## 1. Arquitectura
 
 ```
-Internet → Traefik (Coolify) → contentor :PORT
-                                    │
-                    ┌───────────────┴───────────────┐
-                    │  vite preview (npm run start) │
-                    │  serve dist/ (HTML, /assets)  │
-                    │  proxy /api, /admin, /uploads │
-                    └───────────────┬───────────────┘
-                                    ▼
-                    PHP built-in 127.0.0.1:8080  (-t server/)
-                    server/api/*.php  server/admin/*.php
+Internet → Traefik → :3000 (Vite preview, dist/)
+                         │ proxy /api, /admin, /uploads
+                         ▼
+              PHP built-in 127.0.0.1:8080+  (-t /app/server)
+                         │
+              SQLite lê/escreve em /var/www/edv-server/data/*.sqlite
+              Uploads em /var/www/edv-server/uploads (symlink desde /app/server/uploads)
 ```
 
-- **Front:** `npm run build` → `dist/` (hashes em `/assets/*`).
-- **Back:** `scripts/start-preview-with-php.sh` — PHP na primeira porta livre 8080–8099, Vite em `0.0.0.0:$PORT`.
-- **Config:** `server/api/config.php` não está no Git. Com `EDV_REPLACE_CONFIG_FROM_EXAMPLE=1`, cada arranque gera `config.php` a partir de `config.example.php` + variáveis `EDV_*` (ver `environment.coolify.env`).
+- **Build:** `npm ci` → `npm run build` → `dist/`
+- **Start:** `npm run start` → `scripts/start-preview-with-php.sh`
+- **Config:** `server/api/config.php` no contentor (não está no Git). Com `EDV_REPLACE_CONFIG_FROM_EXAMPLE=0`, mantém-se o `config.php` existente; variáveis `EDV_*` aplicam-se quando o ficheiro foi gerado a partir de `config.example.php` (usa `getenv`).
 
-### O que o log de deploy deve mostrar
+### Log de deploy esperado
 
-- `nixpacks plan` / `nixpacks build`
-- `npm run build` → lista `dist/links.html`, `manual-booking-….js`
-- `CMD ["npm run start"]`
-
-Se vires `FROM nginx:1.27-alpine` ou `COPY server /var/www/edv-server`, estás no **Dockerfile** (outro modo).
+- `nixpacks build`, `npm run build`, assets novos (`manual-booking-….js`)
+- Arranque: `EDV start | stack=nixpacks-vite-preview | commit=…`
 
 ---
 
-## 2. Volumes (Nixpacks — obrigatório para dados)
+## 2. Persistent Storage (configuração actual)
 
-Coolify → serviço → **Persistent Storage**:
+Coolify → **Storages** → **Volumes**:
 
-| Volume (nome livre) | Destination no contentor |
-|---------------------|----------------------------|
-| `edv-data` | `/app/server/data` |
-| `edv-uploads` | `/app/server/uploads` |
+| Volume (exemplo) | Destination |
+|------------------|-------------|
+| `…-edv-data` | `/var/www/edv-server/data` |
+| `…-edv-uploads` | `/var/www/edv-server/uploads` |
 
-Conteúdo típico em `data/`:
+**Não alterar** estes destinos se os dados de produção já estão aí.
 
-- `events-tickets.sqlite` — eventos, bilhetes Stripe, presenças, custos
-- `link-bookings.sqlite` — inscrições `/links` (MB Way, comprovativos)
+**Não montar:** `/app`, `/app/dist` (sobrescreve o código da imagem → site não actualiza).
 
-**Não montar:**
-
-- `/app` inteiro (sobrescreve código da imagem → deploy “não muda nada”)
-- `/app/dist` (idem)
-- `/var/www/edv-server/...` (caminho do Dockerfile; irrelevante em Nixpacks)
-
-### Dockerfile (se mudares Build Pack)
-
-| Volume | Destination |
-|--------|-------------|
-| `edv-data` | `/var/www/edv-server/data` |
-| `edv-uploads` | `/var/www/edv-server/uploads` |
+O script de arranque cria `data/` e `uploads/` em `EDV_SERVER_ROOT` e liga `/app/server/uploads` → `/var/www/edv-server/uploads` para o PHP e o proxy Vite usarem o mesmo volume.
 
 ---
 
-## 3. Base de dados em Coolify
+## 3. Environment (manter como no painel)
 
-### Modo actual: SQLite nos volumes (recomendado)
-
-Duas bases SQLite no mesmo volume `data/` (ficheiros separados):
-
-| Ficheiro | Conteúdo |
-|----------|----------|
-| `events-tickets.sqlite` | `events`, `tickets`, `event_attendance`, `event_costs`, … |
-| `link-bookings.sqlite` | `link_registrations` (/links) |
-
-Variáveis (copiar de **`environment.coolify.env`**):
+Template em **`environment.coolify.env`** — espelha a configuração que já funcionava:
 
 ```env
+NIXPACKS_NODE_VERSION=22
+EDV_SERVER_ROOT=/var/www/edv-server
+EDV_REPLACE_CONFIG_FROM_EXAMPLE=0
 EDV_USE_SQLITE_MAIN_DB=true
 EDV_LINK_USE_SQLITE=true
 EDV_LINK_USE_JSON=false
-EDV_MAIN_DB_SQLITE_PATH=/app/server/data/events-tickets.sqlite
-EDV_LINK_SQLITE_PATH=/app/server/data/link-bookings.sqlite
+EDV_MAIN_DB_SQLITE_PATH=/var/www/edv-server/data/events-tickets.sqlite
+EDV_LINK_SQLITE_PATH=/var/www/edv-server/data/link-bookings.sqlite
+EDV_LINK_JSON_PATH=/var/www/edv-server/data/link-registrations-dev.json
+# … Stripe, mail, tokens, EDV_ADMIN_PASSWORD_HASH
 ```
 
-As tabelas são criadas/actualizadas pelo PHP ao abrir admin ou API (migrations em `server/setup/migration_*.sql` para MySQL; em SQLite muitas colunas são adicionadas em código).
-
-**Importante:** se no Coolify tiveres paths antigos `/var/www/edv-server/data/...`, a app escreve **fora** do volume montado em `/app/server/data` — dados “desaparecem” ou parecem vazios. Alinha env com `environment.coolify.env`.
-
-### Modo futuro: MySQL no Coolify ou externo
-
-```env
-EDV_USE_SQLITE_MAIN_DB=false
-EDV_LINK_USE_SQLITE=false
-EDV_LINK_USE_JSON=false
-EDV_DB_DRIVER=mysql
-EDV_DB_HOST=...
-EDV_DB_NAME=...
-EDV_DB_USER=...
-EDV_DB_PASS=...
-```
-
-Corre as migrations em `server/setup/migration_*.sql` na base MySQL. Ver também `docs/DEPLOYMENT.md` (cPanel) e `docs/DATABASE.md`.
-
-### cPanel (legado)
-
-Hospedagem clássica com MySQL em `public_html/api/` — guia em **`docs/DEPLOYMENT.md`**. Não misturar o mesmo domínio com dois backends (Coolify + cPanel).
+`config.example.php` lê estes paths via `getenv` — os ficheiros SQLite ficam no volume, não em `/app/server/data`.
 
 ---
 
-## 4. Coolify — configuração do serviço
+## 4. Rede e build
 
-### Build
-
-| Campo | Valor (Nixpacks) |
-|-------|------------------|
-| Build Pack | **Nixpacks** ou Automatic (detecta `nixpacks.toml`) |
+| Campo | Valor |
+|-------|--------|
+| Build Pack | **Nixpacks** (ou Automatic) |
+| **Ports Exposes** | **3000** |
+| Port mappings | vazio |
+| Is it a static site? | **OFF** |
 | Branch | `main` |
-| Base directory | `/` |
 
-### Rede
+`coolify.json` e `nixpacks.toml` definem `PORT=3000` para coincidir com o painel.
 
-| Campo | Valor (Nixpacks) |
-|-------|------------------|
-| **Ports Exposes** | deixar o Coolify usar **`PORT`** (não forces `80` salvo Dockerfile) |
-| **Port Mappings** | **vazio** |
+---
 
-### Domínios
+## 5. Verificação após deploy
 
-Uma URL por linha, com `https://`:
+```bash
+bash scripts/check-production-deploy.sh
+```
 
-- `https://ecstaticdanceviseu.pt`
-- `https://ecstaticdance-viseu.innerflect.tech`
+Ou manualmente:
 
-Evitar `https//...` (falta `:`) — estraga `COOLIFY_URL` nos logs.
+| URL | Esperado |
+|-----|----------|
+| `/api/health.php?diag=1` | `"stack":"nixpacks-vite-preview"`, `"commit":"…"` |
+| `/links.html` (código-fonte) | `manual-booking-….js` **≠** `DebSsfR_` |
+| `/api/get-ticket-pricing.php?email=x@y.z` | JSON 200 |
+| `/deploy-stamp.json` | JSON com `commit` |
 
-### Environment
+Se `health` só devolver `{"ok":true,"service":"edv-php"}` sem `commit`, o tráfego ainda não chega ao contentor Nixpacks novo (redeploy + confirmar porta 3000).
 
-Copiar **`environment.coolify.env`** → painel Environment Variables. Substituir Stripe, tokens e hash admin.
+---
 
-Opcional: `EDV_REPLACE_CONFIG_FROM_EXAMPLE=1` para não depender de `config.php` manual no contentor.
+## 6. Terminal e Docker
 
-### Health check
+| Onde abres o terminal | O que consegues fazer |
+|-----------------------|------------------------|
+| **Serviço** → Terminal | Shell **dentro do contentor** (`node`, `php`, `ls /app/dist`) — **não** há comando `docker` |
+| **Servers** → CX53 Hetzner → Terminal | Shell no **host** — aqui sim: `docker ps`, limpar imagens antigas |
 
-Path: `/api/health.php` ou `/deploy-stamp.json`
+No host, o nome do serviço usa o prefixo do UUID, por exemplo `l5ive34…` (letra **L**, não `i`):
 
-Resposta esperada após deploy recente:
+```bash
+docker ps -a --filter name=l5ive34
+```
 
-```json
-{"ok":true,"service":"edv-php","commit":"…","built_at":"…"}
+Dentro do contentor (útil após redeploy):
+
+```bash
+ls -la /app/dist/links.html
+cat /app/server/api/build-info.json
+ls -la /var/www/edv-server/data/
 ```
 
 ---
 
-## 5. Deploy e verificação
+## 7. «Nada mudou» após deploy
 
-1. Push em `main` (ou **Redeploy** manual).
-2. Log: build Nixpacks completo (não só “Build step skipped” com imagem antiga).
-3. Confirmar no browser:
-   - `https://ecstaticdanceviseu.pt/deploy-stamp.json` — `commit` = SHA do `main`, `built_at` recente
-   - `https://ecstaticdanceviseu.pt/links.html` — ver código-fonte: hash JS actual (não `manual-booking-DebSsfR_.js` de Maio)
-   - `https://ecstaticdanceviseu.pt/api/get-ticket-pricing.php?email=test@example.com` — JSON (não 404)
-4. Admin → **Inscrições** — faixa técnica deve mostrar caminho `/app/server/data/...`.
-
-### «Nada mudou» após deploy
-
-| Sintoma | Causa provável | Acção |
-|---------|----------------|-------|
-| Log `Build step skipped` + HTML antigo | Imagem Docker antiga com mesmo SHA | **Force rebuild** / apagar imagem `i5ive34…` no servidor |
-| `DebSsfR_.js` em `/links` | Tráfego para contentor antigo ou volume em `/app` | Só volumes `data` + `uploads`; redeploy |
-| Dados vazios após redeploy | Env com paths `/var/www/...` em Nixpacks | Usar `environment.coolify.env` |
-| `ECONNREFUSED 127.0.0.1:8080` | PHP não arrancou | Ver logs; `php83` no Nixpacks (`nixpacks.toml`) |
+| Sintoma | Acção |
+|---------|--------|
+| Log `Build step skipped` | Force rebuild no Coolify |
+| `DebSsfR_.js` em `/links` | Ports Exposes = **3000**, redeploy, confirmar logs de arranque Nixpacks |
+| `health` sem `commit` | Idem; tráfego ainda no contentor antigo |
+| Dados “vazios” | Não mudar paths do volume; confirmar `EDV_*_SQLITE_PATH` em `/var/www/edv-server/data/...` |
+| Volume em `/app` | Remover — apaga o `dist/` novo |
 
 ---
 
-## 6. Dockerfile (opcional)
+## 8. Dockerfile (opcional, não é o modo actual)
 
-Build Pack = **Dockerfile**, Ports Exposes = **80**, volumes em `/var/www/edv-server/data` e `.../uploads`.
-
-- Nginx serve `dist/`; PHP em `127.0.0.1:8080`
-- `nginx.conf` redirecciona páginas “brochure” para `/` (splash); `/links` fica activo
-- Env: usar paths `/var/www/edv-server/...` ou `environment.example.env` secção Dockerfile
-
-Útil se quiseres stack Nginx fixa; **não** é o que o log Nixpacks actual mostra.
+Build Pack = Dockerfile, Ports Exposes = **80**, mesmos volumes `/var/www/edv-server/data` e `…/uploads`, Nginx + PHP. Ver `Dockerfile` e `scripts/docker-entrypoint.sh`.
 
 ---
 
-## 7. Checklist rápido
+## 9. Checklist
 
-- [ ] Build Pack = **Nixpacks** (ou Automatic com `nixpacks.toml` na raiz)
-- [ ] Volumes: `/app/server/data` + `/app/server/uploads`
-- [ ] Env alinhado com **`environment.coolify.env`** (paths `/app/server/...`)
+- [ ] Build Pack = Nixpacks
+- [ ] Ports Exposes = **3000**
+- [ ] Volumes: `/var/www/edv-server/data` + `…/uploads` (como no painel)
+- [ ] Env com paths `/var/www/edv-server/...` (não mudar para `/app/...`)
 - [ ] Sem volume em `/app` nem `/app/dist`
-- [ ] Port Mappings vazio
-- [ ] Domínios com `https://` correcto
-- [ ] `/deploy-stamp.json` com commit recente após deploy
-- [ ] Stripe webhook → `https://ecstaticdanceviseu.pt/api/webhook.php`
+- [ ] Redeploy após push com `health.php?diag=1` e script de verificação OK
 
 ---
 
-## 8. Emails e cron
+## 10. Emails e cron
 
-- Emails: `mail()` PHP com `EDV_FROM_EMAIL` — não são enviados pelo deploy; só em reserva/confirmação/webhook.
-- Reconciliação Stripe: cron externo ou Coolify scheduled task a chamar `/api/reconcile.php?token=EDV_RECONCILE_TOKEN`.
+- Emails: só em runtime (reserva, admin, webhook) — não no deploy.
+- Cron: `GET /api/reconcile.php?token=EDV_RECONCILE_TOKEN`

@@ -2,14 +2,14 @@
 
 ## Coolify (produção actual) — SQLite
 
-No Hetzner, com **Nixpacks**, a app usa **dois ficheiros SQLite** no volume persistente `/app/server/data/`:
+No Hetzner, com **Nixpacks**, a app usa **dois ficheiros SQLite** no volume persistente `/var/www/edv-server/data/`:
 
 | Ficheiro | Tabelas principais |
 |----------|-------------------|
 | `events-tickets.sqlite` | `events`, `tickets`, `event_attendance`, `event_costs`, `event_settlement_shares`, … |
 | `link-bookings.sqlite` | `link_registrations` (fluxo `/links`) |
 
-Configuração: `environment.coolify.env` (`EDV_USE_SQLITE_MAIN_DB=true`, paths `/app/server/data/...`).
+Configuração: `environment.coolify.env` (`EDV_USE_SQLITE_MAIN_DB=true`, paths `/var/www/edv-server/data/...`).
 
 - Schema inicial: criado/actualizado pelo PHP ao usar admin/API; ficheiros `server/setup/schema-main-sqlite.sql` e migrations `migration_*.sql` para referência.
 - Backup: Admin → exportar base / cópia do volume `edv-data`.

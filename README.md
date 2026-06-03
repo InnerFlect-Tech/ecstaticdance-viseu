@@ -75,14 +75,14 @@ Coolify v4 detecta **Node** + `nixpacks.toml` → `npm run build` + `npm run sta
 
 - **Vite preview** em `$PORT` (Coolify define) serve `dist/`
 - **PHP** em `127.0.0.1:8080` (`-t server/`) para `/api`, `/admin`, `/uploads`
-- **SQLite** em volumes: `/app/server/data` + `/app/server/uploads`
-- **Não** uses paths `/var/www/edv-server/...` nas env vars (isso é só para o Dockerfile)
+- **SQLite / uploads** em volumes: `/var/www/edv-server/data` + `…/uploads` (env `EDV_*_SQLITE_PATH`)
 
 | Coolify | Valor |
 |---------|--------|
 | Build Pack | Nixpacks / Automatic |
-| Volumes | `/app/server/data`, `/app/server/uploads` |
-| Env | `environment.coolify.env` |
+| Ports Exposes | **3000** |
+| Volumes | `/var/www/edv-server/data`, `/var/www/edv-server/uploads` |
+| Env | `environment.coolify.env` (manter paths actuais) |
 | Health | `/api/health.php` ou `/deploy-stamp.json` |
 
 Push em `main` + deploy automático. Verificar `https://ecstaticdanceviseu.pt/deploy-stamp.json` após cada deploy.

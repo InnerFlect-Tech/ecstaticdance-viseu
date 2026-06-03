@@ -1,0 +1,12 @@
+{
+  "name": "ecstaticdance-viseu",
+  "build": {
+    "type": "nixpacks",
+    "install_command": "npm ci",
+    "build_command": "npm run build",
+    "start_command": "npm run start"
+  },
+  "domains": {
+    "ports_exposes": "3000"
+  }
+}

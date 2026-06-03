@@ -2,6 +2,10 @@
 # Build: npm ci → npm run build (dist/)
 # Start: npm run start → Vite preview (PORT) + PHP built-in (127.0.0.1:8080) para /api, /admin, /uploads
 # Ver docs/COOLIFY.md e environment.coolify.env
+# Coolify: Ports Exposes = 3000 (não 80 — 80 era o Dockerfile/Nginx antigo)
+
+[variables]
+PORT = "3000"
 
 [phases.setup]
 nixPkgs = ["nodejs_22", "php83"]
