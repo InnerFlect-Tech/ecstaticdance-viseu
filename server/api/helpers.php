@@ -88,7 +88,7 @@ function main_db_sqlite_seed_if_empty(PDO $pdo): void {
         'Nua e Crua, Viseu',
         'paid',
         60,
-        25.00,
+        30.00,
     ]);
 }
 
