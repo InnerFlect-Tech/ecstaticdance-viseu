@@ -120,6 +120,19 @@ foreach ($tasks as $t) {
         $counts[$s]++;
     }
 }
+
+[$calYear, $calMonth] = edv_campaign_calendar_ym((string) ($_GET['ym'] ?? ''));
+$calByDate = [];
+foreach ($tasks as $t) {
+    $d = (string) ($t['due_date'] ?? '');
+    if ($d === '') {
+        $d = (string) ($t['post_date'] ?? '');
+    }
+    if ($d === '') {
+        continue;
+    }
+    $calByDate[substr($d, 0, 10)][] = ['label' => (string) $t['title'], 'cls' => (string) $t['status']];
+}
 ?>
 <!DOCTYPE html>
 <html lang="pt">
@@ -167,6 +180,20 @@ foreach ($tasks as $t) {
     .pill.doing { color: var(--gold); border-color: rgba(212,168,90,.4); }
     .pill.done { color: #6be39a; border-color: rgba(37,211,102,.35); }
     .inline-form { display: inline; }
+    .cal { background: var(--dark-m); border:1px solid rgba(245,239,230,.08); border-radius:10px; padding:.9rem; margin-bottom:1.2rem; }
+    .cal-head { display:flex; align-items:center; justify-content:space-between; font-size:.92rem; color:var(--gold); margin-bottom:.7rem; }
+    .cal-nav { color:rgba(245,239,230,.6); text-decoration:none; padding:.1rem .55rem; border:1px solid rgba(245,239,230,.14); border-radius:6px; }
+    .cal-nav:hover { color:var(--bone); }
+    .cal-grid { display:grid; grid-template-columns:repeat(7,1fr); gap:4px; }
+    .cal-dow { font-size:.58rem; text-transform:uppercase; letter-spacing:.08em; color:rgba(245,239,230,.4); text-align:center; padding:.2rem 0; }
+    .cal-cell { min-height:66px; border:1px solid rgba(245,239,230,.06); border-radius:7px; padding:.25rem; background:rgba(0,0,0,.14); overflow:hidden; }
+    .cal-cell.cal-empty { background:transparent; border-color:transparent; }
+    .cal-cell.is-today { border-color:rgba(212,168,90,.55); }
+    .cal-day { font-size:.66rem; color:rgba(245,239,230,.45); margin-bottom:.18rem; }
+    .cal-chip { font-size:.56rem; line-height:1.25; padding:.1rem .28rem; border-radius:4px; margin-bottom:2px; background:rgba(245,239,230,.1); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+    .cal-chip.doing { background:rgba(212,168,90,.2); color:var(--gold); }
+    .cal-chip.done { opacity:.45; }
+    @media (max-width:700px){ .cal-cell{ min-height:46px; } .cal-day{ font-size:.56rem; } .cal-chip{ font-size:.48rem; } }
     .stat-row { display: flex; gap: .6rem; flex-wrap: wrap; margin-bottom: 1rem; }
     .stat { background: var(--dark-l); border: 1px solid rgba(245,239,230,.08); border-radius: 9px; padding: .55rem .8rem; font-size: .8rem; }
     .stat strong { font-size: 1.05rem; font-weight: 500; }
@@ -197,6 +224,8 @@ require __DIR__ . '/_topbar.php';
     <div class="stat"><strong><?= $counts['doing'] ?></strong> em curso</div>
     <div class="stat"><strong><?= $counts['done'] ?></strong> feito</div>
   </div>
+
+  <?= edv_campaign_month_calendar($calByDate, $calYear, $calMonth) ?>
 
   <div class="panel">
     <h2><?= $editTask ? 'Editar tarefa' : 'Nova tarefa' ?></h2>

@@ -97,6 +97,16 @@ foreach ($rows as $r) {
     $byPhase[$p][] = $r;
 }
 $waReady = edv_waha_enabled();
+
+[$calYear, $calMonth] = edv_campaign_calendar_ym((string) ($_GET['ym'] ?? ''));
+$calByDate = [];
+foreach ($rows as $r) {
+    $d = (string) ($r['post_date'] ?? '');
+    if ($d === '') {
+        continue;
+    }
+    $calByDate[substr($d, 0, 10)][] = ['label' => (string) $r['title'], 'cls' => (string) $r['status']];
+}
 ?>
 <!DOCTYPE html>
 <html lang="pt">
@@ -143,6 +153,20 @@ $waReady = edv_waha_enabled();
     .pill { font-size: .6rem; letter-spacing: .08em; text-transform: uppercase; padding: .15rem .45rem; border-radius: 99px; border: 1px solid rgba(245,239,230,.18); }
     .pill.todo { color: rgba(245,239,230,.6); } .pill.doing { color: var(--gold); border-color: rgba(212,168,90,.4); } .pill.done { color:#6be39a; border-color: rgba(37,211,102,.35); }
     .inline-form { display: inline; } .sent { color:#6be39a; font-size:.68rem; }
+    .cal { background: var(--dark-m); border:1px solid rgba(245,239,230,.08); border-radius:10px; padding:.9rem; margin-bottom:1.2rem; }
+    .cal-head { display:flex; align-items:center; justify-content:space-between; font-size:.92rem; color:var(--gold); margin-bottom:.7rem; }
+    .cal-nav { color:rgba(245,239,230,.6); text-decoration:none; padding:.1rem .55rem; border:1px solid rgba(245,239,230,.14); border-radius:6px; }
+    .cal-nav:hover { color:var(--bone); }
+    .cal-grid { display:grid; grid-template-columns:repeat(7,1fr); gap:4px; }
+    .cal-dow { font-size:.58rem; text-transform:uppercase; letter-spacing:.08em; color:rgba(245,239,230,.4); text-align:center; padding:.2rem 0; }
+    .cal-cell { min-height:66px; border:1px solid rgba(245,239,230,.06); border-radius:7px; padding:.25rem; background:rgba(0,0,0,.14); overflow:hidden; }
+    .cal-cell.cal-empty { background:transparent; border-color:transparent; }
+    .cal-cell.is-today { border-color:rgba(212,168,90,.55); }
+    .cal-day { font-size:.66rem; color:rgba(245,239,230,.45); margin-bottom:.18rem; }
+    .cal-chip { font-size:.56rem; line-height:1.25; padding:.1rem .28rem; border-radius:4px; margin-bottom:2px; background:rgba(245,239,230,.1); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+    .cal-chip.doing { background:rgba(212,168,90,.2); color:var(--gold); }
+    .cal-chip.done { opacity:.45; }
+    @media (max-width:700px){ .cal-cell{ min-height:46px; } .cal-day{ font-size:.56rem; } .cal-chip{ font-size:.48rem; } }
   </style>
 </head>
 <body class="has-bottom-tabs">
@@ -163,6 +187,8 @@ require __DIR__ . '/_topbar.php';
   <?php if (!$waReady): ?>
     <div class="notice">⚠️ Envio WhatsApp desligado — falta a env <code>EDV_WAHA_API_KEY</code> no edv-server (Coolify).</div>
   <?php endif; ?>
+
+  <?= edv_campaign_month_calendar($calByDate, $calYear, $calMonth) ?>
 
   <div class="panel">
     <h2>Novo post</h2>

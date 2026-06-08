@@ -228,3 +228,60 @@ function edv_campaign_get(PDO $pdo, int $id): ?array
     $row = $stmt->fetch();
     return is_array($row) ? $row : null;
 }
+
+/** Parse ?ym=YYYY-MM -> [year, month]; default to the event month (Jun 2026). */
+function edv_campaign_calendar_ym(string $raw): array
+{
+    if (preg_match('/^(\d{4})-(\d{2})$/', $raw, $m)) {
+        $y = (int) $m[1];
+        $mo = (int) $m[2];
+        if ($mo >= 1 && $mo <= 12 && $y >= 2024 && $y <= 2100) {
+            return [$y, $mo];
+        }
+    }
+    return [2026, 6];
+}
+
+/**
+ * Render a month calendar grid. $byDate is keyed 'Y-m-d' => list of
+ * ['label' => string, 'cls' => string].
+ */
+function edv_campaign_month_calendar(array $byDate, int $year, int $month): string
+{
+    $months = [1 => 'Janeiro', 2 => 'Fevereiro', 3 => 'Março', 4 => 'Abril', 5 => 'Maio', 6 => 'Junho',
+        7 => 'Julho', 8 => 'Agosto', 9 => 'Setembro', 10 => 'Outubro', 11 => 'Novembro', 12 => 'Dezembro'];
+    $first = mktime(0, 0, 0, $month, 1, $year);
+    $daysIn = (int) date('t', $first);
+    $startDow = (int) date('N', $first); // 1=Mon .. 7=Sun
+    $todayYmd = date('Y-m-d');
+    $name = ($months[$month] ?? '') . ' ' . $year;
+
+    $prevY = $month === 1 ? $year - 1 : $year;
+    $prevM = $month === 1 ? 12 : $month - 1;
+    $nextY = $month === 12 ? $year + 1 : $year;
+    $nextM = $month === 12 ? 1 : $month + 1;
+    $esc = static fn (string $s): string => htmlspecialchars($s, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8');
+
+    $out = '<div class="cal"><div class="cal-head">'
+        . '<a class="cal-nav" href="?ym=' . sprintf('%04d-%02d', $prevY, $prevM) . '">‹</a>'
+        . '<span>' . $esc($name) . '</span>'
+        . '<a class="cal-nav" href="?ym=' . sprintf('%04d-%02d', $nextY, $nextM) . '">›</a>'
+        . '</div><div class="cal-grid">';
+    foreach (['Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb', 'Dom'] as $d) {
+        $out .= '<div class="cal-dow">' . $d . '</div>';
+    }
+    for ($i = 1; $i < $startDow; $i++) {
+        $out .= '<div class="cal-cell cal-empty"></div>';
+    }
+    for ($day = 1; $day <= $daysIn; $day++) {
+        $ymd = sprintf('%04d-%02d-%02d', $year, $month, $day);
+        $out .= '<div class="cal-cell' . ($ymd === $todayYmd ? ' is-today' : '') . '">';
+        $out .= '<div class="cal-day">' . $day . '</div>';
+        foreach ($byDate[$ymd] ?? [] as $it) {
+            $label = (string) ($it['label'] ?? '');
+            $out .= '<div class="cal-chip ' . $esc((string) ($it['cls'] ?? '')) . '" title="' . $esc($label) . '">' . $esc($label) . '</div>';
+        }
+        $out .= '</div>';
+    }
+    return $out . '</div></div>';
+}

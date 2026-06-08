@@ -2,14 +2,22 @@
 declare(strict_types=1);
 /* ── Admin shared nav styles (topbar + bottom-tab-bar) ── */
 ?>
+  /* Fallback accent vars used by the nav (admin pages only define the base set). */
+  :root {
+    --gold-l: #E2C079;
+    --verde: #40916C;
+    --verde-m: #2A4A3D;
+    --terra-l: #E8A598;
+  }
+
   /* ─────────────────────────────────────────────
      TOP BAR — brand row + contextual actions
   ───────────────────────────────────────────── */
   .topbar {
     background: var(--dark-m);
     border-bottom: 1px solid rgba(245,239,230,.07);
-    padding: 0 1rem;
-    height: 52px;
+    padding: 0.35rem 1rem;
+    min-height: 52px;
     display: flex;
     align-items: center;
     justify-content: space-between;
@@ -19,7 +27,7 @@ declare(strict_types=1);
     z-index: 40;
   }
   @media (min-width: 768px) {
-    .topbar { padding: 0 1.5rem; height: 56px; }
+    .topbar { padding: 0.4rem 1.5rem; min-height: 56px; }
   }
   @media (min-width: 1200px) {
     .topbar { padding: 0 2rem; }
@@ -188,15 +196,20 @@ declare(strict_types=1);
     z-index: 50;
     background: var(--dark-m);
     border-top: 1px solid rgba(245,239,230,0.08);
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
     /* iPhone home-indicator safe area */
     padding-bottom: env(safe-area-inset-bottom, 0px);
   }
+  .bottom-tabs::-webkit-scrollbar { display: none; }
   @media (min-width: 768px) {
     .bottom-tabs { display: none; }
   }
 
   .btab {
-    flex: 1;
+    flex: 1 0 auto;
+    min-width: 58px;
     display: flex;
     flex-direction: column;
     align-items: center;
