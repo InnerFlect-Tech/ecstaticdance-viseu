@@ -405,8 +405,8 @@ require __DIR__ . '/_topbar.php';
           </div>
         </form>
         <p class="help">A capacidade usada nos painéis e no checkout vem de <code>events.capacity</code>. Esta página grava diretamente nessa tabela.</p>
-        <p class="help" style="margin-top:.45rem"><strong>Preço standard</strong> é o piso após o early bird. <strong>Early bird</strong> aplica-se até ao fim do dia indicado (hora de Lisboa). Deixa a data vazia para desactivar early bird.</p>
-        <p class="help" style="margin-top:.45rem">Quem fez check-in numa edição anterior (lista em <a href="/admin/attendance.php" style="color:#D4A85A">Presenças</a>) paga o piso de <strong>regresso</strong> ao usar o mesmo email. Vazio = 15€.</p>
+        <p class="help" style="margin-top:.45rem"><strong>Preço standard</strong> é o preço mínimo após o early bird. <strong>Early bird</strong> aplica-se até ao fim do dia indicado (hora de Lisboa). Deixa a data vazia para desactivar early bird.</p>
+        <p class="help" style="margin-top:.45rem">Quem fez check-in numa edição anterior (lista em <a href="/admin/attendance.php" style="color:#D4A85A">Presenças</a>) paga o preço mínimo de <strong>regresso</strong> ao usar o mesmo email. Vazio = 15€.</p>
         <p class="help" style="margin-top:.45rem">Horários vazios (dança, integração) usam valores por defeito a partir do warm-up e do fim do evento. A página <code>/links</code> lê estes campos do evento <strong>activo para venda</strong>.</p>
         <p class="help" style="margin-top:.65rem">A página <code>/links</code> mostra automaticamente o evento com <strong>activo para venda</strong> (título, horários, facilitadores, preços). O slug das reservas manuais é <code>edv-<?= ev_h((string)$selected['date']) ?></code>. Só um evento deve estar activo de cada vez.</p>
       <?php endif; ?>

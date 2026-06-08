@@ -172,7 +172,7 @@ require __DIR__ . '/_topbar.php';
     <p>
       Lista de quem <strong>entrou na porta</strong> (check-in por QR ou manual).
       Estes emails qualificam para o preço de <strong>dançarino·a de regresso</strong> na edição seguinte
-      (piso configurável em Eventos → <code>returning_min_eur</code>, predefinição 15€).
+      (preço mínimo configurável em Eventos → <code>returning_min_eur</code>, predefinição 15€).
     </p>
   </div>
 

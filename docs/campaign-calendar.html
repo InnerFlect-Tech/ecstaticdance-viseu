@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html lang="pt">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ED Viseu #02 — Calendário de Campanha (5–27 Jun)</title>
+<style>
+  :root{
+    --terra:#A8482E; --terra-soft:#C2613f; --verde:#243430; --verde-soft:#33473f;
+    --bone:#F5EFE6; --bone-2:#EBE2D4; --ink:#2A211B; --gold:#C39A4E; --muted:#8a7d6e;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bone);color:var(--ink);
+    font-family:"Inter","Helvetica Neue",Arial,sans-serif;line-height:1.5;padding:0 0 80px}
+  header{background:var(--terra);color:var(--bone);padding:34px 24px 28px;text-align:center}
+  header h1{font-family:Georgia,"Cormorant Garamond",serif;font-weight:500;font-size:28px;margin:0 0 6px;letter-spacing:.01em}
+  header p{margin:2px 0;opacity:.9;font-size:14px}
+  .meta{display:flex;flex-wrap:wrap;gap:10px;justify-content:center;margin-top:14px}
+  .pill{background:rgba(245,239,230,.14);border:1px solid rgba(245,239,230,.3);
+    padding:5px 12px;border-radius:999px;font-size:12.5px}
+  .wrap{max-width:1080px;margin:0 auto;padding:0 18px}
+  .legend{display:flex;flex-wrap:wrap;gap:14px;margin:22px 0 8px;font-size:12.5px;color:var(--muted)}
+  .legend span{display:inline-flex;align-items:center;gap:6px}
+  .dot{width:11px;height:11px;border-radius:3px;display:inline-block}
+  .p1{background:var(--terra)} .p2{background:var(--verde)} .p3{background:var(--gold)} .p4{background:#6b8f7a}
+  table{width:100%;border-collapse:collapse;margin-top:10px;font-size:13.5px;background:#fff;
+    border-radius:12px;overflow:hidden;box-shadow:0 1px 3px rgba(0,0,0,.06)}
+  th{background:var(--verde);color:var(--bone);text-align:left;padding:10px 12px;font-weight:600;font-size:12px;letter-spacing:.04em;text-transform:uppercase}
+  td{padding:10px 12px;border-top:1px solid var(--bone-2);vertical-align:top}
+  tr.feed{background:#fff} tr.story{background:#faf6ef}
+  .date{font-weight:700;white-space:nowrap}
+  .day{color:var(--muted);font-size:12px}
+  .tag{display:inline-block;font-size:11px;font-weight:700;padding:2px 7px;border-radius:5px;color:#fff;white-space:nowrap}
+  .t-f{background:var(--terra)} .t-c{background:var(--verde-soft)} .t-r{background:#7a5b86} .t-s{background:#b0a08c} .t-ev{background:#111}
+  .ph{font-size:11px;color:var(--muted)}
+  details{margin-top:18px;background:#fff;border-radius:12px;padding:4px 18px;box-shadow:0 1px 3px rgba(0,0,0,.06)}
+  details>summary{cursor:pointer;font-weight:700;padding:14px 0;font-size:15px;color:var(--terra)}
+  .post{border-top:1px solid var(--bone-2);padding:14px 0}
+  .post h4{margin:0 0 4px;font-size:14px}
+  .post .ttl{font-family:Georgia,serif;font-size:16px;color:var(--verde)}
+  .post .sub{color:var(--muted);font-size:13px;margin:2px 0 8px}
+  .post p{margin:6px 0;font-size:13.5px;white-space:pre-line}
+  .cta{color:var(--terra);font-weight:600}
+  .img{background:var(--verde);color:var(--bone);border-radius:8px;padding:9px 12px;font-size:12.5px;margin-top:8px}
+  .img b{color:var(--gold)}
+  h2.sec{font-family:Georgia,serif;color:var(--terra);margin:34px 0 6px;font-weight:500}
+  .note{background:#fff6e8;border:1px solid #e8d4a8;border-radius:10px;padding:12px 16px;font-size:13px;margin:18px 0}
+  footer{max-width:1080px;margin:40px auto 0;padding:0 18px;color:var(--muted);font-size:12px;text-align:center}
+</style>
+</head>
+<body>
+<header>
+  <h1>Ecstatic Dance Viseu #02</h1>
+  <p>Calendário de Campanha · 5 → 27 Junho 2026</p>
+  <p>2ª edição · Nua e Crua, Viseu · Sáb 27 Jun · portas 15:30 · 16:00–19:00 · DJ Bernardo B-file</p>
+  <div class="meta">
+    <span class="pill">Standard €30</span>
+    <span class="pill">Early bird €25 (até 20 Jun)</span>
+    <span class="pill">Regresso €20 (código)</span>
+    <span class="pill">Link: ecstaticdanceviseu.pt/links</span>
+  </div>
+</header>
+
+<div class="wrap">
+  <div class="legend">
+    <span><i class="dot p1"></i> Fase 1 — Reabertura/Posicionamento</span>
+    <span><i class="dot p2"></i> Fase 2 — Aprofundamento</span>
+    <span><i class="dot p3"></i> Fase 3 — Conversão</span>
+    <span><i class="dot p4"></i> Fase 4 — Evento/Pós</span>
+    <span style="margin-left:auto"><span class="tag t-f">F</span> Feed&nbsp; <span class="tag t-c">C</span> Carrossel&nbsp; <span class="tag t-r">R</span> Reel&nbsp; <span class="tag t-s">S</span> Story&nbsp; <span class="tag t-ev">EV</span> Evento</span>
+  </div>
+
+  <table>
+    <thead><tr><th>Data</th><th>Tipo</th><th>Tema / Gancho</th><th>Template</th><th>Fase</th></tr></thead>
+    <tbody>
+      <tr class="feed"><td class="date">05 Jun <span class="day">Sex</span></td><td><span class="tag t-f">F</span></td><td><b>VOLTAMOS · #02 · 27 Jun</b> — anúncio + early bird aberto</td><td>T5 Poster</td><td class="ph">1</td></tr>
+      <tr class="feed"><td class="date">06 Jun <span class="day">Sáb</span></td><td><span class="tag t-c">C1</span></td><td>Manifesto — "DANÇA SEM PERFORMANCE"</td><td>T1 Terracota</td><td class="ph">1</td></tr>
+      <tr class="story"><td class="date">07 Jun <span class="day">Dom</span></td><td><span class="tag t-s">S</span></td><td>Prova social #01 (sala cheia, sem rostos)</td><td>T7</td><td class="ph">1</td></tr>
+      <tr class="feed"><td class="date">08 Jun <span class="day">Seg</span></td><td><span class="tag t-c">C2</span></td><td>O que é Ecstatic Dance + "já aconteceu em Viseu"</td><td>T4 Foto+Overlay</td><td class="ph">1</td></tr>
+      <tr class="story"><td class="date">09 Jun <span class="day">Ter</span></td><td><span class="tag t-s">S</span></td><td>Acordos (descalço/sóbrio/sem conversa/consentimento)</td><td>T7</td><td class="ph">1</td></tr>
+      <tr class="feed"><td class="date">10 Jun <span class="day">Qua</span></td><td><span class="tag t-c">C3</span></td><td>Os Acordos — confiança e clareza</td><td>T2 Verde</td><td class="ph">1</td></tr>
+      <tr class="feed"><td class="date">11 Jun <span class="day">Qui</span></td><td><span class="tag t-r">R1</span></td><td>After #01 → "voltamos 27 Jun"</td><td>Vídeo</td><td class="ph">1</td></tr>
+      <tr class="feed"><td class="date">12 Jun <span class="day">Sex</span></td><td><span class="tag t-f">F</span></td><td><b>EARLY BIRD €25 até 20 Jun</b></td><td>T6 Conversão</td><td class="ph">1→2</td></tr>
+      <tr class="feed"><td class="date">13 Jun <span class="day">Sáb</span></td><td><span class="tag t-c">C4</span></td><td>Não é preciso saber dançar — iniciantes</td><td>T4 Foto+Overlay</td><td class="ph">2</td></tr>
+      <tr class="story"><td class="date">14 Jun <span class="day">Dom</span></td><td><span class="tag t-s">S</span></td><td>Regresso €20 — "vê o teu email"</td><td>T9</td><td class="ph">2</td></tr>
+      <tr class="feed"><td class="date">15 Jun <span class="day">Seg</span></td><td><span class="tag t-c">C5</span></td><td>Música como Jornada — 4 fases</td><td>T1 Terracota</td><td class="ph">2</td></tr>
+      <tr class="story"><td class="date">16 Jun <span class="day">Ter</span></td><td><span class="tag t-s">S</span></td><td>"Antes de pensar, o corpo já reage"</td><td>T9</td><td class="ph">2</td></tr>
+      <tr class="feed"><td class="date">17 Jun <span class="day">Qua</span></td><td><span class="tag t-c">C6</span></td><td>Raízes e Presença — profundidade s/ cliché</td><td>T2 Verde</td><td class="ph">2</td></tr>
+      <tr class="feed"><td class="date">18 Jun <span class="day">Qui</span></td><td><span class="tag t-r">R2</span></td><td>Quebra de objeção (tu a falar)</td><td>Vídeo</td><td class="ph">2</td></tr>
+      <tr class="feed"><td class="date">19 Jun <span class="day">Sex</span></td><td><span class="tag t-f">F</span></td><td><b>Amanhã acaba o early bird</b></td><td>T6 Conversão</td><td class="ph">2→3</td></tr>
+      <tr class="feed"><td class="date">20 Jun <span class="day">Sáb</span></td><td><span class="tag t-f">F</span></td><td><b>HOJE €25 · AMANHÃ €30</b> (último dia EB)</td><td>T6 Conversão</td><td class="ph">3</td></tr>
+      <tr class="feed"><td class="date">21 Jun <span class="day">Dom</span></td><td><span class="tag t-c">C7</span></td><td>Porque Dançamos — 4 razões</td><td>T1 Terracota</td><td class="ph">3</td></tr>
+      <tr class="story"><td class="date">22 Jun <span class="day">Seg</span></td><td><span class="tag t-s">S</span></td><td>"Consumir conteúdo ou viver a experiência?"</td><td>T8</td><td class="ph">3</td></tr>
+      <tr class="feed"><td class="date">23 Jun <span class="day">Ter</span></td><td><span class="tag t-c">C8</span></td><td>Comunidade / Atmosfera + prova social #01</td><td>T4 Foto+Overlay</td><td class="ph">3</td></tr>
+      <tr class="feed"><td class="date">24 Jun <span class="day">Qua</span></td><td><span class="tag t-f">F</span></td><td><b>Faltam 3 dias</b> — "o corpo já decidiu"</td><td>T6 Conversão</td><td class="ph">3</td></tr>
+      <tr class="feed"><td class="date">25 Jun <span class="day">Qui</span></td><td><span class="tag t-r">R3</span></td><td>Prova emocional — "chegas sem saber"</td><td>Vídeo</td><td class="ph">3</td></tr>
+      <tr class="feed"><td class="date">26 Jun <span class="day">Sex</span></td><td><span class="tag t-f">F</span></td><td><b>AMANHÃ. Já sabes se vens.</b></td><td>T6 Conversão</td><td class="ph">3</td></tr>
+      <tr class="feed"><td class="date">27 Jun <span class="day">Sáb</span></td><td><span class="tag t-ev">EV</span> <span class="tag t-r">R4</span></td><td><b>DIA DO EVENTO</b> — stories manhã/antes/durante + reel after</td><td>T8/Vídeo</td><td class="ph">4</td></tr>
+      <tr class="feed"><td class="date">28 Jun <span class="day">Dom</span></td><td><span class="tag t-f">F</span></td><td>Obrigado + "próxima data em breve"</td><td>T1 Terracota</td><td class="ph">4</td></tr>
+    </tbody>
+  </table>
+
+  <h2 class="sec">Copy dos posts #02-específicos</h2>
+  <p style="color:var(--muted);font-size:13px">C1–C8, R2, R3 e stories temáticas reutilizam o copy evergreen da nota 15 (troca "23 Maio"→"27 Junho", "primeiro encontro"→"#02").</p>
+
+  <details open>
+    <summary>Posts de reabertura, early bird e conversão (clica para abrir/fechar)</summary>
+
+    <div class="post">
+      <div class="ttl">05 Jun — VOLTAMOS · ECSTATIC DANCE VISEU #02</div>
+      <div class="sub">27 de Junho · Nua e Crua · Viseu</div>
+      <p>A primeira vez encheu a sala. Corpos, música, presença — e um silêncio no fim que dizia tudo.
+Agora voltamos.
+Ecstatic Dance Viseu #02 — 27 de Junho, no Nua e Crua. Dança livre, guiada pela música, sem performance e sem substâncias. Só o teu corpo e uma sala cheia de pessoas que querem o mesmo.
+Early bird €25 até 20 de Junho. Quem já dançou connosco recebe condição especial.</p>
+      <p class="cta">CTA: Inscrições no link da bio.</p>
+      <div class="img"><b>Imagem:</b> sala em luz baixa antes de começar — chão de madeira, terracota/verde, grão, sem pessoas, espaço para texto (4:5).</div>
+    </div>
+
+    <div class="post">
+      <div class="ttl">12 Jun — EARLY BIRD €25</div>
+      <div class="sub">Até 20 de Junho. Depois, €30.</div>
+      <p>O preço também é um acordo. €25 até 20 de Junho — não por pressão, mas porque quem decide cedo ajuda a sustentar o espaço.
+27 Junho · Nua e Crua · Viseu.</p>
+      <p class="cta">CTA: Garante o teu lugar no link da bio.</p>
+      <div class="img"><b>Imagem:</b> fundo terracota limpo, minimal, muito espaço negativo (T6).</div>
+    </div>
+
+    <div class="post">
+      <div class="ttl">19 Jun — AMANHÃ ACABA O EARLY BIRD</div>
+      <p>€25 só até amanhã. Se já sentiste que querias vir, esta é a parte fácil da decisão. 27 Junho. Link na bio.</p>
+    </div>
+
+    <div class="post">
+      <div class="ttl">20 Jun — HOJE €25 · AMANHÃ €30</div>
+      <p>Último dia de early bird. A música é a mesma; o preço não. 27 Junho · Nua e Crua. Link na bio.</p>
+    </div>
+
+    <div class="post">
+      <div class="ttl">24 Jun — FALTAM 3 DIAS</div>
+      <div class="sub">O corpo sabe antes da mente decidir.</div>
+      <p>Já sentiste. Agora estás a pensar. Se esperas ter a certeza, não vens. Se confias no que sentiste, apareces. 27 Junho. Link na bio.</p>
+    </div>
+
+    <div class="post">
+      <div class="ttl">26 Jun — AMANHÃ</div>
+      <p>Sem mais explicações. A decisão já está tomada — ou vens, ou não. 27 Junho · Ecstatic Dance Viseu. Link na bio.</p>
+    </div>
+
+    <div class="post">
+      <div class="ttl">11 Jun — R1 (After #01 → reabertura)</div>
+      <p>Clips reais de #01 (pés, mãos, luz). Texto: "Foi real. Foi corpo. Foi presença." → "Voltamos · 27 Junho".
+Caption: Aconteceu. E vai acontecer outra vez. Link na bio.</p>
+    </div>
+
+    <div class="post">
+      <div class="ttl">28 Jun — OBRIGADO</div>
+      <p>Foi real. Foi corpo. Foi presença. Obrigado a quem veio — e a quem ainda não, ficamos à tua espera. Próxima data em breve. Segue para não perderes.</p>
+    </div>
+  </details>
+
+  <div class="note">
+    <b>Fonte completa:</b> nota SSOT <i>17 Posts — Série #02 (27 Jun)</i> (copy + prompts de imagem por asset + workflow Canva + estrutura Drive).
+    Ticketing/run-of-show: nota <i>16</i>. Outreach: nota <i>18</i>.
+  </div>
+</div>
+
+<footer>
+  Ecstatic Dance Viseu · documento de revisão gerado 2026-06-05 · <code>docs/campaign-calendar.html</code> (não publicado no site)
+</footer>
+</body>
+</html>

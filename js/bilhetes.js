@@ -135,7 +135,7 @@ async function initBookingPage() {
     }
     const state = getPricingState();
     if (state.tier === 'discount_code') {
-      hint.textContent = `Código válido — piso ${state.minEur}€`;
+      hint.textContent = `Código válido — preço mínimo ${state.minEur}€`;
       hint.style.color = 'rgba(107,207,154,.9)';
     } else {
       hint.textContent = 'Código inválido ou não aplicável a este email.';

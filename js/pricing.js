@@ -7,7 +7,7 @@ export const TICKET_MAX_EUR = 200
 export const TICKET_SLIDER_CAP_EUR = 100
 export const TICKET_STEP = 5
 export const STANDARD_MIN_EUR = 30
-export const EARLY_BIRD_MIN_EUR = 20
+export const EARLY_BIRD_MIN_EUR = 25
 export const RETURNING_MIN_EUR_DEFAULT = 15
 
 /** @type {{ minEur: number, tier: string, isReturning: boolean, isDiscountCode: boolean, eventId: number, email: string, promoCode: string }} */

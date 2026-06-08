@@ -302,7 +302,7 @@ $recentUses = $pdo->query(
           </select>
         </div>
         <div class="field">
-          <label>Piso com código (€)</label>
+          <label>Preço mínimo com código (€)</label>
           <input type="number" min="0" step="0.01" name="min_eur" value="<?= number_format($previewMin, 2, '.', '') ?>" required />
         </div>
         <button class="btn" type="submit">1. Preparar lista (sem duplicados)</button>
@@ -370,7 +370,7 @@ $recentUses = $pdo->query(
             <?php endforeach; ?>
           </select>
         </div>
-        <div class="field"><label>Piso (€)</label><input type="number" min="0" step="0.01" name="min_eur" value="15" /></div>
+        <div class="field"><label>Preço mínimo (€)</label><input type="number" min="0" step="0.01" name="min_eur" value="20" /></div>
         <div class="field"><label>Email (opcional — restringe uso)</label><input type="email" name="email" /></div>
         <div class="field"><label>Nome</label><input type="text" name="name" /></div>
         <div class="field"><label>Código (vazio = auto)</label><input type="text" name="code" placeholder="EDV-XXXXXX" /></div>
@@ -385,7 +385,7 @@ $recentUses = $pdo->query(
       <p class="help">Ainda não há campanhas.</p>
     <?php else: ?>
       <table>
-        <thead><tr><th>Campanha</th><th>Evento</th><th>Piso</th><th>Códigos</th><th>Emails</th><th>Estado</th><th></th></tr></thead>
+        <thead><tr><th>Campanha</th><th>Evento</th><th>Preço mín.</th><th>Códigos</th><th>Emails</th><th>Estado</th><th></th></tr></thead>
         <tbody>
           <?php foreach ($campaigns as $c): ?>
             <tr>
@@ -454,7 +454,7 @@ $recentUses = $pdo->query(
       <p class="help">Nenhuma compra com código ainda.</p>
     <?php else: ?>
       <table>
-        <thead><tr><th>Data</th><th>Código</th><th>Comprador</th><th>Valor</th><th>Piso código</th><th>Evento</th></tr></thead>
+        <thead><tr><th>Data</th><th>Código</th><th>Comprador</th><th>Valor</th><th>Preço mín. código</th><th>Evento</th></tr></thead>
         <tbody>
           <?php foreach ($recentUses as $u): ?>
             <tr>
