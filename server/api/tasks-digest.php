@@ -34,87 +34,28 @@ $pdo = db();
 edv_campaign_ensure_schema($pdo);
 edv_campaign_seed_from_meeting($pdo);
 
-$today = date('Y-m-d');
-$soonLimit = date('Y-m-d', strtotime('+3 days'));
+$digest = edv_campaign_digest($pdo);
 
-$rows = $pdo->query(
-    "SELECT * FROM campaign_tasks WHERE status <> 'done'
-     ORDER BY (CASE WHEN due_date IS NULL THEN 1 ELSE 0 END), due_date ASC, sort_order ASC"
-)->fetchAll();
+// Footer: total open + a follow-up link to the public board (token-protected).
+$linkBase = trim((string) getenv('EDV_TASKS_PUBLIC_URL'));
+if ($linkBase === '') {
+    $appUrl = defined('APP_URL') && APP_URL !== '' ? rtrim((string) APP_URL, '/') : 'https://ecstaticdanceviseu.pt';
+    $linkBase = $appUrl . '/api/tarefas.php';
+}
+$tasksToken = trim((string) getenv('EDV_TASKS_TOKEN'));
+$followUp = $linkBase . ($tasksToken !== '' ? '?t=' . rawurlencode($tasksToken) : '');
 
-$overdue = [];
-$dueToday = [];
-$soon = [];
-$noOwner = [];
-foreach ($rows as $r) {
-    $d = (string) ($r['due_date'] ?? '');
-    if ($d !== '' && $d < $today) {
-        $overdue[] = $r;
-    } elseif ($d === $today && $d !== '') {
-        $dueToday[] = $r;
-    } elseif ($d !== '' && $d <= $soonLimit) {
-        $soon[] = $r;
-    }
-    if (empty($r['owner'])) {
-        $noOwner[] = $r;
-    }
-}
-
-$fmt = static function (array $r): string {
-    $s = '• ' . (string) $r['title'];
-    if (!empty($r['owner'])) {
-        $s .= ' (' . (string) $r['owner'] . ')';
-    }
-    if (!empty($r['due_date'])) {
-        $s .= ' — ' . substr((string) $r['due_date'], 0, 10);
-    }
-    return $s;
-};
-
-$lines = ['☀️ *Tarefas ED Viseu* — ' . $today];
-if ($overdue !== []) {
-    $lines[] = '';
-    $lines[] = '⚠️ *Atrasadas*';
-    foreach ($overdue as $r) {
-        $lines[] = $fmt($r);
-    }
-}
-if ($dueToday !== []) {
-    $lines[] = '';
-    $lines[] = '📌 *Hoje*';
-    foreach ($dueToday as $r) {
-        $lines[] = $fmt($r);
-    }
-}
-if ($soon !== []) {
-    $lines[] = '';
-    $lines[] = '🔜 *Próximos 3 dias*';
-    foreach ($soon as $r) {
-        $lines[] = $fmt($r);
-    }
-}
-if ($overdue === [] && $dueToday === [] && $soon === []) {
-    $lines[] = '';
-    $lines[] = 'Sem tarefas com prazo iminente. 🙌';
-}
-if ($noOwner !== []) {
-    $lines[] = '';
-    $lines[] = '🙋 *Sem responsável* (' . count($noOwner) . ') — atribuir';
-}
-$lines[] = '';
-$lines[] = count($rows) . ' tarefas abertas no total → /admin/tasks.php';
-
-$text = implode("\n", $lines);
+$text = $digest['text'] . "\n\n" . $digest['open'] . ' tarefas abertas → ' . $followUp;
 
 $result = [
-    'ok' => true,
-    'date' => $today,
-    'open' => count($rows),
-    'overdue' => count($overdue),
-    'today' => count($dueToday),
-    'soon' => count($soon),
-    'no_owner' => count($noOwner),
-    'text' => $text,
+    'ok'       => true,
+    'date'     => $digest['date'],
+    'open'     => $digest['open'],
+    'overdue'  => $digest['overdue'],
+    'today'    => $digest['today'],
+    'soon'     => $digest['soon'],
+    'no_owner' => $digest['no_owner'],
+    'text'     => $text,
 ];
 
 if (($_GET['send'] ?? '') === '1') {

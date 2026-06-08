@@ -285,3 +285,222 @@ function edv_campaign_month_calendar(array $byDate, int $year, int $month): stri
     }
     return $out . '</div></div>';
 }
+
+/* ============================================================
+   WhatsApp digest + two-way bot — shared logic
+   Used by server/api/tasks-digest.php (scheduled morning post),
+   server/api/tasks-command.php (inbound commands) and the public
+   follow-up board server/api/tarefas.php.
+   ============================================================ */
+
+/**
+ * Build the morning task digest (open / overdue / due-soon) as text + counts.
+ * The footer line (total + follow-up link) is left to the caller.
+ *
+ * @return array{date:string, open:int, overdue:int, today:int, soon:int, no_owner:int, text:string}
+ */
+function edv_campaign_digest(PDO $pdo, ?string $today = null): array
+{
+    $today = $today ?: date('Y-m-d');
+    $soonLimit = date('Y-m-d', strtotime($today . ' +3 days'));
+
+    $rows = $pdo->query(
+        "SELECT * FROM campaign_tasks WHERE status <> 'done'
+         ORDER BY (CASE WHEN due_date IS NULL THEN 1 ELSE 0 END), due_date ASC, sort_order ASC"
+    )->fetchAll();
+
+    $overdue = $dueToday = $soon = $noOwner = [];
+    foreach ($rows as $r) {
+        $d = (string) ($r['due_date'] ?? '');
+        if ($d !== '' && $d < $today) {
+            $overdue[] = $r;
+        } elseif ($d === $today && $d !== '') {
+            $dueToday[] = $r;
+        } elseif ($d !== '' && $d <= $soonLimit) {
+            $soon[] = $r;
+        }
+        if (empty($r['owner'])) {
+            $noOwner[] = $r;
+        }
+    }
+
+    $fmt = static function (array $r): string {
+        $s = '• ' . (string) $r['title'];
+        if (!empty($r['owner'])) {
+            $s .= ' (' . (string) $r['owner'] . ')';
+        }
+        if (!empty($r['due_date'])) {
+            $s .= ' — ' . substr((string) $r['due_date'], 0, 10);
+        }
+        return $s;
+    };
+
+    $lines = ['☀️ *Tarefas ED Viseu* — ' . $today];
+    if ($overdue !== []) {
+        $lines[] = '';
+        $lines[] = '⚠️ *Atrasadas*';
+        foreach ($overdue as $r) {
+            $lines[] = $fmt($r);
+        }
+    }
+    if ($dueToday !== []) {
+        $lines[] = '';
+        $lines[] = '📌 *Hoje*';
+        foreach ($dueToday as $r) {
+            $lines[] = $fmt($r);
+        }
+    }
+    if ($soon !== []) {
+        $lines[] = '';
+        $lines[] = '🔜 *Próximos 3 dias*';
+        foreach ($soon as $r) {
+            $lines[] = $fmt($r);
+        }
+    }
+    if ($overdue === [] && $dueToday === [] && $soon === []) {
+        $lines[] = '';
+        $lines[] = 'Sem tarefas com prazo iminente. 🙌';
+    }
+    if ($noOwner !== []) {
+        $lines[] = '';
+        $lines[] = '🙋 *Sem responsável* (' . count($noOwner) . ') — atribuir';
+    }
+
+    return [
+        'date'     => $today,
+        'open'     => count($rows),
+        'overdue'  => count($overdue),
+        'today'    => count($dueToday),
+        'soon'     => count($soon),
+        'no_owner' => count($noOwner),
+        'text'     => implode("\n", $lines),
+    ];
+}
+
+/** Map a PT label/key (promoção, parcerias, logística, produção…) to an area key, or null. */
+function edv_campaign_area_key(string $raw): ?string
+{
+    $raw = mb_strtolower(trim($raw));
+    $map = [
+        'promocao' => 'promocao', 'promoção' => 'promocao', 'promo' => 'promocao',
+        'parcerias' => 'parcerias', 'parceria' => 'parcerias',
+        'logistica' => 'logistica', 'logística' => 'logistica',
+        'producao' => 'producao', 'produção' => 'producao', 'prod' => 'producao',
+    ];
+    if (isset($map[$raw])) {
+        return $map[$raw];
+    }
+    return isset(EDV_CAMPAIGN_AREAS[$raw]) ? $raw : null;
+}
+
+/** Open tasks grouped by area, each line prefixed with #id — for the WhatsApp bot. */
+function edv_campaign_open_list_text(PDO $pdo): string
+{
+    $rows = $pdo->query(
+        "SELECT * FROM campaign_tasks WHERE status <> 'done'
+         ORDER BY (CASE WHEN due_date IS NULL THEN 1 ELSE 0 END), due_date ASC, sort_order ASC"
+    )->fetchAll();
+    if ($rows === []) {
+        return 'Sem tarefas abertas. 🙌';
+    }
+    $byArea = [];
+    foreach ($rows as $r) {
+        $byArea[(string) $r['area']][] = $r;
+    }
+    $lines = ['📋 *Tarefas abertas ED Viseu*'];
+    foreach (EDV_CAMPAIGN_AREAS as $key => $label) {
+        if (empty($byArea[$key])) {
+            continue;
+        }
+        $lines[] = '';
+        $lines[] = '*' . $label . '*';
+        foreach ($byArea[$key] as $r) {
+            $s = '#' . (int) $r['id'] . ' ' . (string) $r['title'];
+            if (!empty($r['owner'])) {
+                $s .= ' (' . (string) $r['owner'] . ')';
+            }
+            if (!empty($r['due_date'])) {
+                $s .= ' — ' . substr((string) $r['due_date'], 0, 10);
+            }
+            if (($r['status'] ?? '') === 'doing') {
+                $s .= ' ⏳';
+            }
+            $lines[] = $s;
+        }
+    }
+    $lines[] = '';
+    $lines[] = '✅ _feito <nº>_   ➕ _nova <área>: <título>_';
+    return implode("\n", $lines);
+}
+
+function edv_campaign_help_text(): string
+{
+    return implode("\n", [
+        '🤖 *Bot ED Viseu* — comandos:',
+        '• *tarefas* — lista tarefas abertas (com nº)',
+        '• *feito <nº>* — marca tarefa como concluída',
+        '• *nova <área>: <título>* — cria tarefa',
+        '   áreas: promoção · parcerias · logística · produção',
+        '• *ajuda* — mostra isto',
+    ]);
+}
+
+/**
+ * Interpret a WhatsApp message and act on it. Returns the reply text, or null
+ * when the message isn't a recognised command (so the bot stays silent on normal chat).
+ */
+function edv_campaign_handle_command(PDO $pdo, string $text): ?string
+{
+    $text = trim($text);
+    if ($text === '') {
+        return null;
+    }
+    $words = preg_split('/\s+/', $text) ?: [];
+    $first = mb_strtolower($words[0] ?? '');
+
+    if (in_array($first, ['ajuda', 'help', 'comandos', 'menu'], true)) {
+        return edv_campaign_help_text();
+    }
+    if (in_array($first, ['tarefas', 'tasks', 'lista', 'status'], true)) {
+        return edv_campaign_open_list_text($pdo);
+    }
+    if (in_array($first, ['feito', 'done', 'concluir', 'concluido', 'concluído'], true)) {
+        if (!preg_match('/(\d+)/', $text, $m)) {
+            return 'Indica o número da tarefa. Ex.: *feito 3* (vê os números com *tarefas*).';
+        }
+        $id = (int) $m[1];
+        $task = edv_campaign_get($pdo, $id);
+        if ($task === null) {
+            return "Não encontrei a tarefa #$id. Vê os números com *tarefas*.";
+        }
+        if (($task['status'] ?? '') === 'done') {
+            return "A tarefa #$id já estava concluída: " . (string) $task['title'];
+        }
+        edv_campaign_set_status($pdo, $id, 'done');
+        return "✅ Concluída #$id: " . (string) $task['title'];
+    }
+    if (in_array($first, ['nova', 'novo', 'add'], true)) {
+        $rest = trim(mb_substr($text, mb_strlen($words[0])));
+        $area = 'producao';
+        $title = $rest;
+        if (preg_match('/^([^:]{1,20}):\s*(.+)$/u', $rest, $m)) {
+            $maybe = edv_campaign_area_key(trim($m[1]));
+            if ($maybe !== null) {
+                $area = $maybe;
+                $title = trim($m[2]);
+            }
+        }
+        $title = trim($title);
+        if ($title === '') {
+            return 'Formato: *nova <área>: <título>* (áreas: promoção, parcerias, logística, produção).';
+        }
+        edv_campaign_create($pdo, [
+            'area' => $area, 'title' => $title, 'owner' => null, 'status' => 'todo',
+            'due_date' => null, 'post_date' => null, 'phase' => null, 'channel' => null,
+            'details' => 'Criada via WhatsApp.',
+        ]);
+        return '➕ Criada em *' . edv_campaign_area_label($area) . '*: ' . $title;
+    }
+
+    return null;
+}
