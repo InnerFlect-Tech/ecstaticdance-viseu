@@ -635,8 +635,10 @@ function edv_attendance_backfill_from_tickets(): int
     return $n;
 }
 
-/** Data da edição #01 (lista à porta). */
-const EDV_EVENT_01_DATE = '2026-05-23';
+/** Data da edição #01 (lista à porta). Definida também em event-settlement.php — guarda contra redefinição quando ambos são carregados. */
+if (!defined('EDV_EVENT_01_DATE')) {
+    define('EDV_EVENT_01_DATE', '2026-05-23');
+}
 
 /**
  * Lista da folha de presenças — edição #01 (23 maio 2026).
