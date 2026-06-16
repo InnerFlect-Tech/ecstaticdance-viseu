@@ -31,6 +31,7 @@ $pdo = db();
 edv_campaign_ensure_schema($pdo);
 edv_campaign_seed_from_meeting($pdo);
 edv_campaign_seed_promo_schedule($pdo);
+edv_campaign_prune_cut_promo_posts($pdo);
 
 $rows = edv_campaign_all($pdo);
 $today = db_today_string();
