@@ -191,13 +191,9 @@ function edv_campaign_seed_promo_schedule(PDO $pdo): void
         ['promocao', 'Post — Alessia (facilitação: círculo + cacau)', null, 'doing', null, '2026-06-16', 2, 'Instagram/Facebook', 'Apresentar a Alessia: círculo de abertura + cerimónia de cacau. Foto + bio curta.'],
         ['promocao', 'Post — Rodrigo (integração)', null, 'todo', null, '2026-06-17', 2, 'Instagram/Facebook', 'Apresentar o Rodrigo: espaço de integração após a dança. Foto + bio curta.'],
         ['promocao', 'Post — "O que é Ecstatic Dance" (genérico)', 'Carolina', 'todo', null, '2026-06-18', 3, 'Instagram/Facebook', 'Post educativo preparado pela Carol. Desmistificar: dança consciente, sóbria, descalços, acessível a todos.'],
-        ['promocao', 'Post — DJ Bernardo B-File', null, 'todo', null, '2026-06-19', 2, 'Instagram/Facebook', 'PROPOSTA. Destacar o DJ (@b_filemusic): jornada musical de 3h ao vivo. Fecha o trio de anúncios (Alessia/Rodrigo/DJ).'],
         ['promocao', 'Post — "Uma semana para o evento"', null, 'todo', null, '2026-06-20', 3, 'Todos os canais', 'Contagem: falta 1 semana (27/6). Reforço de bilhetes. Early-bird terminou → standard 30€, regresso 20€.'],
-        ['promocao', 'Post — testemunho / prova social da 1ª edição', null, 'todo', null, '2026-06-21', 3, 'Instagram (feed + stories)', 'PROPOSTA. Foto/citação de quem dançou na 1ª edição. Confiança e pertença.'],
         ['promocao', 'Post — logística prática (local, horário, o que trazer)', null, 'todo', null, '2026-06-22', 3, 'Instagram/Facebook', 'PROPOSTA. Nua e Crua, Viseu · portas 15:30 · dança 16:00–19:00. Trazer roupa confortável e garrafa de água; dança descalça e sóbria.'],
-        ['promocao', 'Post — como funciona o preço (sliding scale)', null, 'todo', null, '2026-06-23', 3, 'IG/FB + WhatsApp 1ª edição', 'PROPOSTA. Explicar sliding scale (mín. 30€, regresso 20€). Reforçar códigos de regresso ao grupo da 1ª edição.'],
         ['promocao', 'Post — "Faltam 3 dias" + recontacto da comunidade', null, 'todo', null, '2026-06-24', 4, 'WhatsApp + IG stories', 'PROPOSTA. Lembrete + mensagem direta à comunidade da 1ª edição (via /admin → Participantes).'],
-        ['promocao', 'Post/Reel — "o que esperar numa sessão"', null, 'todo', null, '2026-06-25', 4, 'Instagram Reels', 'PROPOSTA. Vídeo curto do arco de uma sessão (chegada → dança → integração).'],
         ['promocao', 'Post — "Amanhã!" lembrete final', null, 'todo', null, '2026-06-26', 4, 'IG stories + WhatsApp + FB', 'PROPOSTA. Últimos bilhetes + detalhes de chegada (morada, horário, estacionamento).'],
         ['promocao', 'Story — "É hoje" + boas-vindas', null, 'todo', null, '2026-06-27', 4, 'Instagram stories', 'PROPOSTA. Story de manhã no dia do evento + acolhimento à chegada.'],
         ['promocao', 'Pós-evento — agradecimento + teaser próxima edição', null, 'todo', null, '2026-06-28', 4, 'Instagram/Facebook', 'PROPOSTA. Obrigado + foto + abrir "semana zero" da próxima edição (já com data). Liga à Fase 4.'],
@@ -225,6 +221,26 @@ function edv_campaign_seed_promo_schedule(PDO $pdo): void
             $now,
         ]);
     }
+}
+
+/**
+ * Remove os posts cortados pela equipa (19, 21, 23, 25 jun) do calendário #02.
+ * Chave estável source+post_date → idempotente (no-op depois de removidos).
+ */
+function edv_campaign_prune_cut_promo_posts(PDO $pdo): void
+{
+    $cut = ['2026-06-19', '2026-06-21', '2026-06-23', '2026-06-25'];
+    $in = implode(',', array_fill(0, count($cut), '?'));
+    $exists = $pdo->prepare(
+        "SELECT 1 FROM campaign_tasks WHERE source = 'promo_jun26' AND post_date IN ($in) LIMIT 1"
+    );
+    $exists->execute($cut);
+    if ($exists->fetchColumn() === false) {
+        return;
+    }
+    $pdo->prepare(
+        "DELETE FROM campaign_tasks WHERE source = 'promo_jun26' AND post_date IN ($in)"
+    )->execute($cut);
 }
 
 /** @return array<int,array<string,mixed>> */
