@@ -208,6 +208,7 @@ require __DIR__ . '/_topbar.php';
     <?php if ($selectedEvent > 0): ?>
       <a href="?event_id=<?= $selectedEvent ?>&amp;export=csv">Exportar CSV</a>
       <a href="/admin/scan.php?event_id=<?= $selectedEvent ?>">Scanner QR</a>
+      <a href="/admin/participants.php?event_id=<?= $selectedEvent ?>">Corrigir / marcar presenças</a>
     <?php endif; ?>
     <?php if ($isEvent01): ?>
       <form method="post" style="display:inline;">
