@@ -243,6 +243,36 @@ function edv_campaign_prune_cut_promo_posts(PDO $pdo): void
     )->execute($cut);
 }
 
+/**
+ * Insere tarefas extra ad-hoc (idempotente por source+título). Para acrescentar
+ * tarefas ao calendário #02 já semeado, sem reabrir o seed principal.
+ */
+function edv_campaign_ensure_extra_tasks(PDO $pdo): void
+{
+    // [area, title, owner, status, due_date, post_date, phase, channel, details]
+    $tasks = [
+        ['producao', 'Daniel — atualizar página de vendas: preço correto + programa', 'Daniel', 'todo', '2026-06-17', null, null, '/links', 'Pôr o /links com o preço correto (mín. 30€, regresso 20€) e o programa disponível. Via /admin → Eventos ou UPDATE na BD de produção.'],
+    ];
+
+    $check = $pdo->prepare("SELECT 1 FROM campaign_tasks WHERE source = 'promo_jun26' AND title = ? LIMIT 1");
+    $ins = $pdo->prepare(
+        'INSERT INTO campaign_tasks (area, title, owner, status, due_date, post_date, phase, channel, details, source, sort_order, created_at, updated_at)
+         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)'
+    );
+    $now = edv_campaign_now_sql();
+    foreach ($tasks as $i => $t) {
+        $check->execute([$t[1]]);
+        if ($check->fetchColumn() !== false) {
+            continue;
+        }
+        $ins->execute([
+            $t[0], mb_substr($t[1], 0, 255), $t[2], $t[3], $t[4], $t[5], $t[6],
+            $t[7] !== '' ? $t[7] : null, $t[8] !== '' ? $t[8] : null,
+            'promo_jun26', 200 + $i, $now, $now,
+        ]);
+    }
+}
+
 /** @return array<int,array<string,mixed>> */
 function edv_campaign_all(PDO $pdo): array
 {
