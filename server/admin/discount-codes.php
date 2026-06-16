@@ -191,6 +191,110 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         if ($result['ok']) {
             $selectedCampaignId = 0;
         }
+    } elseif ($action === 'toggle_code') {
+        $codeId = (int) ($_POST['code_id'] ?? 0);
+        $q = $pdo->prepare('SELECT code, is_active FROM discount_codes WHERE id = ?');
+        $q->execute([$codeId]);
+        $row = $q->fetch(PDO::FETCH_ASSOC);
+        if (!is_array($row)) {
+            $flash = 'Código não encontrado.';
+        } else {
+            $newState = ((int) $row['is_active']) === 1 ? 0 : 1;
+            $pdo->prepare('UPDATE discount_codes SET is_active = ? WHERE id = ?')
+                ->execute([$newState, $codeId]);
+            $flash = 'Código ' . $row['code'] . ($newState === 1 ? ' reactivado.' : ' desactivado — deixa de funcionar no checkout.');
+        }
+    } elseif ($action === 'update_code') {
+        $codeId = (int) ($_POST['code_id'] ?? 0);
+        $minEur = max(0.0, (float) ($_POST['min_eur'] ?? 0));
+        $email = edv_normalize_email(trim((string) ($_POST['email'] ?? '')));
+        $name = trim((string) ($_POST['name'] ?? ''));
+        $validUntil = trim((string) ($_POST['valid_until'] ?? ''));
+        if ($email !== '' && !filter_var($email, FILTER_VALIDATE_EMAIL)) {
+            $flash = 'Email inválido.';
+        } elseif ($validUntil !== '' && !preg_match('/^\d{4}-\d{2}-\d{2}$/', $validUntil)) {
+            $flash = 'Data de validade inválida (usa AAAA-MM-DD).';
+        } else {
+            $upd = $pdo->prepare(
+                'UPDATE discount_codes SET min_eur = ?, email = ?, name = ?, valid_until = ? WHERE id = ?'
+            );
+            $upd->execute([
+                $minEur,
+                $email !== '' ? $email : null,
+                $name !== '' ? $name : null,
+                $validUntil !== '' ? $validUntil : null,
+                $codeId,
+            ]);
+            $flash = $upd->rowCount() > 0 ? 'Código actualizado.' : 'Código não encontrado (ou sem alterações).';
+        }
+    } elseif ($action === 'delete_code') {
+        $codeId = (int) ($_POST['code_id'] ?? 0);
+        $q = $pdo->prepare(
+            'SELECT dc.code, dc.use_count,
+                    (SELECT COUNT(*) FROM discount_code_uses u WHERE u.discount_code_id = dc.id) AS uses_logged
+             FROM discount_codes dc WHERE dc.id = ?'
+        );
+        $q->execute([$codeId]);
+        $row = $q->fetch(PDO::FETCH_ASSOC);
+        if (!is_array($row)) {
+            $flash = 'Código não encontrado.';
+        } elseif ((int) $row['use_count'] > 0 || (int) $row['uses_logged'] > 0) {
+            $flash = 'Não é possível apagar: o código ' . $row['code'] . ' já foi usado. Desactiva-o em vez de apagar.';
+        } else {
+            $pdo->prepare('DELETE FROM discount_codes WHERE id = ?')->execute([$codeId]);
+            $flash = 'Código ' . $row['code'] . ' apagado.';
+        }
+    } elseif ($action === 'resend_code_email') {
+        $codeId = (int) ($_POST['code_id'] ?? 0);
+        $q = $pdo->prepare(
+            'SELECT dc.*, e.title, e.date
+             FROM discount_codes dc
+             INNER JOIN events e ON e.id = dc.event_id
+             WHERE dc.id = ?'
+        );
+        $q->execute([$codeId]);
+        $codeRow = $q->fetch(PDO::FETCH_ASSOC);
+        if (!is_array($codeRow)) {
+            $flash = 'Código não encontrado.';
+        } elseif (trim((string) ($codeRow['email'] ?? '')) === '') {
+            $flash = 'Este código não tem email associado — edita-o primeiro e adiciona um email.';
+        } else {
+            if (edv_send_discount_code_email($codeRow, $codeRow)) {
+                $pdo->prepare('UPDATE discount_codes SET sent_at = ? WHERE id = ?')
+                    ->execute([date('Y-m-d H:i:s'), $codeId]);
+                $flash = 'Email reenviado para ' . $codeRow['email'] . ' com o código ' . $codeRow['code'] . '.';
+            } else {
+                $flash = 'mail() devolveu falha — o envio não foi aceite pelo servidor.';
+            }
+        }
+    } elseif ($action === 'send_test_code_email') {
+        $eventId = (int) ($_POST['event_id'] ?? 0);
+        $to = strtolower(trim((string) ($_POST['to'] ?? '')));
+        $event = null;
+        foreach ($events as $ev) {
+            if ((int) $ev['id'] === $eventId) {
+                $event = $ev;
+                break;
+            }
+        }
+        if (!filter_var($to, FILTER_VALIDATE_EMAIL)) {
+            $flash = 'Indica um email válido para o teste.';
+        } elseif ($event === null) {
+            $flash = 'Escolhe um evento para o teste.';
+        } else {
+            $testCode = [
+                'email' => $to,
+                'name' => 'Teste de Entrega',
+                'code' => 'EDV-TESTE0', // não existe na BD — nunca valida no checkout
+                'min_eur' => (float) ($event['returning_min_eur'] ?? 15),
+            ];
+            if (edv_send_discount_code_email($testCode, ['title' => '[TESTE] ' . $event['title'], 'date' => $event['date']])) {
+                $flash = "Email de teste aceite pelo servidor para {$to} (código fictício EDV-TESTE0). "
+                    . 'Confirma na caixa de entrada e no spam — mail() aceitar não garante entrega.';
+            } else {
+                $flash = 'mail() devolveu falha — o servidor não aceitou o envio.';
+            }
+        }
     }
 }
 
@@ -222,6 +326,43 @@ if ($selectedCampaignId > 0) {
         $q->execute([$selectedCampaignId]);
         $campaignCodes = $q->fetchAll(PDO::FETCH_ASSOC) ?: [];
     }
+}
+
+// ——— Todos os códigos (pesquisa + últimos 50) ———
+$codeQuery = trim((string) ($_REQUEST['code_q'] ?? ''));
+$allCodesSql =
+    'SELECT dc.*, e.title AS event_title, e.date AS event_date,
+            (SELECT COUNT(*) FROM discount_code_uses u WHERE u.discount_code_id = dc.id) AS uses_logged
+     FROM discount_codes dc
+     INNER JOIN events e ON e.id = dc.event_id';
+$allCodesParams = [];
+if ($codeQuery !== '') {
+    $needle = '%' . strtoupper($codeQuery) . '%';
+    $allCodesSql .= ' WHERE UPPER(dc.code) LIKE ? OR UPPER(COALESCE(dc.email, \'\')) LIKE ? OR UPPER(COALESCE(dc.name, \'\')) LIKE ?';
+    $allCodesParams = [$needle, $needle, $needle];
+}
+$allCodesSql .= ' ORDER BY dc.created_at DESC, dc.id DESC LIMIT 50';
+$allCodesStmt = $pdo->prepare($allCodesSql);
+$allCodesStmt->execute($allCodesParams);
+$allCodes = $allCodesStmt->fetchAll(PDO::FETCH_ASSOC) ?: [];
+
+/**
+ * Estado visual de um código: usado / inactivo / expirado / activo.
+ * @return array{0: string, 1: string} [label, tag css class]
+ */
+function dc_code_status(array $row): array
+{
+    if ((int) ($row['use_count'] ?? 0) >= (int) ($row['max_uses'] ?? 1)) {
+        return ['usado', 'ok'];
+    }
+    if ((int) ($row['is_active'] ?? 0) !== 1) {
+        return ['inactivo', 'warn'];
+    }
+    $validUntil = (string) ($row['valid_until'] ?? '');
+    if ($validUntil !== '' && substr($validUntil, 0, 10) < db_today_string()) {
+        return ['expirado', 'warn'];
+    }
+    return ['activo', 'pending'];
 }
 
 $recentUses = $pdo->query(
@@ -447,6 +588,109 @@ $recentUses = $pdo->query(
       </div>
     </section>
   <?php endif; ?>
+
+  <section class="panel">
+    <h2>Todos os códigos</h2>
+    <form method="get" class="actions-row">
+      <input type="text" name="code_q" value="<?= dc_h($codeQuery) ?>" placeholder="Pesquisar por código, email ou nome…" style="max-width:22rem;" />
+      <button class="btn" type="submit">Pesquisar</button>
+      <?php if ($codeQuery !== ''): ?>
+        <a href="discount-codes.php" style="color:rgba(245,239,230,.55);font-size:.74rem;">limpar</a>
+      <?php endif; ?>
+    </form>
+    <?php if ($allCodes === []): ?>
+      <p class="help"><?= $codeQuery !== '' ? 'Nenhum código corresponde à pesquisa.' : 'Ainda não há códigos.' ?></p>
+    <?php else: ?>
+      <p class="help" style="margin-bottom:.6rem;">
+        <?= count($allCodes) ?> código(s)<?= count($allCodes) === 50 ? ' (máx. 50 — afina a pesquisa para ver mais antigos)' : '' ?> ·
+        manuais e de campanha, mais recentes primeiro.
+      </p>
+      <div class="scroll-table">
+        <table>
+          <thead><tr><th>Código</th><th>Pessoa</th><th>Evento</th><th>Mín.</th><th>Válido até</th><th>Enviado</th><th>Estado</th><th>Acções</th></tr></thead>
+          <tbody>
+            <?php foreach ($allCodes as $row): ?>
+              <?php
+                [$statusLabel, $statusClass] = dc_code_status($row);
+                $rowUsed = (int) ($row['use_count'] ?? 0) > 0 || (int) ($row['uses_logged'] ?? 0) > 0;
+                $rowEmail = trim((string) ($row['email'] ?? ''));
+              ?>
+              <tr>
+                <td class="mono"><?= dc_h((string) $row['code']) ?><?php if (empty($row['campaign_id'])): ?><br><span class="tag" style="font-size:.58rem;">manual</span><?php endif; ?></td>
+                <td>
+                  <?= dc_h((string) ($row['name'] ?? '') !== '' ? (string) $row['name'] : '—') ?><br>
+                  <span style="opacity:.55;font-size:.72rem"><?= $rowEmail !== '' ? dc_h($rowEmail) : 'sem email (uso livre)' ?></span>
+                </td>
+                <td><?= dc_h((string) $row['event_title']) ?></td>
+                <td><?= number_format((float) $row['min_eur'], 0, ',', ' ') ?>€</td>
+                <td><?= !empty($row['valid_until']) ? dc_h(date('d/m/Y', strtotime((string) $row['valid_until']))) : '—' ?></td>
+                <td><?= !empty($row['sent_at']) ? dc_h(date('d/m H:i', strtotime((string) $row['sent_at']))) : '—' ?></td>
+                <td><span class="tag <?= $statusClass ?>"><?= $statusLabel ?></span></td>
+                <td>
+                  <div style="display:flex;flex-wrap:wrap;gap:.3rem;">
+                    <form method="post">
+                      <input type="hidden" name="action" value="toggle_code" />
+                      <input type="hidden" name="code_id" value="<?= (int) $row['id'] ?>" />
+                      <input type="hidden" name="code_q" value="<?= dc_h($codeQuery) ?>" />
+                      <button class="btn" type="submit" style="padding:.3rem .5rem;font-size:.62rem;">
+                        <?= ((int) $row['is_active']) === 1 ? 'Desactivar' : 'Activar' ?>
+                      </button>
+                    </form>
+                    <?php if ($rowEmail !== ''): ?>
+                      <form method="post">
+                        <input type="hidden" name="action" value="resend_code_email" />
+                        <input type="hidden" name="code_id" value="<?= (int) $row['id'] ?>" />
+                        <input type="hidden" name="code_q" value="<?= dc_h($codeQuery) ?>" />
+                        <button class="btn btn-gold" type="submit" style="padding:.3rem .5rem;font-size:.62rem;">
+                          <?= !empty($row['sent_at']) ? 'Reenviar' : 'Enviar' ?> email
+                        </button>
+                      </form>
+                    <?php endif; ?>
+                    <?php if (!$rowUsed): ?>
+                      <form method="post" onsubmit="return confirm('Apagar o código <?= dc_h((string) $row['code']) ?>?');">
+                        <input type="hidden" name="action" value="delete_code" />
+                        <input type="hidden" name="code_id" value="<?= (int) $row['id'] ?>" />
+                        <input type="hidden" name="code_q" value="<?= dc_h($codeQuery) ?>" />
+                        <button class="btn btn-danger" type="submit" style="padding:.3rem .5rem;font-size:.62rem;">Apagar</button>
+                      </form>
+                    <?php endif; ?>
+                  </div>
+                  <details style="margin-top:.35rem;">
+                    <summary style="cursor:pointer;font-size:.66rem;color:rgba(245,239,230,.5);">Editar</summary>
+                    <form method="post" style="margin-top:.45rem;display:grid;gap:.35rem;max-width:15rem;">
+                      <input type="hidden" name="action" value="update_code" />
+                      <input type="hidden" name="code_id" value="<?= (int) $row['id'] ?>" />
+                      <input type="hidden" name="code_q" value="<?= dc_h($codeQuery) ?>" />
+                      <input type="text" name="name" value="<?= dc_h((string) ($row['name'] ?? '')) ?>" placeholder="Nome" />
+                      <input type="email" name="email" value="<?= dc_h($rowEmail) ?>" placeholder="Email (vazio = uso livre)" />
+                      <input type="number" name="min_eur" min="0" step="0.01" value="<?= number_format((float) $row['min_eur'], 2, '.', '') ?>" title="Preço mínimo (€)" />
+                      <input type="date" name="valid_until" value="<?= dc_h(substr((string) ($row['valid_until'] ?? ''), 0, 10)) ?>" title="Válido até (vazio = sem limite)" />
+                      <button class="btn" type="submit" style="padding:.35rem .55rem;font-size:.64rem;">Guardar</button>
+                    </form>
+                  </details>
+                </td>
+              </tr>
+            <?php endforeach; ?>
+          </tbody>
+        </table>
+      </div>
+    <?php endif; ?>
+  </section>
+
+  <section class="panel">
+    <h2>Teste de email de código</h2>
+    <form method="post" class="actions-row">
+      <input type="hidden" name="action" value="send_test_code_email" />
+      <input type="email" name="to" value="<?= dc_h((string) ($_POST['to'] ?? 'daniel@innerflect.tech')) ?>" required style="max-width:18rem;" placeholder="email de teste" />
+      <select name="event_id" style="max-width:18rem;">
+        <?php foreach ($events as $ev): ?>
+          <option value="<?= (int) $ev['id'] ?>"><?= dc_h((string) $ev['title']) ?> · <?= dc_h(date('d/m/Y', strtotime((string) $ev['date']))) ?></option>
+        <?php endforeach; ?>
+      </select>
+      <button class="btn btn-gold" type="submit">Enviar teste</button>
+    </form>
+    <p class="help">Envia o template real do email de código para o endereço indicado, com o código fictício <code style="color:var(--gold)">EDV-TESTE0</code> (não existe na BD, nunca valida no checkout). Nada é gravado. Útil para verificar entregabilidade antes de disparar uma campanha.</p>
+  </section>
 
   <section class="panel">
     <h2>Utilizações registadas</h2>

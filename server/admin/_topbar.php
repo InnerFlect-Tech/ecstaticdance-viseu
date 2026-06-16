@@ -5,7 +5,7 @@ declare(strict_types=1);
  * Scan sempre ao centro (desktop + mobile).
  *
  * Opcional antes do include:
- *   $__adminNav          'tickets' | 'links' | 'analytics' | 'costs' | 'events' | 'attendance' | 'codes' | 'scan'
+ *   $__adminNav          'tickets' | 'links' | 'analytics' | 'costs' | 'events' | 'attendance' | 'participants' | 'codes' | 'scan'
  *   $__exportEventId     int|null
  *   $__secondaryCsvHref  string|null
  *   $__hideDbBackup      bool (omit link to full SQL backup)
@@ -22,6 +22,7 @@ $isAnalytics = $__adminNav === 'analytics';
 $isCosts     = $__adminNav === 'costs';
 $isEvents     = $__adminNav === 'events';
 $isAttendance = $__adminNav === 'attendance';
+$isParticipants = $__adminNav === 'participants';
 $isCodes      = $__adminNav === 'codes';
 $isScan       = $__adminNav === 'scan';
 $isTasks      = $__adminNav === 'tasks';
@@ -81,6 +82,11 @@ $iLogout = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-li
        class="tb-btn tb-pill<?= $isAttendance ? ' is-active' : '' ?>"
        <?= $isAttendance ? 'aria-current="page"' : '' ?>>
       <?= $iPeople ?> Presenças
+    </a>
+    <a href="/admin/participants.php"
+       class="tb-btn tb-pill<?= $isParticipants ? ' is-active' : '' ?>"
+       <?= $isParticipants ? 'aria-current="page"' : '' ?>>
+      <?= $iPeople ?> Participantes
     </a>
     <a href="/admin/discount-codes.php"
        class="tb-btn tb-pill<?= $isCodes ? ' is-active' : '' ?>"
@@ -180,6 +186,13 @@ $iLogout = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-li
      <?= $isAttendance ? 'aria-current="page"' : '' ?>>
     <?= $iPeople ?>
     <span class="btab-label">Presenças</span>
+  </a>
+
+  <a href="/admin/participants.php"
+     class="btab<?= $isParticipants ? ' is-active' : '' ?>"
+     <?= $isParticipants ? 'aria-current="page"' : '' ?>>
+    <?= $iPeople ?>
+    <span class="btab-label">Pessoas</span>
   </a>
 
   <a href="/admin/discount-codes.php"

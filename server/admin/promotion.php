@@ -3,6 +3,7 @@ declare(strict_types=1);
 
 require_once __DIR__ . '/auth.php';
 require_once __DIR__ . '/campaign-lib.php';
+require_once __DIR__ . '/promo-places-lib.php';
 require_once __DIR__ . '/../api/whatsapp.php';
 require_admin_session();
 
@@ -21,10 +22,32 @@ const EDV_PROMO_PHASES = [
 $pdo = db();
 edv_campaign_ensure_schema($pdo);
 edv_campaign_seed_from_meeting($pdo);
+edv_promo_places_ensure_schema($pdo);
+edv_promo_places_seed($pdo);
+
+// Eventos para o seletor de edição (locais de promoção marcados por edição).
+$promoEvents = $pdo->query(
+    'SELECT id, title, date, is_active FROM events ORDER BY date DESC LIMIT 30'
+)->fetchAll(PDO::FETCH_ASSOC) ?: [];
 
 $flash = '';
 $flashKind = 'ok';
 $editId = (int) ($_REQUEST['edit_id'] ?? 0);
+
+// Edição selecionada: ?place_event=ID, senão o próximo evento ativo, senão o mais recente.
+$selectedPlaceEvent = (int) ($_REQUEST['place_event'] ?? 0);
+if ($selectedPlaceEvent <= 0) {
+    $today = date('Y-m-d');
+    foreach ($promoEvents as $ev) {
+        if ((int) $ev['is_active'] === 1 && (string) $ev['date'] >= $today) {
+            $selectedPlaceEvent = (int) $ev['id'];
+            break;
+        }
+    }
+    if ($selectedPlaceEvent <= 0 && $promoEvents !== []) {
+        $selectedPlaceEvent = (int) $promoEvents[0]['id'];
+    }
+}
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $action = (string) ($_POST['action'] ?? '');
@@ -81,6 +104,46 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 $flashKind = 'bad';
             }
         }
+    } elseif ($action === 'place_create') {
+        $name = trim((string) ($_POST['name'] ?? ''));
+        $type = trim((string) ($_POST['type'] ?? 'outro'));
+        if ($name === '') {
+            $flash = 'O local precisa de nome.';
+            $flashKind = 'bad';
+        } else {
+            edv_promo_place_create($pdo, $name, $type, trim((string) ($_POST['url'] ?? '')), trim((string) ($_POST['notes'] ?? '')));
+            $flash = 'Local adicionado à lista.';
+        }
+    } elseif ($action === 'place_update') {
+        $id = (int) ($_POST['place_id'] ?? 0);
+        $name = trim((string) ($_POST['name'] ?? ''));
+        if ($id > 0 && $name !== '') {
+            edv_promo_place_update($pdo, $id, $name, trim((string) ($_POST['type'] ?? 'outro')), trim((string) ($_POST['url'] ?? '')), trim((string) ($_POST['notes'] ?? '')));
+            $flash = 'Local atualizado.';
+        } else {
+            $flash = 'Nome do local em falta.';
+            $flashKind = 'bad';
+        }
+    } elseif ($action === 'place_toggle_active') {
+        $id = (int) ($_POST['place_id'] ?? 0);
+        if ($id > 0) {
+            edv_promo_place_toggle_active($pdo, $id);
+            $flash = 'Estado do local alterado.';
+        }
+    } elseif ($action === 'place_delete') {
+        $id = (int) ($_POST['place_id'] ?? 0);
+        if ($id > 0) {
+            edv_promo_place_delete($pdo, $id);
+            $flash = 'Local removido da lista.';
+        }
+    } elseif ($action === 'place_toggle_posted') {
+        $placeId = (int) ($_POST['place_id'] ?? 0);
+        $eventId = (int) ($_POST['event_id'] ?? 0);
+        if ($placeId > 0 && $eventId > 0) {
+            $nowPosted = edv_promo_place_toggle_posted($pdo, $placeId, $eventId);
+            $flash = $nowPosted ? 'Marcado como publicado nesta edição.' : 'Marca de publicação removida.';
+            $selectedPlaceEvent = $eventId;
+        }
     }
 }
 
@@ -97,6 +160,27 @@ foreach ($rows as $r) {
     $byPhase[$p][] = $r;
 }
 $waReady = edv_waha_enabled();
+
+// Locais de promoção + estado de publicação na edição selecionada.
+$promoPlaces = edv_promo_places_all($pdo);
+$placePostsForEvent = $selectedPlaceEvent > 0 ? edv_promo_place_posts_for_event($pdo, $selectedPlaceEvent) : [];
+$selectedPlaceEventRow = null;
+foreach ($promoEvents as $ev) {
+    if ((int) $ev['id'] === $selectedPlaceEvent) {
+        $selectedPlaceEventRow = $ev;
+        break;
+    }
+}
+$activePlacesCount = 0;
+$postedPlacesCount = 0;
+foreach ($promoPlaces as $pl) {
+    if ((int) $pl['is_active'] === 1) {
+        $activePlacesCount++;
+        if (isset($placePostsForEvent[(int) $pl['id']])) {
+            $postedPlacesCount++;
+        }
+    }
+}
 
 [$calYear, $calMonth] = edv_campaign_calendar_ym((string) ($_GET['ym'] ?? ''));
 $calByDate = [];
@@ -167,6 +251,26 @@ foreach ($rows as $r) {
     .cal-chip.doing { background:rgba(212,168,90,.2); color:var(--gold); }
     .cal-chip.done { opacity:.45; }
     @media (max-width:700px){ .cal-cell{ min-height:46px; } .cal-day{ font-size:.56rem; } .cal-chip{ font-size:.48rem; } }
+    /* Locais de promoção */
+    .pl-bar { display:flex; flex-wrap:wrap; gap:.6rem; align-items:center; margin-bottom:.8rem; }
+    .pl-bar select { width:auto; min-width:14rem; }
+    .pl-progress { font-size:.78rem; color:rgba(245,239,230,.6); }
+    .pl-progress strong { color:var(--gold); }
+    .place { display:flex; flex-wrap:wrap; align-items:flex-start; gap:.6rem; border:1px solid rgba(245,239,230,.08); border-radius:9px; padding:.6rem .7rem; margin-bottom:.5rem; background:rgba(0,0,0,.14); }
+    .place.is-posted { border-color:rgba(37,211,102,.32); background:rgba(37,211,102,.05); }
+    .place.is-off { opacity:.5; }
+    .place .pl-main { flex:1 1 240px; min-width:0; }
+    .place .pl-name { font-size:.9rem; font-weight:500; }
+    .place .pl-name a { color:var(--gold); text-decoration:none; }
+    .place .pl-type { display:inline-block; font-size:.58rem; letter-spacing:.06em; text-transform:uppercase; padding:.1rem .4rem; border-radius:99px; border:1px solid rgba(245,239,230,.18); color:rgba(245,239,230,.6); margin-left:.4rem; vertical-align:middle; }
+    .place .pl-notes { font-size:.74rem; color:rgba(245,239,230,.55); margin-top:.25rem; line-height:1.4; }
+    .place .pl-side { display:flex; flex-direction:column; align-items:flex-end; gap:.35rem; }
+    .place .pl-when { font-size:.66rem; color:#6be39a; }
+    .btn-done { border-color:rgba(37,211,102,.45); color:#6be39a; background:rgba(37,211,102,.1); }
+    details.pl-edit { margin-top:.4rem; }
+    details.pl-edit summary { cursor:pointer; font-size:.66rem; color:rgba(245,239,230,.5); }
+    details.pl-edit .form-grid { margin-top:.5rem; }
+    .pl-actions { display:flex; gap:.35rem; flex-wrap:wrap; margin-top:.4rem; }
   </style>
 </head>
 <body class="has-bottom-tabs">
@@ -189,6 +293,133 @@ require __DIR__ . '/_topbar.php';
   <?php endif; ?>
 
   <?= edv_campaign_month_calendar($calByDate, $calYear, $calMonth) ?>
+
+  <div class="panel">
+    <h2>Locais de promoção — por edição</h2>
+    <p class="notice" style="margin-bottom:.7rem;">
+      Lista fixa de sítios onde divulgamos (agendas, grupos FB/WhatsApp/Telegram, Instagram, cartazes…).
+      Escolhe a edição e marca onde já publicaste. A lista mantém-se entre edições.
+    </p>
+    <form method="get" class="pl-bar">
+      <div>
+        <label class="lbl">Edição</label>
+        <select name="place_event" onchange="this.form.submit()">
+          <?php if ($promoEvents === []): ?>
+            <option value="0">— sem eventos —</option>
+          <?php endif; ?>
+          <?php foreach ($promoEvents as $ev): ?>
+            <option value="<?= (int) $ev['id'] ?>" <?= (int) $ev['id'] === $selectedPlaceEvent ? 'selected' : '' ?>>
+              <?= promo_h((string) $ev['title']) ?> · <?= promo_h(date('d/m/Y', strtotime((string) $ev['date']))) ?><?= (int) $ev['is_active'] === 1 ? ' ★' : '' ?>
+            </option>
+          <?php endforeach; ?>
+        </select>
+      </div>
+      <?php if ($selectedPlaceEventRow !== null): ?>
+        <div class="pl-progress" style="align-self:flex-end;">
+          <strong><?= $postedPlacesCount ?></strong> / <?= $activePlacesCount ?> locais ativos marcados nesta edição
+        </div>
+      <?php endif; ?>
+    </form>
+
+    <?php if ($promoPlaces === []): ?>
+      <p class="notice">Ainda não há locais. Adiciona o primeiro abaixo.</p>
+    <?php endif; ?>
+
+    <?php foreach ($promoPlaces as $pl): ?>
+      <?php
+        $plId = (int) $pl['id'];
+        $isActive = (int) $pl['is_active'] === 1;
+        $postedAt = $placePostsForEvent[$plId] ?? null;
+        $isPosted = $postedAt !== null;
+      ?>
+      <div class="place <?= $isPosted ? 'is-posted' : '' ?> <?= $isActive ? '' : 'is-off' ?>">
+        <div class="pl-main">
+          <div class="pl-name">
+            <?php if (!empty($pl['url'])): ?>
+              <a href="<?= promo_h((string) $pl['url']) ?>" target="_blank" rel="noopener"><?= promo_h((string) $pl['name']) ?></a>
+            <?php else: ?>
+              <?= promo_h((string) $pl['name']) ?>
+            <?php endif; ?>
+            <span class="pl-type"><?= promo_h(edv_promo_place_type_label((string) $pl['type'])) ?></span>
+            <?php if (!$isActive): ?><span class="pl-type">inativo</span><?php endif; ?>
+          </div>
+          <?php if (!empty($pl['notes'])): ?><div class="pl-notes"><?= promo_h((string) $pl['notes']) ?></div><?php endif; ?>
+          <div class="pl-actions">
+            <form method="post" class="inline-form">
+              <input type="hidden" name="action" value="place_toggle_active" />
+              <input type="hidden" name="place_id" value="<?= $plId ?>" />
+              <input type="hidden" name="place_event" value="<?= $selectedPlaceEvent ?>" />
+              <button class="btn" type="submit"><?= $isActive ? 'Desativar' : 'Reativar' ?></button>
+            </form>
+            <form method="post" class="inline-form" onsubmit="return confirm('Remover este local da lista (e o histórico em todas as edições)?');">
+              <input type="hidden" name="action" value="place_delete" />
+              <input type="hidden" name="place_id" value="<?= $plId ?>" />
+              <input type="hidden" name="place_event" value="<?= $selectedPlaceEvent ?>" />
+              <button class="btn btn-danger" type="submit">Remover</button>
+            </form>
+          </div>
+          <details class="pl-edit">
+            <summary>Editar local</summary>
+            <form method="post">
+              <input type="hidden" name="action" value="place_update" />
+              <input type="hidden" name="place_id" value="<?= $plId ?>" />
+              <input type="hidden" name="place_event" value="<?= $selectedPlaceEvent ?>" />
+              <div class="form-grid">
+                <div><label class="lbl">Nome</label><input name="name" value="<?= promo_h((string) $pl['name']) ?>" required /></div>
+                <div><label class="lbl">Tipo</label>
+                  <select name="type">
+                    <?php foreach (EDV_PROMO_PLACE_TYPES as $tk => $tv): ?>
+                      <option value="<?= $tk ?>" <?= (string) $pl['type'] === $tk ? 'selected' : '' ?>><?= promo_h($tv) ?></option>
+                    <?php endforeach; ?>
+                  </select>
+                </div>
+                <div><label class="lbl">Link</label><input name="url" value="<?= promo_h((string) ($pl['url'] ?? '')) ?>" placeholder="https://" /></div>
+                <div style="align-self:end;"><button class="btn btn-gold" type="submit">Guardar</button></div>
+              </div>
+              <div style="margin-top:.5rem;"><label class="lbl">Notas</label><input name="notes" value="<?= promo_h((string) ($pl['notes'] ?? '')) ?>" /></div>
+            </form>
+          </details>
+        </div>
+        <?php if ($selectedPlaceEvent > 0): ?>
+          <div class="pl-side">
+            <form method="post" class="inline-form">
+              <input type="hidden" name="action" value="place_toggle_posted" />
+              <input type="hidden" name="place_id" value="<?= $plId ?>" />
+              <input type="hidden" name="event_id" value="<?= $selectedPlaceEvent ?>" />
+              <input type="hidden" name="place_event" value="<?= $selectedPlaceEvent ?>" />
+              <button class="btn <?= $isPosted ? 'btn-done' : '' ?>" type="submit">
+                <?= $isPosted ? '✓ Publicado' : 'Marcar publicado' ?>
+              </button>
+            </form>
+            <?php if ($isPosted): ?>
+              <span class="pl-when"><?= promo_h(date('d/m/Y', strtotime((string) $postedAt))) ?></span>
+            <?php endif; ?>
+          </div>
+        <?php endif; ?>
+      </div>
+    <?php endforeach; ?>
+
+    <details style="margin-top:.8rem;">
+      <summary style="cursor:pointer;font-size:.72rem;color:var(--gold);">+ Adicionar local de promoção</summary>
+      <form method="post" style="margin-top:.7rem;">
+        <input type="hidden" name="action" value="place_create" />
+        <input type="hidden" name="place_event" value="<?= $selectedPlaceEvent ?>" />
+        <div class="form-grid">
+          <div><label class="lbl">Nome</label><input name="name" required placeholder="Grupo FB Viseu Eventos" /></div>
+          <div><label class="lbl">Tipo</label>
+            <select name="type">
+              <?php foreach (EDV_PROMO_PLACE_TYPES as $tk => $tv): ?>
+                <option value="<?= $tk ?>"><?= promo_h($tv) ?></option>
+              <?php endforeach; ?>
+            </select>
+          </div>
+          <div><label class="lbl">Link (opcional)</label><input name="url" placeholder="https://" /></div>
+          <div style="align-self:end;"><button class="btn btn-gold" type="submit">Adicionar</button></div>
+        </div>
+        <div style="margin-top:.5rem;"><label class="lbl">Notas (opcional)</label><input name="notes" placeholder="Como/quando submeter, contacto…" /></div>
+      </form>
+    </details>
+  </div>
 
   <div class="panel">
     <h2>Novo post</h2>
