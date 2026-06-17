@@ -99,8 +99,10 @@ SQL
     }
 }
 
-/** Data da edição #01 (contas fechadas à mão). */
-const EDV_EVENT_01_DATE = '2026-05-23';
+/** Data da edição #01 (contas fechadas à mão). Definida também em attendance.php — guarda contra redefinição quando ambos são carregados. */
+if (!defined('EDV_EVENT_01_DATE')) {
+    define('EDV_EVENT_01_DATE', '2026-05-23');
+}
 
 function edv_settlement_ensure_extended_schema(PDO $pdo): void
 {

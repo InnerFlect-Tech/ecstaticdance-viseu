@@ -86,6 +86,37 @@ function edv_event_slug_from_date(string $date): string
     return 'edv-' . $date;
 }
 
+/**
+ * Ativação one-shot da edição #02 (27 jun 2026): preço mínimo correto + programa.
+ * Só corre enquanto a linha estiver por preencher (description vazia) — depois a
+ * condição deixa de coincidir, por isso é idempotente e não sobrepõe edições
+ * feitas no /admin → Eventos.
+ */
+function edv_event_apply_02_activation(PDO $pdo): void
+{
+    $programa = 'Uma tarde de dança consciente: abertura em círculo e cerimónia de cacau com Alessia, '
+        . 'uma jornada musical de 3h com o DJ Bernardo B-File, e um espaço de integração com Rodrigo no final. '
+        . 'Portas às 15:30 · dança das 16:00 às 19:00 · descalços, sóbrios, presentes.';
+    try {
+        $stmt = $pdo->prepare(
+            "UPDATE events
+             SET min_price = 30,
+                 early_bird_min_eur = 25,
+                 early_bird_until = '2026-06-13',
+                 returning_min_eur = 20,
+                 location = 'Nua e Crua, Viseu',
+                 description = ?,
+                 warmup_name = 'Alessia',
+                 integration_name = 'Rodrigo'
+             WHERE date = '2026-06-27'
+               AND (description IS NULL OR description = '')"
+        );
+        $stmt->execute([$programa]);
+    } catch (PDOException) {
+        // diferenças de colunas por driver — ignora
+    }
+}
+
 function edv_event_time_hm(?string $time): ?string
 {
     if ($time === null || trim($time) === '') {

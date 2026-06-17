@@ -25,6 +25,17 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && (string) ($_POST['action'] ?? '') =
     }
 }
 
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && (string) ($_POST['action'] ?? '') === 'delete_attendance') {
+    $attendanceId = (int) ($_POST['attendance_id'] ?? 0);
+    $result = edv_attendance_delete($pdo, $attendanceId);
+    if ($result['ok']) {
+        $flash = 'Presença eliminada.';
+    } else {
+        $flash = $result['error'] ?? 'Não foi possível eliminar a presença.';
+        $flashError = true;
+    }
+}
+
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && (string) ($_POST['action'] ?? '') === 'import_event_01') {
     $importResult = edv_attendance_import_event_01_roster($pdo);
     if ($importResult === null) {
@@ -155,6 +166,8 @@ function att_h(string $v): string
       padding: .35rem .45rem; border-radius: 6px; font-size: .78rem; font-family: inherit;
     }
     .email-edit .btn-save { padding: .32rem .5rem; font-size: .62rem; }
+    .btn-del { border-color: rgba(180,80,60,.45); background: rgba(180,80,60,.12); color: #e8a090; padding: .32rem .55rem; font-size: .62rem; white-space: nowrap; }
+    .btn-del:hover { border-color: rgba(180,80,60,.7); }
     .email-placeholder-hint { font-size: .68rem; color: rgba(245,239,230,.4); font-style: italic; }
     .tag-phone { font-size: .62rem; color: #6bcf9a; letter-spacing: .06em; text-transform: uppercase; }
   </style>
@@ -244,6 +257,7 @@ require __DIR__ . '/_topbar.php';
             <th>Telemóvel</th>
             <th>Valor</th>
             <th>Bilhete</th>
+            <th></th>
           </tr>
         </thead>
         <tbody>
@@ -275,6 +289,14 @@ require __DIR__ . '/_topbar.php';
               <td class="mono"><?= att_h((string) $r['phone']) ?></td>
               <td><?= number_format((float) $r['amount_paid'], 2, ',', ' ') ?> €</td>
               <td class="mono"><?= att_h(substr((string) $r['ticket_id'], 0, 8)) ?>…</td>
+              <td>
+                <form method="post" onsubmit="return confirm('Eliminar a presença de <?= att_h((string) $r['name']) ?>? O bilhete (se existir) deixa de contar como presente.');">
+                  <input type="hidden" name="action" value="delete_attendance" />
+                  <input type="hidden" name="event_id" value="<?= (int) $selectedEvent ?>" />
+                  <input type="hidden" name="attendance_id" value="<?= (int) $r['id'] ?>" />
+                  <button type="submit" class="btn btn-del">Eliminar</button>
+                </form>
+              </td>
             </tr>
           <?php endforeach; ?>
         </tbody>

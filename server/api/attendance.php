@@ -616,6 +616,36 @@ function edv_attendance_update_email(PDO $pdo, int $attendanceId, string $newEma
 }
 
 /**
+ * Elimina um registo de presença. Se estiver ligado a um bilhete, faz uncheck
+ * do check-in para o backfill não recriar a presença.
+ *
+ * @return array{ok:bool, error?:string}
+ */
+function edv_attendance_delete(PDO $pdo, int $attendanceId): array
+{
+    edv_attendance_ensure_schema($pdo);
+
+    $stmt = $pdo->prepare('SELECT id, ticket_id FROM event_attendance WHERE id = ? LIMIT 1');
+    $stmt->execute([$attendanceId]);
+    $row = $stmt->fetch(PDO::FETCH_ASSOC);
+    if (!is_array($row)) {
+        return ['ok' => false, 'error' => 'Registo de presença não encontrado.'];
+    }
+
+    try {
+        $pdo->prepare('DELETE FROM event_attendance WHERE id = ?')->execute([$attendanceId]);
+        $ticketId = (string) ($row['ticket_id'] ?? '');
+        if ($ticketId !== '') {
+            $pdo->prepare('UPDATE tickets SET checked_in = 0 WHERE id = ?')->execute([$ticketId]);
+        }
+    } catch (PDOException $e) {
+        return ['ok' => false, 'error' => 'Erro ao eliminar: ' . $e->getMessage()];
+    }
+
+    return ['ok' => true];
+}
+
+/**
  * Preenche event_attendance a partir de check-ins já gravados em tickets.
  */
 function edv_attendance_backfill_from_tickets(): int
@@ -635,8 +665,10 @@ function edv_attendance_backfill_from_tickets(): int
     return $n;
 }
 
-/** Data da edição #01 (lista à porta). */
-const EDV_EVENT_01_DATE = '2026-05-23';
+/** Data da edição #01 (lista à porta). Definida também em event-settlement.php — guarda contra redefinição quando ambos são carregados. */
+if (!defined('EDV_EVENT_01_DATE')) {
+    define('EDV_EVENT_01_DATE', '2026-05-23');
+}
 
 /**
  * Lista da folha de presenças — edição #01 (23 maio 2026).
