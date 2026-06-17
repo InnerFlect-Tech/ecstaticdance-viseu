@@ -94,11 +94,15 @@ function edv_event_slug_from_date(string $date): string
  */
 function edv_event_apply_02_activation(PDO $pdo): void
 {
-    $programa = 'Uma tarde de dança consciente: abertura em círculo e cerimónia de cacau com Alessia, '
+    // O campo description alimenta a tagline do heading no /links — manter curto.
+    // O programa detalhado vive no line-up + no dropdown "Ver programa completo".
+    $tagline = 'Uma jornada livre ao som da música — presença plena, em comunidade.';
+    $longTagline = 'Uma tarde de dança consciente: abertura em círculo e cerimónia de cacau com Alessia, '
         . 'uma jornada musical de 3h com o DJ Bernardo B-File, e um espaço de integração com Rodrigo no final. '
         . 'Portas às 15:30 · dança das 16:00 às 19:00 · descalços, sóbrios, presentes.';
     try {
-        $stmt = $pdo->prepare(
+        // Ativação inicial (linha ainda por preencher).
+        $pdo->prepare(
             "UPDATE events
              SET min_price = 30,
                  early_bird_min_eur = 25,
@@ -110,8 +114,12 @@ function edv_event_apply_02_activation(PDO $pdo): void
                  integration_name = 'Rodrigo'
              WHERE date = '2026-06-27'
                AND (description IS NULL OR description = '')"
-        );
-        $stmt->execute([$programa]);
+        )->execute([$tagline]);
+
+        // Corrige (one-shot) a descrição longa que ficou no masthead num deploy anterior.
+        $pdo->prepare(
+            "UPDATE events SET description = ? WHERE date = '2026-06-27' AND description = ?"
+        )->execute([$tagline, $longTagline]);
     } catch (PDOException) {
         // diferenças de colunas por driver — ignora
     }
