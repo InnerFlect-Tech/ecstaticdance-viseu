@@ -262,9 +262,10 @@ function renderProgramSteps(mount, slots) {
     integration: '<circle cx="7" cy="5" r="3"/><path d="M3 13c0-2.2 1.8-4 4-4s4 1.8 4 4"/>',
     tea: '<path d="M2 7 Q7 3 12 7"/><path d="M4 7v4M10 7v4M2 11h10"/>',
   }
+  // NB: estes passos são injetados depois do observer .reveal de pages.js correr,
+  // por isso não levam classe `reveal` (senão ficavam invisíveis — dropdown em branco).
   mount.innerHTML = slots
-    .map((slot, i) => {
-      const delay = i > 0 ? ` reveal-delay-${Math.min(i, 4)}` : ''
+    .map((slot) => {
       const spotlight =
         slot.spotlight ? ' links-experience-step--spotlight' : slot.key === 'integration' || slot.key === 'tea' ? ' links-experience-step--wind-down' : ''
       const timeWhen =
@@ -272,7 +273,7 @@ function renderProgramSteps(mount, slots) {
           ? `<span class="links-experience-time">${formatTimePt(slot.time)} – ${formatTimePt(slot.timeEnd)}</span>`
           : `<span class="links-experience-time">${formatTimePt(slot.time)}</span>`
       const icon = dotIcons[/** @type {keyof typeof dotIcons} */ (slot.key)] || dotIcons.doors
-      return `<li class="links-experience-step${spotlight} reveal${delay}">
+      return `<li class="links-experience-step${spotlight}">
         <span class="links-experience-dot" aria-hidden="true">
           <svg width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round">${icon}</svg>
         </span>
