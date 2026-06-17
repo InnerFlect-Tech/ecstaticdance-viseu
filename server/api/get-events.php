@@ -11,6 +11,7 @@ cors();
 header('Cache-Control: no-store');
 
 edv_events_ensure_display_columns(db());
+edv_event_apply_02_activation(db());
 
 if ($_SERVER['REQUEST_METHOD'] !== 'GET') {
     json_err('Method not allowed', 405);
